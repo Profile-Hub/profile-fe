@@ -12,7 +12,7 @@ class AuthService {
       final response = await http.post(url, headers: headers, body: body);
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return data['auth_token']; // Replace with actual key from the API response
+        return data['auth_token'];
       } else {
         print('Error: ${response.statusCode} - ${response.body}');
       }

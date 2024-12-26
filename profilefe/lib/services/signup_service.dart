@@ -14,6 +14,7 @@ class SignupService {
     required String country,
     required String state,
     required String city,
+    required String password,
   }) async {
     final url = Uri.parse('${ServerConfig.baseUrl}/auth/signup');
     final headers = {'Content-Type': 'application/json'};
@@ -28,6 +29,8 @@ class SignupService {
       'country': country,
       'state': state,
       'city': city,
+      'password':password,
+
     });
 
     try {
