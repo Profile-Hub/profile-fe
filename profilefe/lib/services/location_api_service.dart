@@ -4,8 +4,8 @@ import '../models/location_models.dart';
 
 class LocationApiService {
   static const String baseUrl = 'https://www.universal-tutorial.com/api';
-  static const String email = 'rishumehta7370@gmail.com'; // Replace with your email
-  static const String apiKey = 'avgKXjKnsBh-P8j6RSpFR-eplSHfkQdLnWmUeUtrBx93TKqfTmxnZvqdvEOp4SaU3L0'; // Replace with your API key
+  static const String email = 'rishumehta7370@gmail.com'; 
+  static const String apiKey = 'avgKXjKnsBh-P8j6RSpFR-eplSHfkQdLnWmUeUtrBx93TKqfTmxnZvqdvEOp4SaU3L0';
 
   String? _authToken;
 

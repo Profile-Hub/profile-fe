@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import '../models/location_models.dart' as location_models;
 import '../services/location_api_service.dart';
 import '../services/signup_service.dart';
+extension StringExtension on String {
+  String capitalize() {
+    return "${this[0].toUpperCase()}${this.substring(1)}";
+  }
+}
 
 class SignupScreen extends StatefulWidget {
   @override
@@ -14,7 +19,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final _formKey = GlobalKey<FormState>();
   final LocationApiService _locationService = LocationApiService();
 
-  // Location data
+
   List<location_models.Country> _countries = [];
   List<location_models.State> _states = [];
   List<location_models.City> _cities = [];
@@ -92,6 +97,7 @@ class _SignupScreenState extends State<SignupScreen> {
       SnackBar(content: Text(message)),
     );
   }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -366,11 +372,11 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                     value: selectedUserType,
                     hint: Text('Select User Type'),
-                    items: ['Provider', 'Seeker']
+                    items: ['provider', 'seeker']
                         .map((String value) {
                           return DropdownMenuItem<String>(
                             value: value,
-                            child: Text(value),
+                            child: Text(value.capitalize()),
                           );
                         })
                         .toList(),

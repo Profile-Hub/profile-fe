@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:profilefe/services/auth_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+// import '../models/login_response.dart';
+import '../services/auth_service.dart';
 import 'signup_screen.dart';
 import 'home_screen.dart';
 
@@ -13,27 +15,54 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
+  bool _isLoading = false; 
 
   Future<void> _handleLogin() async {
     if (_formKey.currentState!.validate()) {
-      final email = _emailController.text.trim();
-      final password = _passwordController.text.trim();
+      setState(() {
+        _isLoading = true; 
+      });
 
-      final authToken = await _authService.login(email, password);
-      if (authToken != null) {
-        print('Login successful! Auth Token: $authToken');
+      try {
+        final email = _emailController.text.trim();
+        final password = _passwordController.text.trim();
 
-        // You can use the token in another API call or navigate to another screen
-        // Example:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => HomeScreen(authToken: authToken)),
-        );
-      } else {
-        // Show an error message
+        final loginResponse = await _authService.login(email, password);
+
+        if (loginResponse != null && loginResponse.success) {
+          print('Login successful!');
+          print('User ID: ${loginResponse.user.id}');
+          print('Token: ${loginResponse.token}');
+
+          // Save token for future use
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('authToken', loginResponse.token);
+          final token = loginResponse.token;
+
+          if (token.isNotEmpty) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => HomeScreen(user: loginResponse.user),
+              ),
+            );
+          } else {
+            print('Token is empty');
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(loginResponse?.message ?? 'Login failed')),
+          );
+        }
+      } catch (e) {
+        print('Error during login: $e');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Invalid email or password')),
+          SnackBar(content: Text('An error occurred. Please try again.')),
         );
+      } finally {
+        setState(() {
+          _isLoading = false; // Hide loader
+        });
       }
     }
   }
@@ -41,125 +70,138 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: EdgeInsets.all(24.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  SizedBox(height: 50),
-                  Text(
-                    'Welcome Back',
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: 40),
-                  TextFormField(
-                    controller: _emailController,
-                    decoration: InputDecoration(
-                      labelText: 'Email',
-                      prefixIcon: Icon(Icons.email_outlined),
-                    ),
-                    keyboardType: TextInputType.emailAddress,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your email';
-                      }
-                      return null;
-                    },
-                  ),
-                  SizedBox(height: 16),
-                  TextFormField(
-                    controller: _passwordController,
-                    decoration: InputDecoration(
-                      labelText: 'Password',
-                      prefixIcon: Icon(Icons.lock_outlined),
-                    ),
-                    obscureText: true,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your password';
-                      }
-                      return null;
-                    },
-                  ),
-                  SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: _handleLogin,
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 16),
-                      child: Text(
-                        'Login',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 24),
-                  Row(
+      body: Stack(
+        children: [
+          SafeArea(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.all(24.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Expanded(child: Divider()),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16),
-                        child: Text('Or continue with'),
+                      SizedBox(height: 50),
+                      Text(
+                        'Welcome Back',
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                      Expanded(child: Divider()),
-                    ],
-                  ),
-                  SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _socialLoginButton(
-                        'assets/google_logo.png',
-                        'Google',
-                        () {
-                          // Implement Google login
+                      SizedBox(height: 40),
+                      TextFormField(
+                        controller: _emailController,
+                        decoration: InputDecoration(
+                          labelText: 'Email',
+                          prefixIcon: Icon(Icons.email_outlined),
+                        ),
+                        keyboardType: TextInputType.emailAddress,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your email';
+                          }
+                          return null;
                         },
                       ),
-                      _socialLoginButton(
-                        'assets/facebook_logo.png',
-                        'Facebook',
-                        () {
-                          // Implement Facebook login
+                      SizedBox(height: 16),
+                      TextFormField(
+                        controller: _passwordController,
+                        decoration: InputDecoration(
+                          labelText: 'Password',
+                          prefixIcon: Icon(Icons.lock_outlined),
+                        ),
+                        obscureText: true,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your password';
+                          }
+                          return null;
                         },
+                      ),
+                      SizedBox(height: 24),
+                      ElevatedButton(
+                        onPressed: _isLoading ? null : _handleLogin,
+                        child: _isLoading
+                            ? CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white),
+                              )
+                            : Text(
+                                'Login',
+                                style: TextStyle(fontSize: 16),
+                              ),
+                        style: ElevatedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 24),
+                      Row(
+                        children: [
+                          Expanded(child: Divider()),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 16),
+                            child: Text('Or continue with'),
+                          ),
+                          Expanded(child: Divider()),
+                        ],
+                      ),
+                      SizedBox(height: 24),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          _socialLoginButton(
+                            'assets/google_logo.png',
+                            'Google',
+                            () {
+                              // Implement Google login
+                            },
+                          ),
+                          _socialLoginButton(
+                            'assets/facebook_logo.png',
+                            'Facebook',
+                            () {
+                              // Implement Facebook login
+                            },
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 24),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text("Don't have an account? "),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => SignupScreen(),
+                                ),
+                              );
+                            },
+                            child: Text('Sign Up'),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                  SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text("Don't have an account? "),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => SignupScreen(),
-                            ),
-                          );
-                        },
-                        child: Text('Sign Up'),
-                      ),
-                    ],
-                  ),
-                ],
+                ),
               ),
             ),
           ),
-        ),
+          if (_isLoading)
+            Container(
+              color: Colors.black54,
+              child: Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
+        ],
       ),
     );
   }
