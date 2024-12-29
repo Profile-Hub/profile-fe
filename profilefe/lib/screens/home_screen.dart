@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/user.dart';
 import '../services/auth_service.dart';
+import '../services/profile_completion_service.dart';
 import 'login_screen.dart';
 import 'profile_screen.dart';
 import 'edit_profile_screen.dart';
@@ -18,12 +19,79 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final AuthService _authService = AuthService();
+  final ProfileCompletionService _profileCompletionService = ProfileCompletionService();
   late User currentUser;
 
   @override
   void initState() {
     super.initState();
     currentUser = widget.user;
+    _checkProfileCompletion();
+  }
+
+  Future<void> _checkProfileCompletion() async {
+    try {
+      final response = await _profileCompletionService.checkProfileCompletion();
+      
+      if (response.success && response.notify && context.mounted) {
+        _showProfileCompletionDialog(response.missingFields);
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error checking profile completion: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showProfileCompletionDialog(List<String> missingFields) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Complete Your Profile'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Please complete the following fields in your profile:'),
+              const SizedBox(height: 16),
+              ...missingFields.map((field) => Padding(
+                padding: const EdgeInsets.only(left: 16, bottom: 8),
+                child: Row(
+                  children: [
+                    const Icon(Icons.arrow_right, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      field,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              )),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _navigateToEditProfile();
+              },
+              child: const Text('Complete Profile'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _navigateToEditProfile() async {

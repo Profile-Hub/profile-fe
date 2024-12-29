@@ -13,6 +13,8 @@ class Avatar {
       url: json['url'] as String,
     );
   }
+
+  toJson() {}
 }
 
 
