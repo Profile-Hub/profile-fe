@@ -7,6 +7,7 @@ import '../services/location_api_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'email_change_screen.dart';
 import '../models/location_models.dart' as location_models;
+import 'change_password_screen.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final User user;
@@ -492,7 +493,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       height: 50,
                       child: ElevatedButton(
                         onPressed: () {
-                          // Implement change password navigation
+                         Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ChangePasswordScreen( 
+                              ),
+                            ),
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue,

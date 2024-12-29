@@ -78,6 +78,35 @@ class AuthService {
     _token = await _storage.read(key: 'auth_token');
   }
 
+ Future<Map<String, dynamic>> changePassword({
+    required String oldPassword,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+     await _loadToken();
+    final url = Uri.parse('${ServerConfig.baseUrl}/update-password');
+
+    final response = await http.put(
+      url,
+      headers: {'Content-Type': 'application/json',
+                'Authorization': 'Bearer $_token',
+      },
+      body: jsonEncode({
+        'oldPassword': oldPassword,
+        'newPassword': newPassword,
+        'confirmPassword': confirmPassword,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to update password: ${response.body}');
+    }
+  }
+
+
+
   Future<http.Response?> makeAuthenticatedRequest(
       String endpoint, String method, {Map<String, dynamic>? body}) async {
     await _loadToken(); 
