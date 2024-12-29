@@ -3,6 +3,7 @@ import '../models/user.dart';
 import '../services/auth_service.dart';
 import 'login_screen.dart';
 import 'profile_screen.dart';
+import 'edit_profile_screen.dart';
 import 'document_upload_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -17,10 +18,31 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final AuthService _authService = AuthService();
+  late User currentUser;
+
+  @override
+  void initState() {
+    super.initState();
+    currentUser = widget.user;
+  }
+
+  Future<void> _navigateToEditProfile() async {
+    final updatedUser = await Navigator.push<User>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditProfileScreen(user: currentUser),
+      ),
+    );
+
+    if (updatedUser != null) {
+      setState(() {
+        currentUser = updatedUser;
+      });
+    }
+  }
 
   Future<void> _handleLogout() async {
     try {
-      // Show loading dialog
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -40,7 +62,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
       final success = await _authService.logout();
 
-      // Close loading dialog
       if (context.mounted) {
         Navigator.pop(context);
       }
@@ -118,30 +139,49 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         title: const Text('Home'),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.person),
+            onPressed: _navigateToEditProfile,
+          ),
+        ],
       ),
       drawer: Drawer(
         child: Column(
           children: [
             UserAccountsDrawerHeader(
-              accountName: Text('${widget.user.firstname} ${widget.user.lastname}'),
-              accountEmail: Text(widget.user.email),
+              accountName: Text('${currentUser.firstname} ${currentUser.lastname}'),
+              accountEmail: Text(currentUser.email),
               currentAccountPicture: CircleAvatar(
                 backgroundColor: Colors.grey[200],
-                child: const Icon(Icons.person, size: 50, color: Colors.white),
+                backgroundImage: currentUser.avatar?.url != null
+                    ? NetworkImage(currentUser.avatar!.url)
+                    : null,
+                child: currentUser.avatar?.url == null
+                    ? const Icon(Icons.person, size: 50, color: Colors.white)
+                    : null,
               ),
               decoration: const BoxDecoration(color: Colors.blue),
             ),
             ListTile(
               leading: const Icon(Icons.person_outline),
-              title: const Text('Profile'),
+              title: const Text('View Profile'),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ProfileScreen(user: widget.user),
+                    builder: (context) => ProfileScreen(user: currentUser),
                   ),
                 );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.edit),
+              title: const Text('Edit Profile'),
+              onTap: () {
+                Navigator.pop(context);
+                _navigateToEditProfile();
               },
             ),
             ListTile(
@@ -152,7 +192,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => DocumentUploadScreen(user: widget.user),
+                    builder: (context) => DocumentUploadScreen(user: currentUser),
                   ),
                 );
               },

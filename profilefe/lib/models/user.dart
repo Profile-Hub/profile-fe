@@ -6,7 +6,7 @@ class User {
   final String lastname;
   final DateTime? dateofbirth;
   final String? gender;
-  final String email;
+  String email;
   final String? city;
   final String? state;
   final String? country;

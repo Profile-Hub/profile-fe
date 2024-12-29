@@ -10,15 +10,6 @@ class AustraliaDocumentForm extends StatefulWidget {
 }
 
 class _AustraliaDocumentFormState extends State<AustraliaDocumentForm> {
-  final _formKey = GlobalKey<FormState>();
-
-  // Controllers for text fields
-  final TextEditingController _passportNumberController = TextEditingController();
-  final TextEditingController _driverLicenseNumberController = TextEditingController();
-  final TextEditingController _medicareNumberController = TextEditingController();
-  final TextEditingController _birthCertificateNumberController = TextEditingController();
-  final TextEditingController _proofOfAgeNumberController = TextEditingController();
-
   // File upload variables
   File? _passportFile;
   File? _driverLicenseFile;
@@ -67,48 +58,68 @@ class _AustraliaDocumentFormState extends State<AustraliaDocumentForm> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Australia Document Form'),
+      appBar:  AppBar(
+        title: Text('Australia Document Form'),
+        backgroundColor: Colors.blueAccent,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.2),
+                spreadRadius: 5,
+                blurRadius: 7,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              // Passport
-              _buildTextField('Passport', 'Passport Number', _passportNumberController),
-              _buildFileUpload('Passport', 'Upload Passport Document', _passportFile),
+              // Passport File Upload
+              _buildFileUpload('Passport', _passportFile),
 
-              // Driver's License
-              _buildTextField('Driver License', 'License Number', _driverLicenseNumberController),
-              _buildFileUpload('Driver License', 'Upload Driver License Document', _driverLicenseFile),
+              // Driver's License File Upload
+              _buildFileUpload('Driver License', _driverLicenseFile),
 
-              // Medicare Card
-              _buildTextField('Medicare Card', 'Medicare Number', _medicareNumberController),
-              _buildFileUpload('Medicare Card', 'Upload Medicare Document', _medicareFile),
+              // Medicare Card File Upload
+              _buildFileUpload('Medicare Card', _medicareFile),
 
-              // Birth Certificate
-              _buildTextField('Birth Certificate', 'Certificate Number', _birthCertificateNumberController),
-              _buildFileUpload('Birth Certificate', 'Upload Birth Certificate Document', _birthCertificateFile),
+              // Birth Certificate File Upload
+              _buildFileUpload('Birth Certificate', _birthCertificateFile),
 
-              // Proof of Age Card
-              _buildTextField('Proof of Age Card', 'Proof of Age Number', _proofOfAgeNumberController),
-              _buildFileUpload('Proof of Age Card', 'Upload Proof of Age Document', _proofOfAgeFile),
+              // Proof of Age Card File Upload
+              _buildFileUpload('Proof of Age Card', _proofOfAgeFile),
 
               // Submit Button
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16.0),
                 child: ElevatedButton(
                   onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Processing Data')),
-                      );
-                    }
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Processing Data')),
+                    );
                   },
-                  child: const Text('Submit'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueAccent, // Corrected parameter
+                    padding: const EdgeInsets.symmetric(vertical: 12.0),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text(
+                    'Submit',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -118,38 +129,32 @@ class _AustraliaDocumentFormState extends State<AustraliaDocumentForm> {
     );
   }
 
-  // Helper for text input
-  Widget _buildTextField(String docType, String label, TextEditingController controller) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: TextFormField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: '$docType - $label',
-          border: OutlineInputBorder(),
-        ),
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            return '$label is required';
-          }
-          return null;
-        },
-      ),
-    );
-  }
-
   // Helper for file upload
-  Widget _buildFileUpload(String docType, String label, File? file) {
+  Widget _buildFileUpload(String docType, File? file) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 16.0),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           ElevatedButton(
             onPressed: () => _pickFile(docType),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue, // Corrected parameter
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
             child: Text('Upload $docType'),
           ),
           const SizedBox(width: 8),
-          Text(file != null ? 'File Selected' : 'No file selected'),
+          Text(
+            file != null ? 'File Selected' : 'No file selected',
+            style: TextStyle(
+              color: file != null ? Colors.green : Colors.red,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ],
       ),
     );

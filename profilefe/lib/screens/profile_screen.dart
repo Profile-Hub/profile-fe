@@ -151,17 +151,17 @@ void _saveProfile() {
       appBar: AppBar(
         title: const Text('Profile'),
         centerTitle: true,
-        actions: [
-          if (!isEditing)
-            IconButton(
-              icon: const Icon(Icons.edit),
-              onPressed: () {
-                setState(() {
-                  isEditing = true;
-                });
-              },
-            ),
-        ],
+        // actions: [
+        //   if (!isEditing)
+        //     IconButton(
+        //       icon: const Icon(Icons.edit),
+        //       onPressed: () {
+        //         setState(() {
+        //           isEditing = true;
+        //         });
+        //       },
+        //     ),
+        // ],
       ),
       body: SingleChildScrollView(
         child: Column(
