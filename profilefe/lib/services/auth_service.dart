@@ -3,12 +3,20 @@ import 'package:http/http.dart' as http;
 import '../models/login_response.dart';
 import '../server_config.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 
 class AuthService {
   static final AuthService _instance = AuthService._internal();
   static final _storage = FlutterSecureStorage();
   String? _token;
-
+final GoogleSignIn _googleSignIn = GoogleSignIn(
+  clientId: '989849803787-c3n88dvvglbn5qei6d8ev5vf7b6evgcj.apps.googleusercontent.com',
+  scopes: [
+    'email',
+    'profile',
+  ],
+);
   factory AuthService() {
     return _instance;
   }
@@ -77,6 +85,119 @@ class AuthService {
   Future<void> _loadToken() async {
     _token = await _storage.read(key: 'auth_token');
   }
+
+ Future<Map<String, dynamic>> changePassword({
+    required String oldPassword,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+     await _loadToken();
+    final url = Uri.parse('${ServerConfig.baseUrl}/update-password');
+
+    final response = await http.put(
+      url,
+      headers: {'Content-Type': 'application/json',
+                'Authorization': 'Bearer $_token',
+      },
+      body: jsonEncode({
+        'oldPassword': oldPassword,
+        'newPassword': newPassword,
+        'confirmPassword': confirmPassword,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to update password: ${response.body}');
+    }
+  }
+
+  Future<LoginResponse?> signInWithFacebook() async {
+    try {
+      // Trigger Facebook login flow
+      final LoginResult result = await FacebookAuth.instance.login();
+
+      if (result.status == LoginStatus.success) {
+        // Get access token
+        final String accessToken = result.accessToken!.token;
+
+        // Call your backend API
+        final url = Uri.parse('${ServerConfig.baseUrl}/api/v1/Facebook-login');
+        final response = await http.post(
+          url,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'accessToken': accessToken,
+          }),
+        );
+
+        if (response.statusCode == 200) {
+          final jsonResponse = jsonDecode(response.body);
+          final loginResponse = LoginResponse.fromJson(jsonResponse);
+
+          if (loginResponse.success) {
+            _token = loginResponse.token;
+            await _storage.write(key: 'auth_token', value: _token);
+          }
+          return loginResponse;
+        }
+      }
+      return null;
+    } catch (e) {
+      print('Facebook login error: $e');
+      return null;
+    }
+  }
+
+  Future<LoginResponse?> signInWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) return null;
+
+      // Get authentication details
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final String? accessToken = googleAuth.accessToken;
+
+      if (accessToken != null) {
+        // Call your backend API
+        final url = Uri.parse('${ServerConfig.baseUrl}/api/v1/google-login');
+        final response = await http.post(
+          url,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'accessToken': accessToken,
+          }),
+        );
+
+        if (response.statusCode == 200) {
+          final jsonResponse = jsonDecode(response.body);
+          final loginResponse = LoginResponse.fromJson(jsonResponse);
+
+          if (loginResponse.success) {
+            _token = loginResponse.token;
+            await _storage.write(key: 'auth_token', value: _token);
+          }
+          return loginResponse;
+        }
+      }
+      return null;
+    } catch (e) {
+      print('Google login error: $e');
+      return null;
+    }
+  }
+
+  Future<void> signOut() async {
+    try {
+      await FacebookAuth.instance.logOut();
+      await _googleSignIn.signOut();
+      await logout(); // Your existing logout method
+    } catch (e) {
+      print('Error signing out: $e');
+    }
+  }
+
 
   Future<http.Response?> makeAuthenticatedRequest(
       String endpoint, String method, {Map<String, dynamic>? body}) async {

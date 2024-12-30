@@ -28,6 +28,9 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        manifestPlaceholders += [
+        'FACEBOOK_APP_ID': '1278788816575991',
+    ]
     }
 
     buildTypes {

@@ -5,6 +5,8 @@ import '../services/auth_service.dart';
 import 'signup_screen.dart';
 import 'home_screen.dart';
 import 'forgot_password_screen.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 class LoginScreen extends StatefulWidget {
   @override
   _LoginScreenState createState() => _LoginScreenState();
@@ -64,6 +66,69 @@ class _LoginScreenState extends State<LoginScreen> {
           _isLoading = false; // Hide loader
         });
       }
+    }
+  }
+    Future<void> _handleGoogleSignIn() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final loginResponse = await _authService.signInWithGoogle();
+
+      if (loginResponse != null && loginResponse.success) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomeScreen(user: loginResponse.user),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Google sign in failed')),
+        );
+      }
+    } catch (e) {
+      print('Error during Google sign in: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred during Google sign in')),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _handleFacebookSignIn() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final loginResponse = await _authService.signInWithFacebook();
+
+      if (loginResponse != null && loginResponse.success) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomeScreen(user: loginResponse.user),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Facebook sign in failed')),
+        );
+      }
+    } catch (e) {
+      print('Error during Facebook sign in: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred during Facebook sign in')),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -172,16 +237,12 @@ class _LoginScreenState extends State<LoginScreen> {
                           _socialLoginButton(
                             'assets/google_logo.png',
                             'Google',
-                            () {
-                              // Implement Google login
-                            },
+                             _handleGoogleSignIn,
                           ),
                           _socialLoginButton(
                             'assets/facebook_logo.png',
                             'Facebook',
-                            () {
-                              // Implement Facebook login
-                            },
+                             _handleFacebookSignIn,
                           ),
                         ],
                       ),

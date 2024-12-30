@@ -1,16 +1,20 @@
 import 'avatar.dart';
+
 class User {
   final Avatar? avatar;
   final String id;
-  final String firstname;
-  final String lastname;
-  final DateTime? dateofbirth;
-  final String? gender;
+  String firstname;
+  String lastname;
+  DateTime? dateofbirth;
+  String? gender;
   String email;
-  final String? city;
-  final String? state;
-  final String? country;
-  final String? usertype;
+  String? city;
+  String? state;
+  String? country;
+  String? usertype;
+  int? phoneCode;
+  String? phoneNumber;
+  String? bloodGroup;
 
   User({
     this.avatar,
@@ -24,6 +28,9 @@ class User {
     this.state,
     this.country,
     this.usertype,
+    this.phoneCode,
+    this.phoneNumber,
+    this.bloodGroup,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -41,6 +48,28 @@ class User {
       state: json['state'] as String?,
       country: json['country'] as String?,
       usertype: json['usertype'] as String?,
+      phoneCode: json['phoneCode'] as int?,
+      phoneNumber: json['phoneNumber'] as String?,
+      bloodGroup: json['bloodGroup'] as String?,
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'avatar': avatar?.toJson(),
+      '_id': id,
+      'firstname': firstname,
+      'lastname': lastname,
+      'dateofbirth': dateofbirth?.toIso8601String(),
+      'gender': gender,
+      'email': email,
+      'city': city,
+      'state': state,
+      'country': country,
+      'usertype': usertype,
+      'phoneCode': phoneCode,
+      'phoneNumber': phoneNumber,
+      'bloodGroup': bloodGroup,
+    };
   }
 }

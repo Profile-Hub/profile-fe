@@ -7,6 +7,7 @@ import '../services/location_api_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'email_change_screen.dart';
 import '../models/location_models.dart' as location_models;
+import 'change_password_screen.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final User user;
@@ -26,6 +27,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController lastNameController;
   late TextEditingController genderController;
   late TextEditingController dobController;
+  late TextEditingController phoneNumberController;
+  String? selectedBloodGroup;
   
   List<location_models.Country> countries = [];
   List<location_models.State> states = [];
@@ -42,6 +45,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   final List<String> userTypes = ['donor', 'recipient'];
   final List<String> genderTypes = ['Male', 'Female', 'Other'];
+  final List<String> bloodGroups = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'];
 
 
   @override
@@ -63,8 +67,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ? DateFormat('dd/MM/yyyy').format(widget.user.dateofbirth!)
             : ''
       );
+      phoneNumberController = TextEditingController(text: widget.user.phoneNumber ?? '');
       selectedUserType = widget.user.usertype;
-      
+      selectedBloodGroup = widget.user.bloodGroup;
       await _loadCountries();
     } catch (e) {
       _showError('Failed to initialize screen: $e');
@@ -82,6 +87,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     lastNameController.dispose();
     genderController.dispose();
     dobController.dispose();
+    phoneNumberController.dispose();
     super.dispose();
   }
 
@@ -273,6 +279,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         'state': selectedState?.name,
         'city': selectedCity?.name,
         'usertype': selectedUserType,
+        'phoneCode': selectedCountry?.phoneCode,
+        'phoneNumber': phoneNumberController.text,
+        'bloodGroup': selectedBloodGroup,
       };
 
       await _profileService.updateProfile(profileData);
@@ -388,6 +397,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   onChanged: (value) => setState(() => selectedUserType = value),
                   displayName: (type) => type[0].toUpperCase() + type.substring(1),
                 ),
+                _buildDropdown<String>(
+                  label: 'Blood Group',
+                  value: selectedBloodGroup,
+                  items: bloodGroups,
+                  onChanged: (group) => setState(() => selectedBloodGroup = group),
+                  displayName: (group) => group,
+                ),
                 
                 // Location dropdowns
                 _buildDropdown<location_models.Country>(
@@ -434,6 +450,34 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   displayName: (city) => city.name,
                   isLoading: isLoadingLocations,
                 ),
+                if (selectedCountry != null) ...[
+                    Row(
+                      children: [
+                        // Phone Code Display
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            '+${selectedCountry!.phoneCode}',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        // Phone Number Field
+                        Expanded(
+                          child: _buildTextField(
+                            label: 'Phone Number',
+                            controller: phoneNumberController,
+                            isRequired: true,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                 
                 // Action buttons
                 const SizedBox(height: 20),
@@ -492,7 +536,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       height: 50,
                       child: ElevatedButton(
                         onPressed: () {
-                          // Implement change password navigation
+                         Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ChangePasswordScreen( 
+                              ),
+                            ),
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue,

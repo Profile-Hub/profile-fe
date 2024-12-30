@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:http/http.dart' as http;
 
 class AustraliaDocumentForm extends StatefulWidget {
   const AustraliaDocumentForm({Key? key}) : super(key: key);
@@ -17,8 +18,11 @@ class _AustraliaDocumentFormState extends State<AustraliaDocumentForm> {
   File? _birthCertificateFile;
   File? _proofOfAgeFile;
 
-  // File picker function
-  Future<void> _pickFile(String documentType) async {
+  // Upload statuses
+  bool _isLoading = false;
+
+  // File picker and upload function
+  Future<void> _pickAndUploadFile(String documentType, String endpoint) async {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['jpg', 'png', 'pdf'],
@@ -29,24 +33,52 @@ class _AustraliaDocumentFormState extends State<AustraliaDocumentForm> {
       // Check file size (less than 5 MB)
       if (file.lengthSync() <= 5 * 1024 * 1024) {
         setState(() {
-          switch (documentType) {
-            case 'Passport':
-              _passportFile = file;
-              break;
-            case 'Driver License':
-              _driverLicenseFile = file;
-              break;
-            case 'Medicare Card':
-              _medicareFile = file;
-              break;
-            case 'Birth Certificate':
-              _birthCertificateFile = file;
-              break;
-            case 'Proof of Age Card':
-              _proofOfAgeFile = file;
-              break;
-          }
+          _isLoading = true;
         });
+        try {
+          var request = http.MultipartRequest('POST', Uri.parse(endpoint));
+          request.files.add(
+            await http.MultipartFile.fromPath('file', file.path),
+          );
+          var response = await request.send();
+
+          if (response.statusCode == 200) {
+            setState(() {
+              switch (documentType) {
+                case 'Passport':
+                  _passportFile = file;
+                  break;
+                case 'Driver License':
+                  _driverLicenseFile = file;
+                  break;
+                case 'Medicare Card':
+                  _medicareFile = file;
+                  break;
+                case 'Birth Certificate':
+                  _birthCertificateFile = file;
+                  break;
+                case 'Proof of Age Card':
+                  _proofOfAgeFile = file;
+                  break;
+              }
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('$documentType uploaded successfully')),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Failed to upload $documentType')),
+            );
+          }
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error uploading $documentType: $e')),
+          );
+        } finally {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('File size must be less than 5MB')),
@@ -58,8 +90,8 @@ class _AustraliaDocumentFormState extends State<AustraliaDocumentForm> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar:  AppBar(
-        title: Text('Australia Document Form'),
+      appBar: AppBar(
+        title: const Text('Australia Document Form'),
         backgroundColor: Colors.blueAccent,
       ),
       body: SingleChildScrollView(
@@ -82,46 +114,19 @@ class _AustraliaDocumentFormState extends State<AustraliaDocumentForm> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               // Passport File Upload
-              _buildFileUpload('Passport', _passportFile),
+              _buildFileUploadSection('Passport', _passportFile, 'http://localhost:4000/api/v1/aus/passport'),
 
               // Driver's License File Upload
-              _buildFileUpload('Driver License', _driverLicenseFile),
+              _buildFileUploadSection('Driver License', _driverLicenseFile, 'http://localhost:4000/api/v1/aus/drivers-license'),
 
               // Medicare Card File Upload
-              _buildFileUpload('Medicare Card', _medicareFile),
+              _buildFileUploadSection('Medicare Card', _medicareFile, 'http://localhost:4000/api/v1/aus/medicare-card'),
 
               // Birth Certificate File Upload
-              _buildFileUpload('Birth Certificate', _birthCertificateFile),
+              _buildFileUploadSection('Birth Certificate', _birthCertificateFile, 'http://localhost:4000/api/v1/aus/birth-certificate'),
 
               // Proof of Age Card File Upload
-              _buildFileUpload('Proof of Age Card', _proofOfAgeFile),
-
-              // Submit Button
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16.0),
-                child: ElevatedButton(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Processing Data')),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blueAccent, // Corrected parameter
-                    padding: const EdgeInsets.symmetric(vertical: 12.0),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text(
-                    'Submit',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
+              _buildFileUploadSection('Proof of Age Card', _proofOfAgeFile, 'http://localhost:4000/api/v1/aus/proof-of-age-card'),
             ],
           ),
         ),
@@ -129,31 +134,61 @@ class _AustraliaDocumentFormState extends State<AustraliaDocumentForm> {
     );
   }
 
-  // Helper for file upload
-  Widget _buildFileUpload(String docType, File? file) {
+  // Helper for file upload section
+  Widget _buildFileUploadSection(String docType, File? file, String endpoint) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ElevatedButton(
-            onPressed: () => _pickFile(docType),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue, // Corrected parameter
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: Text('Upload $docType'),
-          ),
-          const SizedBox(width: 8),
           Text(
-            file != null ? 'File Selected' : 'No file selected',
-            style: TextStyle(
-              color: file != null ? Colors.green : Colors.red,
+            docType,
+            style: const TextStyle(
+              fontSize: 16,
               fontWeight: FontWeight.bold,
+              color: Colors.black87,
             ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: TextFormField(
+                  readOnly: true,
+                  decoration: InputDecoration(
+                    hintText: file != null ? file.path.split('/').last : 'No file selected',
+                    hintStyle: TextStyle(
+                      color: file != null ? Colors.black : Colors.grey,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton(
+                onPressed: _isLoading ? null : () => _pickAndUploadFile(docType, endpoint),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: _isLoading
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text('Upload'),
+              ),
+            ],
           ),
         ],
       ),
