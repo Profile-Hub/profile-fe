@@ -41,6 +41,29 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+<key>CFBundleURLTypes</key>
+<array>
+
+  <dict>
+    <key>CFBundleURLSchemes</key>
+    <array>
+      <string>com.googleusercontent.apps.989849803787-c3n88dvvglbn5qei6d8ev5vf7b6evgcj</string>
+    </array>
+  </dict>
+
+  <dict>
+    <key>CFBundleURLSchemes</key>
+    <array>
+      <string>fb1278788816575991</string>
+    </array>
+  </dict>
+</array>
+<key>FacebookAppID</key>
+<string>1278788816575991</string>
+<key>FacebookClientToken</key>
+<string>b69d79b3a373d829ec35eaa12af9ead5</string>
+<key>FacebookDisplayName</key>
+<string>public-hub</string> 
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
