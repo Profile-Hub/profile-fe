@@ -15,6 +15,7 @@ class User {
   int? phoneCode;
   String? phoneNumber;
   String? bloodGroup;
+  List<String> organDonations;
 
   User({
     this.avatar,
@@ -31,6 +32,7 @@ class User {
     this.phoneCode,
     this.phoneNumber,
     this.bloodGroup,
+    this.organDonations = const [],
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -51,6 +53,9 @@ class User {
       phoneCode: json['phoneCode'] as int?,
       phoneNumber: json['phoneNumber'] as String?,
       bloodGroup: json['bloodGroup'] as String?,
+      organDonations: (json['organDonations'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ?? [],
     );
   }
 
@@ -70,6 +75,7 @@ class User {
       'phoneCode': phoneCode,
       'phoneNumber': phoneNumber,
       'bloodGroup': bloodGroup,
+      'organDonations': organDonations,
     };
   }
 }

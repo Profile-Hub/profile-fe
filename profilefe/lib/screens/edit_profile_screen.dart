@@ -46,11 +46,34 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final List<String> userTypes = ['donor', 'recipient'];
   final List<String> genderTypes = ['Male', 'Female', 'Other'];
   final List<String> bloodGroups = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'];
+  final Map<String, List<String>> organCategories = {
+    'Organs': [
+      'Heart', 'Lungs', 'Liver', 'Kidneys', 'Pancreas', 'Intestines'
+    ],
+    'Tissues': [
+      'Corneas', 'Skin', 'Heart Valves', 'Blood Vessels and Veins',
+      'Tendons and Ligaments', 'Bone'
+    ],
+    'Reproductive Organs': [
+      'Uterus', 'Ovaries', 'Eggs (Oocytes)', 'Fallopian Tubes',
+      'Testicles', 'Sperm'
+    ],
+    'Other Donations': [
+      'Bone Marrow and Stem Cells', 'Blood and Plasma', 'Umbilical Cord Blood'
+    ],
+    'Living Donations': [
+      'Liver Segment', 'Kidney', 'Lung Lobe', 'Skin (partial)',
+      'Bone Marrow and Stem Cells (regenerative)'
+    ],
+  };
+  
+  Set<String> selectedOrgans = {};
 
 
   @override
   void initState() {
     super.initState();
+    selectedOrgans = Set.from(widget.user.organDonations);
     _initializeScreen();
   }
 
@@ -179,7 +202,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       
       if (image != null) {
         // Handle image upload
-        await _profileService.updateProfileImage(image.path);
+        await _profileService.updateProfileImage();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Profile picture updated successfully!')),
@@ -226,6 +249,56 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       ),
     );
   }
+    Widget _buildOrganDonationSection() {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      child: ExpansionTile(
+        title: const Text('Organ Donation Preferences'),
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: organCategories.entries.map((category) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Text(
+                        category.key,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ),
+                    Wrap(
+                      spacing: 8.0,
+                      runSpacing: 4.0,
+                      children: category.value.map((organ) {
+                        return FilterChip(
+                          label: Text(organ),
+                          selected: selectedOrgans.contains(organ),
+                          onSelected: (selected) {
+                            setState(() {
+                              if (selected) {
+                                selectedOrgans.add(organ);
+                              } else {
+                                selectedOrgans.remove(organ);
+                              }
+                            });
+                          },
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildDropdown<T>({
     required String label,
@@ -234,13 +307,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     required void Function(T?) onChanged,
     required String Function(T) displayName,
     bool isLoading = false,
+     bool isRequired = true,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: DropdownButtonFormField<T>(
         value: value,
         decoration: InputDecoration(
-          labelText: label,
+          labelText: isRequired ? label : '$label (Optional)',
           border: const OutlineInputBorder(),
           suffixIcon: isLoading ? 
             const SizedBox(
@@ -254,7 +328,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           child: Text(displayName(item)),
         )).toList(),
         onChanged: onChanged,
-        validator: (value) => value == null ? 'Please select $label' : null,
+        validator: isRequired 
+            ? (value) => value == null ? 'Please select $label' : null
+            : null,  // No validation for optional fields
       ),
     );
   }
@@ -282,6 +358,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         'phoneCode': selectedCountry?.phoneCode,
         'phoneNumber': phoneNumberController.text,
         'bloodGroup': selectedBloodGroup,
+        if (selectedUserType?.toLowerCase() == 'donor') 'organDonations': selectedOrgans.toList(),
       };
 
       await _profileService.updateProfile(profileData);
@@ -449,6 +526,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   onChanged: (city) => setState(() => selectedCity = city),
                   displayName: (city) => city.name,
                   isLoading: isLoadingLocations,
+                  isRequired: false,
                 ),
                 if (selectedCountry != null) ...[
                     Row(
@@ -478,6 +556,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                     const SizedBox(height: 16),
                   ],
+                    if (selectedUserType?.toLowerCase() == 'donor') 
+                  _buildOrganDonationSection(),
                 
                 // Action buttons
                 const SizedBox(height: 20),

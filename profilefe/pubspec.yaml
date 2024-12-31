@@ -41,6 +41,8 @@ dependencies:
   flutter_facebook_auth: ^6.0.0
   flutter_file_dialog: ^2.0.0
   mime: ^1.0.0
+  path: ^1.8.3
+
     
 
   # The following adds the Cupertino Icons font to your application.
