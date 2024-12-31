@@ -12,9 +12,11 @@ class AuthService {
   String? _token;
 final GoogleSignIn _googleSignIn = GoogleSignIn(
   clientId: '989849803787-c3n88dvvglbn5qei6d8ev5vf7b6evgcj.apps.googleusercontent.com',
+  // serverClientId: '989849803787-c3n88dvvglbn5qei6d8ev5vf7b6evgcj.apps.googleusercontent.com',
   scopes: [
     'email',
     'profile',
+    'openid',
   ],
 );
   factory AuthService() {
@@ -123,7 +125,7 @@ final GoogleSignIn _googleSignIn = GoogleSignIn(
         final String accessToken = result.accessToken!.token;
 
         // Call your backend API
-        final url = Uri.parse('${ServerConfig.baseUrl}/api/v1/Facebook-login');
+        final url = Uri.parse('${ServerConfig.baseUrl}/Facebook-login');
         final response = await http.post(
           url,
           headers: {'Content-Type': 'application/json'},
@@ -161,12 +163,12 @@ final GoogleSignIn _googleSignIn = GoogleSignIn(
 
       if (accessToken != null) {
         // Call your backend API
-        final url = Uri.parse('${ServerConfig.baseUrl}/api/v1/google-login');
+        final url = Uri.parse('${ServerConfig.baseUrl}/google-login');
         final response = await http.post(
           url,
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({
-            'accessToken': accessToken,
+            'idToken': googleAuth.idToken, 
           }),
         );
 

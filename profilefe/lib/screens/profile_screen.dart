@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/user.dart';
-import 'package:intl/intl.dart'; 
+import 'package:intl/intl.dart';
 
 class ProfileScreen extends StatefulWidget {
   final User user;
@@ -21,7 +21,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
   late TextEditingController genderController;
   late TextEditingController userTypeController;
   late TextEditingController dobController;
+  late TextEditingController bloodGroupController;
+  late TextEditingController phoneNumberController;
   bool isEditing = false;
+
+  final Map<String, List<String>> organCategories = {
+    'Organs': [
+      'Heart', 'Lungs', 'Liver', 'Kidneys', 'Pancreas', 'Intestines'
+    ],
+    'Tissues': [
+      'Corneas', 'Skin', 'Heart Valves', 'Blood Vessels and Veins',
+      'Tendons and Ligaments', 'Bone'
+    ],
+    'Reproductive Organs': [
+      'Uterus', 'Ovaries', 'Eggs (Oocytes)', 'Fallopian Tubes',
+      'Testicles', 'Sperm'
+    ],
+    'Other Donations': [
+      'Bone Marrow and Stem Cells', 'Blood and Plasma', 'Umbilical Cord Blood'
+    ],
+    'Living Donations': [
+      'Liver Segment', 'Kidney', 'Lung Lobe', 'Skin (partial)',
+      'Bone Marrow and Stem Cells (regenerative)'
+    ],
+  };
 
   @override
   void initState() {
@@ -34,6 +57,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     countryController = TextEditingController(text: widget.user.country ?? '');
     genderController = TextEditingController(text: widget.user.gender ?? '');
     userTypeController = TextEditingController(text: widget.user.usertype ?? '');
+    bloodGroupController = TextEditingController(text: widget.user.bloodGroup ?? '');
+    phoneNumberController = TextEditingController(text: widget.user.phoneNumber ?? '');
     dobController = TextEditingController(
       text: widget.user.dateofbirth != null 
           ? DateFormat('dd/MM/yyyy').format(widget.user.dateofbirth!)
@@ -52,10 +77,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
     genderController.dispose();
     userTypeController.dispose();
     dobController.dispose();
+    bloodGroupController.dispose();
+    phoneNumberController.dispose();
     super.dispose();
   }
 
-  Future<void> _selectDate(BuildContext context) async {
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: Colors.blue,
+        ),
+      ),
+    );
+  }
+    Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: widget.user.dateofbirth ?? DateTime.now(),
@@ -88,6 +128,8 @@ void _saveProfile() {
     const SnackBar(content: Text('Profile saved successfully!')),
   );
 }
+
+
   Widget _buildProfileField(String label, String? value, {TextEditingController? controller, bool isDateField = false}) {
     final displayValue = value ?? 'Not specified';
     
@@ -143,7 +185,58 @@ void _saveProfile() {
     );
   }
 
-  // ... rest of the code remains the same until the build method
+  Widget _buildOrganDonationsSection() {
+    if (widget.user.organDonations.isEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionTitle('Organ Donations'),
+          const Text('No organ donations specified'),
+          const Divider(),
+        ],
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle('Organ Donations'),
+        ...organCategories.entries.map((category) {
+          final organsInCategory = widget.user.organDonations
+              .where((organ) => category.value.contains(organ))
+              .toList();
+
+          if (organsInCategory.isEmpty) return const SizedBox.shrink();
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                child: Text(
+                  category.key,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              Wrap(
+                spacing: 8.0,
+                runSpacing: 4.0,
+                children: organsInCategory.map((organ) => Chip(
+                  label: Text(organ),
+                  backgroundColor: Colors.blue.shade100,
+                )).toList(),
+              ),
+              const SizedBox(height: 8),
+            ],
+          );
+        }).where((widget) => widget != const SizedBox.shrink()).toList(),
+        const Divider(),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -151,17 +244,6 @@ void _saveProfile() {
       appBar: AppBar(
         title: const Text('Profile'),
         centerTitle: true,
-        // actions: [
-        //   if (!isEditing)
-        //     IconButton(
-        //       icon: const Icon(Icons.edit),
-        //       onPressed: () {
-        //         setState(() {
-        //           isEditing = true;
-        //         });
-        //       },
-        //     ),
-        // ],
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -172,24 +254,14 @@ void _saveProfile() {
                 children: [
                   CircleAvatar(
                     radius: 60,
+                    backgroundImage: widget.user.avatar?.url != null
+                        ? NetworkImage(widget.user.avatar!.url)
+                        : null,
                     backgroundColor: Colors.grey[300],
-                    child: const Icon(Icons.person, size: 60, color: Colors.white),
+                    child: widget.user.avatar?.url == null
+                        ? const Icon(Icons.person, size: 60, color: Colors.white)
+                        : null,
                   ),
-                  if (isEditing)
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: CircleAvatar(
-                        backgroundColor: Colors.blue,
-                        radius: 20,
-                        child: IconButton(
-                          icon: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
-                          onPressed: () {
-                            // Implement image picker logic
-                          },
-                        ),
-                      ),
-                    ),
                 ],
               ),
             ),
@@ -206,6 +278,7 @@ void _saveProfile() {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      _buildSectionTitle('Personal Information'),
                       _buildProfileField('First Name', widget.user.firstname, controller: firstNameController),
                       _buildProfileField('Last Name', widget.user.lastname, controller: lastNameController),
                       _buildProfileField('Email', widget.user.email, controller: emailController),
@@ -218,56 +291,25 @@ void _saveProfile() {
                         isDateField: true
                       ),
                       _buildProfileField('Gender', widget.user.gender, controller: genderController),
+                      _buildProfileField('Blood Group', widget.user.bloodGroup, controller: bloodGroupController),
+                      
+                      _buildSectionTitle('Contact Information'),
+                      _buildProfileField(
+                        'Phone Number', 
+                        widget.user.phoneCode != null && widget.user.phoneNumber != null
+                            ? '+${widget.user.phoneCode} ${widget.user.phoneNumber}'
+                            : null, 
+                        controller: phoneNumberController
+                      ),
                       _buildProfileField('City', widget.user.city, controller: cityController),
                       _buildProfileField('State', widget.user.state, controller: stateController),
                       _buildProfileField('Country', widget.user.country, controller: countryController),
-                      _buildProfileField('User Type', widget.user.usertype, controller: userTypeController),
-                      if (isEditing) ...[
-                        const SizedBox(height: 20),
-                        SizedBox(
-                          width: double.infinity,
-                          height: 45,
-                          child: ElevatedButton(
-                            onPressed: _saveProfile,
-                            style: ElevatedButton.styleFrom(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            child: const Text(
-                              'Save Changes',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        SizedBox(
-                          width: double.infinity,
-                          height: 45,
-                          child: TextButton(
-                            onPressed: () {
-                              setState(() {
-                                isEditing = false;
-                              });
-                            },
-                            style: TextButton.styleFrom(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            child: const Text(
-                              'Cancel',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                      
+                      _buildSectionTitle('Account Information'),
+                      _buildProfileField('User Type', widget.user.usertype?.toUpperCase() ?? '', controller: userTypeController),
+                      
+                       if (widget.user.usertype?.toLowerCase() == 'donor') 
+                        _buildOrganDonationsSection(),
                     ],
                   ),
                 ),
