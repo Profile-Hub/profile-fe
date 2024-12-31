@@ -181,34 +181,37 @@ Widget _buildEmailVerificationSection() {
   return Column(
     children: [
       // Email Input Field
-      TextFormField(
-        controller: _emailController,
-        enabled: !_isEmailVerified,
-        decoration: InputDecoration(
-          labelText: 'Email',
-          prefixIcon: Icon(Icons.email_outlined),
-          suffixIcon: !_isEmailVerified && !_isOtpSent
-              ? IconButton(
-                  icon: Icon(Icons.send),
-                  onPressed: _isLoading ? null : _sendOtp,
-                )
-              : Icon(
-                  _isEmailVerified ? Icons.check_circle : Icons.pending,
-                  color: _isEmailVerified ? Colors.green : Colors.orange,
-                ),
-        ),
-        keyboardType: TextInputType.emailAddress,
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            return 'Please enter your email';
-          }
-          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}\$').hasMatch(value)) {
-            return 'Please enter a valid email';
-          }
-          return null;
-        },
-      ),
-
+     TextFormField(
+  controller: _emailController,
+  enabled: !_isEmailVerified,
+  decoration: InputDecoration(
+    labelText: 'Email',
+    prefixIcon: Icon(Icons.email_outlined),
+    suffixIcon: !_isEmailVerified && !_isOtpSent
+        ? IconButton(
+            icon: Icon(Icons.send),
+            onPressed: _isLoading ? null : _sendOtp,
+          )
+        : Icon(
+            _isEmailVerified ? Icons.check_circle : Icons.pending,
+            color: _isEmailVerified ? Colors.green : Colors.orange,
+          ),
+  ),
+  keyboardType: TextInputType.emailAddress,
+  validator: (value) {
+    if (_isEmailVerified) {
+      // If email is verified, bypass validation
+      return null;
+    }
+    if (value == null || value.isEmpty) {
+      return 'Please enter your email';
+    }
+    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+      return 'Please enter a valid email';
+    }
+    return null;
+  },
+),
       // OTP Input Section
       if (_isOtpSent && !_isEmailVerified) ...[
         SizedBox(height: 16),
