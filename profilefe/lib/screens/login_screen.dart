@@ -98,37 +98,37 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  Future<void> _handleFacebookSignIn() async {
-    setState(() {
-      _isLoading = true;
-    });
+  // Future<void> _handleFacebookSignIn() async {
+  //   setState(() {
+  //     _isLoading = true;
+  //   });
 
-    try {
-      final loginResponse = await _authService.signInWithFacebook();
+  //   try {
+  //     final loginResponse = await _authService.signInWithFacebook();
 
-      if (loginResponse != null && loginResponse.success) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => HomeScreen(user: loginResponse.user),
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Facebook sign in failed')),
-        );
-      }
-    } catch (e) {
-      print('Error during Facebook sign in: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An error occurred during Facebook sign in')),
-      );
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
+  //     if (loginResponse != null && loginResponse.success) {
+  //       Navigator.push(
+  //         context,
+  //         MaterialPageRoute(
+  //           builder: (context) => HomeScreen(user: loginResponse.user),
+  //         ),
+  //       );
+  //     } else {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(content: Text('Facebook sign in failed')),
+  //       );
+  //     }
+  //   } catch (e) {
+  //     print('Error during Facebook sign in: $e');
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text('An error occurred during Facebook sign in')),
+  //     );
+  //   } finally {
+  //     setState(() {
+  //       _isLoading = false;
+  //     });
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {

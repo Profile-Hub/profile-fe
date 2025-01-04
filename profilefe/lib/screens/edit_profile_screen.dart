@@ -8,7 +8,6 @@ import 'package:image_picker/image_picker.dart';
 import 'email_change_screen.dart';
 import '../models/location_models.dart' as location_models;
 import 'change_password_screen.dart';
-import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:typed_data';

@@ -4,7 +4,6 @@ import '../models/login_response.dart';
 import '../server_config.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:async';
 import 'dart:io' if (dart.library.html) 'dart:html';
@@ -125,16 +124,16 @@ class AuthService {
     }
   }
 
-  Future<LoginResponse?> signInWithFacebook() async {
+ /* Future<LoginResponse?> signInWithFacebook() async {
     try {
-      // Trigger Facebook login flow
+      
       final LoginResult result = await FacebookAuth.instance.login();
 
       if (result.status == LoginStatus.success) {
-        // Get access token
+        
         final String accessToken = result.accessToken!.token;
 
-        // Call your backend API
+        
         final url = Uri.parse('${ServerConfig.baseUrl}/Facebook-login');
         final response = await http.post(
           url,
@@ -161,7 +160,7 @@ class AuthService {
       return null;
     }
   }
-
+*/
 Future<LoginResponse?> signInWithGoogle() async {
     try {
       // Sign in with Google
@@ -282,7 +281,6 @@ Future<LoginResponse?> signInWithGoogle() async {
  
   Future<void> signOut() async {
     try {
-      await FacebookAuth.instance.logOut();
       await _googleSignIn.signOut();
       await logout(); // Your existing logout method
     } catch (e) {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/user.dart';
 import 'package:intl/intl.dart';
+import 'widgets/profile_avatar.dart';
 
 class ProfileScreen extends StatefulWidget {
   final User user;
@@ -243,16 +244,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Center(
               child: Stack(
                 children: [
-                  CircleAvatar(
-                    radius: 60,
-                    backgroundImage: widget.user.avatar?.url != null
-                        ? NetworkImage(widget.user.avatar!.url)
-                        : null,
-                    backgroundColor: Colors.grey[300],
-                    child: widget.user.avatar?.url == null
-                        ? const Icon(Icons.person, size: 60, color: Colors.white)
-                        : null,
-                  ),
+                   ProfileAvatar(
+                  user: widget.user,
+                  radius: 50,
+                  showEditButton: false,
+                ),
                 ],
               ),
             ),
