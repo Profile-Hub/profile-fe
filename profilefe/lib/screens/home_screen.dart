@@ -11,6 +11,8 @@ import 'doner_screen.dart';
 import 'adminVerify_screen.dart';
 import 'allReciptent_Screen.dart';
 import 'allDonorAdmin_dart.dart';
+import './widgets/profile_avatar.dart';
+
 
 class HomeScreen extends StatefulWidget {
   final User user;
@@ -224,19 +226,14 @@ Future<void> _handleLogout() async {
         child: Column(
           children: [
             UserAccountsDrawerHeader(
-              accountName: Text('${currentUser.firstname} ${currentUser.lastname}'),
-              accountEmail: Text(currentUser.email),
-              currentAccountPicture: CircleAvatar(
-                backgroundColor: Colors.grey[200],
-                backgroundImage: currentUser.avatar?.url != null
-                    ? NetworkImage(currentUser.avatar!.url)
-                    : null,
-                child: currentUser.avatar?.url == null
-                    ? const Icon(Icons.person, size: 50, color: Colors.white)
-                    : null,
-              ),
-              decoration: const BoxDecoration(color: Colors.blue),
-            ),
+              currentAccountPicture: ProfileAvatar(
+          user: currentUser,
+          radius: 30,
+          showEditButton: false,
+        ),
+        accountName: Text('${currentUser.firstname} ${currentUser.lastname}'),
+        accountEmail: Text(currentUser.email),
+      ),
             ListTile(
               leading: const Icon(Icons.person_outline),
               title: const Text('View Profile'),

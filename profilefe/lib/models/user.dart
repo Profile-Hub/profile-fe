@@ -1,7 +1,7 @@
 import 'avatar.dart';
 
 class User {
-  final Avatar? avatar;
+   Avatar? avatar;
   final String id;
   String firstname;
   String lastname;

@@ -29,13 +29,5 @@
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 	<key>CFBundleURLTypes</key>
-<array>
-    <dict>
-        <key>CFBundleURLSchemes</key>
-        <array>
-            <string>com.googleusercontent.apps.989849803787-c3n88dvvglbn5qei6d8ev5vf7b6evgcj</string>
-        </array>
-    </dict>
-</array>
 </dict>
 </plist>

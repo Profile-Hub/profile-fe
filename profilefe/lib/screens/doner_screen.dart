@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/allDoner.dart';
 import '../services/getdoner_service.dart';
-import 'package:intl/intl.dart'; 
 import './donerDetails_screen.dart';
 class DonorListPage extends StatefulWidget {
   @override
