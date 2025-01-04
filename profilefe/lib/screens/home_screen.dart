@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
 import '../services/auth_service.dart';
 import '../services/profile_completion_service.dart';
@@ -7,7 +8,11 @@ import 'profile_screen.dart';
 import 'edit_profile_screen.dart';
 import 'document_upload_screen.dart';
 import 'doner_screen.dart';
+import 'adminVerify_screen.dart';
+import 'allReciptent_Screen.dart';
+import 'allDonorAdmin_dart.dart';
 import './widgets/profile_avatar.dart';
+
 
 class HomeScreen extends StatefulWidget {
   final User user;
@@ -103,72 +108,73 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (context) => EditProfileScreen(user: currentUser),
       ),
     );
-
     if (updatedUser != null) {
       setState(() {
         currentUser = updatedUser;
       });
     }
   }
+Future<void> _handleLogout() async {
+  try {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const AlertDialog(
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text("Logging out..."),
+            ],
+          ),
+        );
+      },
+    );
 
-  Future<void> _handleLogout() async {
-    try {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return const AlertDialog(
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircularProgressIndicator(),
-                SizedBox(height: 16),
-                Text("Logging out...")
-              ],
-            ),
-          );
-        },
-      );
+    final success = await _authService.logout();
 
-      final success = await _authService.logout();
+    if (context.mounted) {
+      Navigator.pop(context);
+    }
+
+    if (success) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('authToken');
 
       if (context.mounted) {
-        Navigator.pop(context);
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => LoginScreen()),
+          (route) => false, 
+        );
       }
-
-      if (success) {
-        if (context.mounted) {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => LoginScreen()),
-            (route) => false,
-          );
-        }
-      } else {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Logout failed. Please try again.'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      if (context.mounted && Navigator.canPop(context)) {
-        Navigator.pop(context);
-      }
-
+    } else {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error during logout: $e'),
+          const SnackBar(
+            content: Text('Logout failed. Please try again.'),
             backgroundColor: Colors.red,
           ),
         );
       }
     }
+  } catch (e) {
+    if (context.mounted && Navigator.canPop(context)) {
+      Navigator.pop(context);
+    }
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error during logout: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
+}
 
   void _showLogoutConfirmation() {
     showDialog(
@@ -243,23 +249,65 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.edit),
-              title: const Text('Edit Profile'),
+              title: Text(currentUser.usertype == 'Admin' ? 'User Requests' : 'Edit Profile'),
               onTap: () {
                 Navigator.pop(context);
-                _navigateToEditProfile();
+                if (currentUser.usertype == 'Admin') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => AdminPage(),
+                    ),
+                  );
+                } else {
+                  _navigateToEditProfile();
+                }
               },
             ),
             ListTile(
               leading: const Icon(Icons.upload_file),
-              title: const Text('Upload Documents'),
+              title: Text(currentUser.usertype == 'Admin' ? 'AllDonor' : 'Upload Documents'),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => DocumentUploadScreen(user: currentUser),
-                  ),
-                );
+
+                if (currentUser.usertype == 'Admin') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => AllDonorPage(),
+                    ),
+                  );
+                } else {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => DocumentUploadScreen(user: currentUser),
+                    ),
+                  );
+                }
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.upload_file),
+              title: Text(currentUser.usertype == 'Admin' ? 'All Recipient ' : 'Upload Documents'),
+              onTap: () {
+                Navigator.pop(context);
+
+                if (currentUser.usertype == 'Admin') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => AllRecipientPage(),
+                    ),
+                  );
+                } else {
+                  Center(
+                    child: Text(
+                      'Welcome to Dashboard',
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    ),
+                  );
+                }
               },
             ),
             const Divider(),
@@ -283,7 +331,14 @@ class _HomeScreenState extends State<HomeScreen> {
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
       )
-     : DonorListPage(),
+    : currentUser.usertype == 'Admin'
+        ? Center(
+            child: Text(
+              'Welcome to Admin Dashboard',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+          )
+        : DonorListPage(),
     );
   }
 }

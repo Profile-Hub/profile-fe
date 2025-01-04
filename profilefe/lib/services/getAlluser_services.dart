@@ -1,12 +1,14 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../models/allDoner.dart';
+import '../models/adminmodel.dart';
 import '../server_config.dart';
 import '../models/donerDetails.dart';
 import '../models/Documentmodel.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../models/allUserAdmin.dart';
 
-class DonnerService {
+
+class AlluserData {
   final String baseUrl = ServerConfig.baseUrl;
   String? _token;
   static final _storage = FlutterSecureStorage();
@@ -15,11 +17,11 @@ class DonnerService {
     _token = await _storage.read(key: 'auth_token');
   }
 
-  Future<List<Doner>> getAllDoner() async {
+  Future<List<Alluser>> getAllUser() async {
     await _loadToken(); 
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/getallProvider'),
+        Uri.parse('$baseUrl/admin-get-AllUser'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $_token',
@@ -31,7 +33,7 @@ class DonnerService {
 
         // Accessing the 'userdetail' list within the response body
         if (data['userdetail'] is List) {
-          return data['userdetail'].map<Doner>((donor) => Doner.fromJson(donor)).toList();
+          return data['userdetail'].map<Alluser>((donor) => Alluser.fromJson(donor)).toList();
         } else {
           throw Exception('Unexpected response format');
         }
@@ -41,15 +43,13 @@ class DonnerService {
     } catch (e) {
       throw Exception('Failed to connect to server: $e');
     }
-  }
-
-  // Function to fetch donor details by ID 
- Future<DonerDetails> getDonorById(String id) async {
+  }  
+ Future<Alluser > getUserById(String id) async {
     await _loadToken();
 
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/doner/$id'),
+        Uri.parse('$baseUrl/admin-get-AllUserby-id/$id'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $_token',
@@ -57,11 +57,11 @@ class DonnerService {
       );
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        if (data != null && data['UserDetails'] != null) {
-          return DonerDetails.fromJson(data['UserDetails']);
+        if (data != null && data['userprofile'] != null) {
+          return Alluser.fromJson(data['userprofile']);
           
         } else {
-          throw Exception('UserDetails not found in response');
+          throw Exception('userprofile not found in response');
         }
       } else {
         throw Exception('Failed to load donor details. Status Code: ${response.statusCode}');
@@ -70,7 +70,7 @@ class DonnerService {
       throw Exception('Failed to connect to server: $e');
     }
   }
-  Future<List<Document>> getDonorDocuments(String donorId, String country) async {
+  Future<List<Document>> getUserDocuments(String donorId, String country) async {
   await _loadToken();
   String endpoint = _getCountryEndpoint(country);
   if (endpoint.isEmpty) {
@@ -88,9 +88,7 @@ class DonnerService {
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      print('Received data: $data');
-
-      if (data != null && data['userDocuments'] != null) {
+       if (data != null && data['userDocuments'] != null) {
         return List<Document>.from(
           data['userDocuments'].map((doc) => Document.fromJson(doc))
         );

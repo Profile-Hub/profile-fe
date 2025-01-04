@@ -1,7 +1,7 @@
 class Document {
-  String id; 
+  String id;
   String userId;
-  Map<String, String>? files; 
+  Map<String, String>? files;
 
   Document({
     required this.id,
@@ -18,15 +18,15 @@ class Document {
     });
 
     return Document(
-      id: json['_id']?.toString() ?? '',  // Convert id to string
-      userId: json['userId']?.toString() ?? '',  // Convert userId to string
+      id: json['_id']?.toString() ?? '',
+      userId: json['userId']?.toString() ?? '',
       files: files.isNotEmpty ? files : null,
     );
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
-    data['_id'] = id; 
+    data['_id'] = id;
     data['userId'] = userId;
     if (files != null) {
       files!.forEach((key, value) {
