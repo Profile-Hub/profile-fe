@@ -5,8 +5,6 @@ import '../services/auth_service.dart';
 import 'signup_screen.dart';
 import 'home_screen.dart';
 import 'forgot_password_screen.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 class LoginScreen extends StatefulWidget {
   @override
   _LoginScreenState createState() => _LoginScreenState();
@@ -239,11 +237,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             'Google',
                              _handleGoogleSignIn,
                           ),
-                          _socialLoginButton(
-                            'assets/facebook_logo.png',
-                            'Facebook',
-                             _handleFacebookSignIn,
-                          ),
+                         
                         ],
                       ),
                       SizedBox(height: 24),

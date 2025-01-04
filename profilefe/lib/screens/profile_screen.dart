@@ -119,15 +119,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       });
     }
   }
-void _saveProfile() {
-  // Implement your save logic here
-  setState(() {
-    isEditing = false;
-  });
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(content: Text('Profile saved successfully!')),
-  );
-}
 
 
   Widget _buildProfileField(String label, String? value, {TextEditingController? controller, bool isDateField = false}) {
