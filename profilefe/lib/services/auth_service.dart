@@ -4,21 +4,30 @@ import '../models/login_response.dart';
 import '../server_config.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:async';
+import 'dart:io' if (dart.library.html) 'dart:html';
+import 'package:universal_io/io.dart';
+
 
 class AuthService {
   static final AuthService _instance = AuthService._internal();
   static final _storage = FlutterSecureStorage();
   String? _token;
-final GoogleSignIn _googleSignIn = GoogleSignIn(
-  clientId: '989849803787-c3n88dvvglbn5qei6d8ev5vf7b6evgcj.apps.googleusercontent.com',
-  // serverClientId: '989849803787-c3n88dvvglbn5qei6d8ev5vf7b6evgcj.apps.googleusercontent.com',
-  scopes: [
-    'email',
-    'profile',
-    'openid',
-  ],
-);
+
+   final GoogleSignIn _googleSignIn = GoogleSignIn(
+    clientId: kIsWeb 
+        ? '989849803787-ulkqn66upm45sn4euasbdbue60qe506r.apps.googleusercontent.com'
+        : null,
+    scopes: [
+      'email',
+      'profile',
+      'openid',
+      'https://www.googleapis.com/auth/userinfo.profile',
+      'https://www.googleapis.com/auth/userinfo.email'
+    ],
+  );
+
   factory AuthService() {
     return _instance;
   }
@@ -115,16 +124,16 @@ final GoogleSignIn _googleSignIn = GoogleSignIn(
     }
   }
 
-  Future<LoginResponse?> signInWithFacebook() async {
+ /* Future<LoginResponse?> signInWithFacebook() async {
     try {
-      // Trigger Facebook login flow
+      
       final LoginResult result = await FacebookAuth.instance.login();
 
       if (result.status == LoginStatus.success) {
-        // Get access token
+        
         final String accessToken = result.accessToken!.token;
 
-        // Call your backend API
+        
         final url = Uri.parse('${ServerConfig.baseUrl}/Facebook-login');
         final response = await http.post(
           url,
@@ -151,48 +160,127 @@ final GoogleSignIn _googleSignIn = GoogleSignIn(
       return null;
     }
   }
-
-  Future<LoginResponse?> signInWithGoogle() async {
+*/
+Future<LoginResponse?> signInWithGoogle() async {
     try {
+      // Sign in with Google
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) return null;
+      if (googleUser == null) {
+        print('Google Sign In was cancelled by user');
+        return null;
+      }
 
       // Get authentication details
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-      final String? accessToken = googleAuth.accessToken;
+      
+      // Get user information using the access token
+      final userInfoResponse = await http.get(
+        Uri.parse('https://people.googleapis.com/v1/people/me?personFields=names,emailAddresses,photos'),
+        headers: {
+          'Authorization': 'Bearer ${googleAuth.accessToken}',
+        },
+      );
 
-      if (accessToken != null) {
-        // Call your backend API
-        final url = Uri.parse('${ServerConfig.baseUrl}/google-login');
-        final response = await http.post(
-          url,
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({
-            'idToken': googleAuth.idToken, 
-          }),
-        );
+      if (userInfoResponse.statusCode != 200) {
+        print('Failed to get user info: ${userInfoResponse.body}');
+        return null;
+      }
 
-        if (response.statusCode == 200) {
-          final jsonResponse = jsonDecode(response.body);
-          final loginResponse = LoginResponse.fromJson(jsonResponse);
+      final userInfo = json.decode(userInfoResponse.body);
 
-          if (loginResponse.success) {
-            _token = loginResponse.token;
-            await _storage.write(key: 'auth_token', value: _token);
-          }
+      // Prepare the payload for your backend
+      final Map<String, dynamic> payload = {
+        'accessToken': googleAuth.accessToken,
+        'idToken': googleAuth.idToken, // This might be null for web
+        'platform': kIsWeb ? 'web' : Platform.operatingSystem,
+        'email': _extractEmail(userInfo),
+        'displayName': _extractDisplayName(userInfo),
+        'photoUrl': _extractPhotoUrl(userInfo),
+      };
+
+      // Make the backend API call
+      final url = Uri.parse('${ServerConfig.baseUrl}/google-login');
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode(payload),
+      ).timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          throw TimeoutException('Server request timed out');
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final jsonResponse = jsonDecode(response.body);
+        final loginResponse = LoginResponse.fromJson(jsonResponse);
+
+        if (loginResponse.success) {
+          // Store the authentication token
+          _token = loginResponse.token;
+          await _storage.write(
+            key: 'auth_token',
+            value: _token,
+            iOptions: IOSOptions(
+              accessibility: KeychainAccessibility.first_unlock,
+            ),
+            aOptions: AndroidOptions(
+              encryptedSharedPreferences: true,
+            ),
+          );
+
+          // Store user information
+          await _storage.write(key: 'user_email', value: payload['email']);
+          await _storage.write(key: 'user_name', value: payload['displayName']);
+          
           return loginResponse;
         }
       }
+      
+      print('Backend API error: ${response.statusCode} - ${response.body}');
       return null;
-    } catch (e) {
+
+    } catch (e, stackTrace) {
       print('Google login error: $e');
+      print('Stack trace: $stackTrace');
       return null;
     }
   }
 
+  // Helper methods to safely extract user information
+  String _extractEmail(Map<String, dynamic> userInfo) {
+    try {
+      return userInfo['emailAddresses']?[0]?['value'] ?? '';
+    } catch (e) {
+      print('Error extracting email: $e');
+      return '';
+    }
+  }
+
+  String _extractDisplayName(Map<String, dynamic> userInfo) {
+    try {
+      return userInfo['names']?[0]?['displayName'] ?? '';
+    } catch (e) {
+      print('Error extracting display name: $e');
+      return '';
+    }
+  }
+
+  String _extractPhotoUrl(Map<String, dynamic> userInfo) {
+    try {
+      return userInfo['photos']?[0]?['url'] ?? '';
+    } catch (e) {
+      print('Error extracting photo URL: $e');
+      return '';
+    }
+  }
+
+ 
   Future<void> signOut() async {
     try {
-      await FacebookAuth.instance.logOut();
       await _googleSignIn.signOut();
       await logout(); // Your existing logout method
     } catch (e) {

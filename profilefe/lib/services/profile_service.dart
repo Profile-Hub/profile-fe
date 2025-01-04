@@ -4,24 +4,26 @@ import '../models/user.dart';
 import '../server_config.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http_parser/http_parser.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:mime/mime.dart'; // For MIME type detection
-import 'dart:io' as io; // For native platforms
+import 'dart:io' as io;
 import 'package:flutter/foundation.dart';
 
 class ProfileService {
   final String baseUrl = ServerConfig.baseUrl;
   String? _token;
   static final _storage = FlutterSecureStorage();
+
   Future<void> _loadToken() async {
     _token = await _storage.read(key: 'auth_token');
   }
+
   Future<User> getProfile() async {
     await _loadToken(); 
     try {
-      final response = await http.get(Uri.parse('$baseUrl/profile'),
-        headers: {'Content-Type': 'application/json',
-                   'Authorization': 'Bearer $_token',
+      final response = await http.get(
+        Uri.parse('$baseUrl/profile'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $_token',
         },
       );
        
@@ -42,8 +44,9 @@ class ProfileService {
     try {
       final response = await http.patch(
         Uri.parse('$baseUrl/update-Profile'),
-        headers: {'Content-Type': 'application/json',
-                   'Authorization': 'Bearer $_token',
+        headers: {
+          'Content-Type': 'application/json',
+            'Authorization': 'Bearer $_token',
         },
         body: json.encode(profileData),
       );
@@ -58,68 +61,63 @@ class ProfileService {
     }
   }
 
+  Future<User> uploadProfileImage({
+    required dynamic imageFile,  // Can be File or Uint8List
+    required String fileName,
+    required String mimeType,
+  }) async {
+    await _loadToken();
 
-Future<bool> updateProfileImage() async {
-  await _loadToken(); // Load token (if required)
+    try {
+      // Create multipart request
+      var uri = Uri.parse('$baseUrl/upload-profile-photo');
+      var request = http.MultipartRequest('POST', uri);
+      
+      // Add authorization header
+      request.headers.addAll({
+        'Authorization': 'Bearer $_token',
+      });
 
-  try {
-    // Open file picker for all platforms
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['jpg', 'jpeg', 'png'], // Allowed file types
-    );
+      // Handle file upload based on platform
+      if (kIsWeb) {
+        // Web platform - imageFile should be Uint8List
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            'file',
+            imageFile as Uint8List,
+            filename: fileName,
+            contentType: MediaType.parse(mimeType),
+          ),
+        );
+      } else {
+        // Native platforms - imageFile should be File
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            'file',
+            (imageFile as io.File).path,
+            contentType: MediaType.parse(mimeType),
+          ),
+        );
+      }
 
-    if (result == null) {
-      // User canceled the picker
-      return false;
+      // Send request
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        
+        if (data['success'] == true && data['user'] != null) {
+          return User.fromJson(data['user']);
+        } else {
+          throw Exception('Invalid response format');
+        }
+      } else {
+        final error = json.decode(response.body);
+        throw Exception(error['message'] ?? 'Failed to upload image');
+      }
+    } catch (e) {
+      throw Exception('Failed to upload profile image: $e');
     }
-
-    PlatformFile file = result.files.first; // Selected file
-
-    // Prepare Multipart Request
-    var request = http.MultipartRequest(
-      'POST',
-      Uri.parse('$baseUrl/upload-profile-image'), // Replace with your endpoint
-    );
-
-    // Platform-specific file handling
-    if (kIsWeb) {
-      // Web: Use bytes for Multipart
-      Uint8List bytes = file.bytes!;
-      request.files.add(http.MultipartFile.fromBytes(
-        'profile_image', // Field name
-        bytes,
-        filename: file.name, // File name
-        contentType: MediaType.parse(lookupMimeType(file.name)!),
-      ));
-    } else {
-      // Mobile/Desktop: Use file path
-      io.File physicalFile = io.File(file.path!);
-      request.files.add(await http.MultipartFile.fromPath(
-        'profile_image',
-        physicalFile.path,
-        contentType: MediaType.parse(lookupMimeType(physicalFile.path)!),
-      ));
-    }
-
-    // Add Authorization Header
-    request.headers['Authorization'] = 'Bearer $_token';
-    request.headers['Content-Type'] = 'multipart/form-data';
-
-    // Send request
-    var response = await request.send();
-
-    if (response.statusCode == 200) {
-      print("Profile image uploaded successfully.");
-      return true;
-    } else {
-      print("Failed to upload profile image: ${response.statusCode}");
-      return false;
-    }
-  } catch (e) {
-    print("Exception: $e");
-    throw Exception('Failed to upload profile image: $e');
   }
-}
-
 }

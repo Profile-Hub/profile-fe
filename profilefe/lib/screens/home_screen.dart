@@ -7,6 +7,7 @@ import 'profile_screen.dart';
 import 'edit_profile_screen.dart';
 import 'document_upload_screen.dart';
 import 'doner_screen.dart';
+import './widgets/profile_avatar.dart';
 
 class HomeScreen extends StatefulWidget {
   final User user;
@@ -219,19 +220,14 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           children: [
             UserAccountsDrawerHeader(
-              accountName: Text('${currentUser.firstname} ${currentUser.lastname}'),
-              accountEmail: Text(currentUser.email),
-              currentAccountPicture: CircleAvatar(
-                backgroundColor: Colors.grey[200],
-                backgroundImage: currentUser.avatar?.url != null
-                    ? NetworkImage(currentUser.avatar!.url)
-                    : null,
-                child: currentUser.avatar?.url == null
-                    ? const Icon(Icons.person, size: 50, color: Colors.white)
-                    : null,
-              ),
-              decoration: const BoxDecoration(color: Colors.blue),
-            ),
+              currentAccountPicture: ProfileAvatar(
+          user: currentUser,
+          radius: 30,
+          showEditButton: false,
+        ),
+        accountName: Text('${currentUser.firstname} ${currentUser.lastname}'),
+        accountEmail: Text(currentUser.email),
+      ),
             ListTile(
               leading: const Icon(Icons.person_outline),
               title: const Text('View Profile'),

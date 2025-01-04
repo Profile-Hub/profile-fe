@@ -8,7 +8,10 @@ import 'package:image_picker/image_picker.dart';
 import 'email_change_screen.dart';
 import '../models/location_models.dart' as location_models;
 import 'change_password_screen.dart';
-
+import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:typed_data';
+import 'package:http/http.dart' as http;
 class EditProfileScreen extends StatefulWidget {
   final User user;
   const EditProfileScreen({Key? key, required this.user}) : super(key: key);
@@ -66,6 +69,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       'Bone Marrow and Stem Cells (regenerative)'
     ],
   };
+    File? _imageFile;
+  Uint8List? _webImage;
+  final ImagePicker _picker = ImagePicker();
+  bool isImageUploading = false;
+  bool isLoadingNetworkImage = false;
+   Uint8List? _cachedNetworkImage; 
   
   Set<String> selectedOrgans = {};
 
@@ -75,8 +84,57 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.initState();
     selectedOrgans = Set.from(widget.user.organDonations);
     _initializeScreen();
+      if (widget.user.avatar?.url != null) {
+      _preloadNetworkImage();
+    }
+  }
+    void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
+  Future<void> _preloadNetworkImage() async {
+    if (!mounted) return;
+    
+    setState(() => isLoadingNetworkImage = true);
+    
+    try {
+      final response = await http.get(
+        Uri.parse(widget.user.avatar!.url),
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        if (mounted) {
+          setState(() {
+            _cachedNetworkImage = response.bodyBytes;
+            isLoadingNetworkImage = false;
+          });
+        }
+      } else {
+        throw Exception('Failed to load image');
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _cachedNetworkImage = null;
+          isLoadingNetworkImage = false;
+        });
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to load profile image. Please try again later.'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    }
+  }
   Future<void> _initializeScreen() async {
     setState(() => isInitializing = true);
     
@@ -195,31 +253,247 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
-  Future<void> _pickImage() async {
+ Future<void> _handleImageUpload() async {
+    if (!mounted) return;
+    
     try {
-      final ImagePicker picker = ImagePicker();
-      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+      setState(() => isImageUploading = true);
       
-      if (image != null) {
-        // Handle image upload
-        await _profileService.updateProfileImage();
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Profile picture updated successfully!')),
-          );
-        }
+      final imageData = _webImage ?? await _imageFile?.readAsBytes();
+      if (imageData == null) return;
+
+      final updatedUser = await _profileService.uploadProfileImage(
+        imageFile: imageData,
+        fileName: 'profile_image.jpg',
+        mimeType: 'image/jpeg',
+      );
+
+      if (mounted) {
+        setState(() {
+          widget.user.avatar = updatedUser.avatar;
+          // Preload the new image
+          if (updatedUser.avatar?.url != null) {
+            _preloadNetworkImage();
+          }
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profile image updated successfully!'),
+            duration: Duration(seconds: 2),
+          ),
+        );
       }
     } catch (e) {
-      _showError('Failed to update profile picture: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to upload image: $e'),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => isImageUploading = false);
+      }
     }
   }
 
-  void _showError(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
+
+Future<void> _selectImage() async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1200,
+        maxHeight: 1200,
+        imageQuality: 85,
+      );
+      
+      if (image != null) {
+        if (kIsWeb) {
+          final bytes = await image.readAsBytes();
+          setState(() {
+            _webImage = bytes;
+            _imageFile = null;
+          });
+        } else {
+          setState(() {
+            _imageFile = File(image.path);
+            _webImage = null;
+          });
+        }
+        await _handleImageUpload();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error selecting image: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _captureImage() async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 1200,
+        maxHeight: 1200,
+        imageQuality: 85,
+      );
+      
+      if (image != null) {
+        if (kIsWeb) {
+          final bytes = await image.readAsBytes();
+          setState(() {
+            _webImage = bytes;
+            _imageFile = null;
+          });
+        } else {
+          setState(() {
+            _imageFile = File(image.path);
+            _webImage = null;
+          });
+        }
+        await _handleImageUpload();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error capturing image: $e')),
+        );
+      }
+    }
+  }
+ void _showImageSourceDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Select Image Source'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Gallery'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _selectImage();
+                },
+              ),
+              if (!kIsWeb) // Show camera option only for mobile platforms
+                ListTile(
+                  leading: const Icon(Icons.camera_alt),
+                  title: const Text('Camera'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _captureImage();
+                  },
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
+  Widget _buildProfileImage() {
+    return Stack(
+      children: [
+        CircleAvatar(
+          radius: 60,
+          backgroundColor: Colors.grey[300],
+          child: isImageUploading
+              ? const CircularProgressIndicator()
+              : _getProfileImage(),
+        ),
+        Positioned(
+          bottom: 0,
+          right: 0,
+          child: GestureDetector(
+            onTap: isImageUploading ? null : _showImageSourceDialog,
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isImageUploading 
+                    ? Colors.grey 
+                    : Theme.of(context).primaryColor,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Icon(
+                Icons.camera_alt,
+                color: isImageUploading ? Colors.white.withOpacity(0.5) : Colors.white,
+                size: 20,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+   Widget _getProfileImage() {
+    if (isImageUploading) {
+      return const Center(
+        child: CircularProgressIndicator(
+          strokeWidth: 3,
+        ),
+      );
+    }
+    
+    if (_webImage != null) {
+      return _buildCircularImage(
+        child: Image.memory(
+          _webImage!,
+          fit: BoxFit.cover,
+        ),
+      );
+    } 
+    
+    if (_imageFile != null) {
+      return _buildCircularImage(
+        child: Image.file(
+          _imageFile!,
+          fit: BoxFit.cover,
+        ),
+      );
+    }
+    
+    if (_cachedNetworkImage != null) {
+      return _buildCircularImage(
+        child: Image.memory(
+          _cachedNetworkImage!,
+          fit: BoxFit.cover,
+        ),
+      );
+    }
+    
+    if (isLoadingNetworkImage) {
+      return const Center(
+        child: CircularProgressIndicator(
+          strokeWidth: 3,
+        ),
+      );
+    }
+    
+    return const Icon(
+      Icons.person,
+      size: 60,
+      color: Colors.white,
+    );
+  }
+
+  Widget _buildCircularImage({required Widget child}) {
+    return ClipOval(
+      child: SizedBox(
+        width: 120,
+        height: 120,
+        child: child,
+      ),
+    );
+  }
+
+ 
 
   Widget _buildTextField({
     required String label,
@@ -410,33 +684,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             key: _formKey,
             child: Column(
               children: [
-                // Avatar section
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    CircleAvatar(
-                      radius: 60,
-                      backgroundImage: widget.user.avatar?.url != null
-                          ? NetworkImage(widget.user.avatar!.url)
-                          : null,
-                      child: widget.user.avatar?.url == null
-                          ? const Icon(Icons.person, size: 60)
-                          : null,
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: CircleAvatar(
-                        backgroundColor: Theme.of(context).primaryColor,
-                        radius: 20,
-                        child: IconButton(
-                          icon: const Icon(Icons.camera_alt, color: Colors.white),
-                          onPressed: _pickImage,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                
+                 const SizedBox(height: 20),
+            Center(child: _buildProfileImage()),
+            const SizedBox(height: 30),
                 const SizedBox(height: 20),
                 
                 // Form fields
