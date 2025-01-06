@@ -24,7 +24,7 @@ class _DonorListPageState extends State<DonorListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Donor List')),
+  
       body: FutureBuilder<List<Doner>>(
         future: _donors,
         builder: (context, snapshot) {
