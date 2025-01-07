@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/donerDetails.dart';
 import '../models/Documentmodel.dart';
 import '../services/getdoner_service.dart';
+import './Chat_screen.dart'; 
 
 class DonorDetailPage extends StatelessWidget {
   final String donorId;
@@ -91,8 +92,7 @@ class DonorDetailPage extends StatelessWidget {
                                 final document = documents[index];
                                 final documentFiles = document.files?.entries
                                         .where((entry) => entry.value.isNotEmpty)
-                                        .toList() ??
-                                    [];
+                                        .toList() ?? [];
 
                                 return documentFiles.isNotEmpty
                                     ? Column(
@@ -145,7 +145,36 @@ class DonorDetailPage extends StatelessWidget {
                         );
                       }
                     },
-                  )
+                  ),
+                  // Blue button to navigate to chat
+                  Padding(
+                    padding: const EdgeInsets.only(top: 20),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ChatScreen(
+                              conversationSid: "your-conversation-sid", // Replace with actual conversation SID
+                              userName: donor.firstname ?? 'Unknown',
+                              profilePictureUrl: donor.avatar?.url ?? '', // Replace with actual profile picture URL
+                            ),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        "Let's Chat",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             );
