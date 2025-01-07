@@ -1,6 +1,8 @@
-// lib/screens/subscription_plans_screen.dart
 import 'package:flutter/material.dart';
-
+import 'package:flutter_stripe/flutter_stripe.dart';
+import '../services/stripe_service.dart';
+import 'package:flutter/material.dart' hide Card;
+import 'package:flutter/material.dart' as material show Card;
 class SubscriptionPlan {
   final String id;
   final String name;
@@ -59,7 +61,57 @@ class SubscriptionPlansScreen extends StatelessWidget {
       ],
     ),
   ];
+Future<void> _handleSubscription(
+      BuildContext context, SubscriptionPlan plan) async {
+    try {
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => Center(child: CircularProgressIndicator()),
+      );
 
+      // Create payment intent
+      final paymentIntentData = await StripeService.createPaymentIntent(
+        plan.id,
+        plan.price.toInt(),
+      );
+
+      // Initialize payment sheet
+      await Stripe.instance.initPaymentSheet(
+        paymentSheetParameters: SetupPaymentSheetParameters(
+          merchantDisplayName: 'Your App Name',
+          paymentIntentClientSecret: paymentIntentData['clientSecret'],
+          style: ThemeMode.system,
+        ),
+      );
+
+      // Show payment sheet
+      await Stripe.instance.presentPaymentSheet();
+
+      // Close loading indicator
+      Navigator.pop(context);
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Payment successful!')),
+      );
+
+      // Handle post-payment logic (e.g., update user's subscription status)
+      Navigator.pop(context);
+    } catch (e) {
+      // Close loading indicator if it's showing
+      Navigator.maybeOf(context)?.pop();
+
+      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Payment failed: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -85,7 +137,7 @@ class SubscriptionPlansScreen extends StatelessWidget {
   }
 
   Widget _buildPlanCard(BuildContext context, SubscriptionPlan plan) {
-    return Card(
+    return material.Card(
       margin: EdgeInsets.symmetric(vertical: 8),
       child: Padding(
         padding: EdgeInsets.all(16),
@@ -158,24 +210,5 @@ class SubscriptionPlansScreen extends StatelessWidget {
     );
   }
 
-  void _handleSubscription(BuildContext context, SubscriptionPlan plan) async {
-    try {
-      // TODO: Implement your Stripe payment logic here
-      // For now, just show a success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Subscription successful!'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-      Navigator.of(context).pop(); // Return to previous screen
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Payment failed: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
+ 
 }

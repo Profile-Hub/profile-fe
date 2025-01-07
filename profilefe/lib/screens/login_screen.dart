@@ -5,6 +5,7 @@ import '../services/auth_service.dart';
 import 'signup_screen.dart';
 import 'home_screen.dart';
 import 'forgot_password_screen.dart';
+import '../routes.dart';
 class LoginScreen extends StatefulWidget {
   @override
   _LoginScreenState createState() => _LoginScreenState();
@@ -31,8 +32,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
         if (loginResponse != null && loginResponse.success) {
           print('Login successful!');
-          print('User ID: ${loginResponse.user.id}');
-          print('Token: ${loginResponse.token}');
+          // print('User ID: ${loginResponse.user.id}');
+          // print('Token: ${loginResponse.token}');
 
           // Save token for future use
           final prefs = await SharedPreferences.getInstance();
@@ -40,12 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
           final token = loginResponse.token;
 
           if (token.isNotEmpty) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => HomeScreen(user: loginResponse.user),
-              ),
-            );
+             Navigator.pushReplacementNamed(context, Routes.home);
           } else {
             print('Token is empty');
           }
@@ -75,12 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final loginResponse = await _authService.signInWithGoogle();
 
       if (loginResponse != null && loginResponse.success) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => HomeScreen(user: loginResponse.user),
-          ),
-        );
+        Navigator.pushReplacementNamed(context, Routes.home);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Google sign in failed')),
