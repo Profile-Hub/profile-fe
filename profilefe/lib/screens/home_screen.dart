@@ -13,6 +13,8 @@ import 'allReciptent_Screen.dart';
 import 'allDonorAdmin_dart.dart';
 import './widgets/profile_avatar.dart';
 import '../providers/user_provider.dart';
+import '../services/chat_services.dart';
+import './DonnerChat_Screen.Dart';
 import '../routes.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -30,15 +32,31 @@ class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final AuthService _authService = AuthService();
   final ProfileCompletionService _profileCompletionService = ProfileCompletionService();
+  final ChatServices  _chatservice=ChatServices();
   late User currentUser;
+  final unreadMessagesCount = 0;
+  String conversationSid = '';
 
   @override
   void initState() {
     super.initState();
     currentUser = widget.user;
+     _initializeConversationSid();
     _checkProfileCompletion();
+    
   }
 
+Future<void> _initializeConversationSid() async {
+  try {
+    final sid = await _chatservice.getConversationByDonor();
+    setState(() {
+      conversationSid = sid; 
+    });
+    print(conversationSid); 
+  } catch (e) {
+    print("Error initializing conversation SID: $e");
+  }
+}
   Future<void> _checkProfileCompletion() async {
     try {
       final response = await _profileCompletionService.checkProfileCompletion();
@@ -217,12 +235,47 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         title: const Text('Home'),
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.person),
-            onPressed: _navigateToEditProfile,
+actions: [
+   if (currentUser.usertype == 'donor')
+        IconButton(
+          icon: Stack(
+            children: [
+              const Icon(Icons.message),
+              if (unreadMessagesCount > 0) 
+                Positioned(
+                  right: 0,
+                  top: 0,
+                  child: CircleAvatar(
+                    radius: 8,
+                    backgroundColor: Colors.red,
+                    child: Text(
+                      '$unreadMessagesCount',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
-        ],
+          onPressed: () {
+            if (conversationSid != null) {
+    GoRouter.of(context).go('${Routes.donnerchat}/$conversationSid');
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Conversation SID not initialized")),
+    );
+  }
+          },
+        ),
+        // Profile Icon
+        IconButton(
+          icon: const Icon(Icons.person),
+          onPressed: _navigateToEditProfile,
+        ),
+      ],
       ),
       drawer: Drawer(
         child: Column(
