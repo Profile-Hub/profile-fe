@@ -10,7 +10,8 @@ import 'document_form/china_document_form.dart';
 class DocumentUploadScreen extends StatefulWidget {
   final User user;
 
-  const DocumentUploadScreen({Key? key, required this.user}) : super(key: key);
+  // Removed 'const' constructor to make it work with GoRouter
+  DocumentUploadScreen({Key? key, required this.user}) : super(key: key);
 
   @override
   State<DocumentUploadScreen> createState() => _DocumentUploadScreenState();
@@ -28,18 +29,18 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
   Widget navigateToDocumentForm() {
     switch (country) {
       case 'India':
-        return const IndiaDocumentForm();
+        return  IndiaDocumentForm();
       case 'United States':
-        return const USDocumentForm();
+        return  USDocumentForm();
       case 'United Kingdom':
-        return const UKDocumentForm();
+        return  UKDocumentForm();
       case 'Australia':
       case 'New Zealand': 
-        return const AustraliaDocumentForm();
+        return  AustraliaDocumentForm();
       case 'United Arab Emirates':
-        return const UAEDocumentForm();
+        return  UAEDocumentForm();
       case 'China':
-        return const ChinaDocumentForm();
+        return  ChinaDocumentForm();
       default:
         return const Scaffold(
           body: Center(child: Text('Document form is not available for this country.')),
@@ -50,7 +51,7 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: navigateToDocumentForm(), 
+      body: navigateToDocumentForm(),
     );
   }
 }

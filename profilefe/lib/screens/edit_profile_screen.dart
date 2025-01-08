@@ -12,9 +12,12 @@ import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
+import 'package:go_router/go_router.dart';
+import '../routes.dart';
+
 class EditProfileScreen extends StatefulWidget {
   final User user;
-  const EditProfileScreen({Key? key, required this.user}) : super(key: key);
+  EditProfileScreen({Key? key, required this.user}) : super(key: key);
 
   @override
   State<EditProfileScreen> createState() => _EditProfileScreenState();
@@ -379,7 +382,7 @@ Future<void> _selectImage() async {
                 leading: const Icon(Icons.photo_library),
                 title: const Text('Gallery'),
                 onTap: () {
-                  Navigator.pop(context);
+                  GoRouter.of(context).pop();
                   _selectImage();
                 },
               ),
@@ -388,7 +391,7 @@ Future<void> _selectImage() async {
                   leading: const Icon(Icons.camera_alt),
                   title: const Text('Camera'),
                   onTap: () {
-                    Navigator.pop(context);
+                    GoRouter.of(context).pop();
                     _captureImage();
                   },
                 ),
@@ -642,7 +645,7 @@ Future<void> _selectImage() async {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Profile updated successfully!')),
         );
-        Navigator.pop(context, updatedUser);
+       GoRouter.of(context).pop(updatedUser);
       }
     } catch (e) {
       if (mounted) {
@@ -674,6 +677,7 @@ Future<void> _selectImage() async {
 
     return Scaffold(
       appBar: AppBar(
+        leading: BackButton(),
         title: const Text('Edit Profile'),
         centerTitle: true,
       ),
@@ -829,16 +833,12 @@ Future<void> _selectImage() async {
                       width: double.infinity,
                       height: 50,
                       child: ElevatedButton(
-                        onPressed: () {
-                         Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ChangeEmailScreen(
-                               user: widget.user, 
-                              ),
-                            ),
-                          );
-                        },
+                       onPressed: () {
+                       GoRouter.of(context).push(
+                       Routes.changeEmail, 
+                       extra: widget.user,   
+                         );
+                           },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue,
                            foregroundColor: Colors.white,
@@ -867,14 +867,10 @@ Future<void> _selectImage() async {
                       height: 50,
                       child: ElevatedButton(
                         onPressed: () {
-                         Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ChangePasswordScreen( 
-                              ),
-                            ),
-                          );
-                        },
+                         GoRouter.of(context).push(
+                        Routes.changePassword,  
+                           );
+                          },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue,
                            foregroundColor: Colors.white,

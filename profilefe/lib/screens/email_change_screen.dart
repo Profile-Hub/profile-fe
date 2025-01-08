@@ -5,7 +5,7 @@ import '../services/email_service.dart';
 class ChangeEmailScreen extends StatefulWidget {
   final User user;
 
-  const ChangeEmailScreen({Key? key, required this.user}) : super(key: key);
+  ChangeEmailScreen({Key? key, required this.user}) : super(key: key);
 
   @override
   _ChangeEmailScreenState createState() => _ChangeEmailScreenState();
@@ -86,6 +86,7 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: BackButton(),
         title: const Text('Change Email'),
       ),
       body: Padding(

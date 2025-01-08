@@ -12,12 +12,15 @@ import 'adminVerify_screen.dart';
 import 'allReciptent_Screen.dart';
 import 'allDonorAdmin_dart.dart';
 import './widgets/profile_avatar.dart';
-
+import '../providers/user_provider.dart';
+import '../routes.dart';
+import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 
 class HomeScreen extends StatefulWidget {
   final User user;
 
-  const HomeScreen({Key? key, required this.user}) : super(key: key);
+   HomeScreen({Key? key, required this.user}) : super(key: key);
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -85,16 +88,16 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                _navigateToEditProfile();
-              },
-              child: const Text('Complete Profile'),
-            ),
+             onPressed: () => GoRouter.of(context).pop(),  
+             child: const Text('Cancel'), 
+                ),
+           ElevatedButton(
+            onPressed: () {
+            GoRouter.of(context).pop();  
+                   _navigateToEditProfile();    
+                   },
+                  child: const Text('Complete Profile'),  
+                   ),
           ],
         );
       },
@@ -102,79 +105,78 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _navigateToEditProfile() async {
-    final updatedUser = await Navigator.push<User>(
-      context,
-      MaterialPageRoute(
-        builder: (context) => EditProfileScreen(user: currentUser),
-      ),
-    );
-    if (updatedUser != null) {
-      setState(() {
-        currentUser = updatedUser;
-      });
-    }
+  final result = await GoRouter.of(context).push<User>(
+    Routes.editProfile,
+    extra: currentUser,
+  );
+
+  if (result != null) {
+    setState(() {
+      currentUser = result;
+    });
+    Provider.of<UserProvider>(context, listen: false).setUser(result);
   }
-Future<void> _handleLogout() async {
-  try {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return const AlertDialog(
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 16),
-              Text("Logging out..."),
-            ],
-          ),
-        );
-      },
-    );
+}
 
-    final success = await _authService.logout();
+   Future<void> _handleLogout() async {
+    try {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return const AlertDialog(
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text("Logging out..."),
+              ],
+            ),
+          );
+        },
+      );
 
-    if (context.mounted) {
-      Navigator.pop(context);
-    }
-
-    if (success) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('authToken');
+      final success = await _authService.logout();
 
       if (context.mounted) {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => LoginScreen()),
-          (route) => false, 
-        );
+         GoRouter.of(context).pop();
       }
-    } else {
+
+      if (success) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.remove('authToken');
+        
+        
+        if (context.mounted) {
+          Provider.of<UserProvider>(context, listen: false).clearUser();
+          GoRouter.of(context).go(Routes.login);
+        }
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Logout failed. Please try again.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted && Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Logout failed. Please try again.'),
+          SnackBar(
+            content: Text('Error during logout: $e'),
             backgroundColor: Colors.red,
           ),
         );
       }
     }
-  } catch (e) {
-    if (context.mounted && Navigator.canPop(context)) {
-      Navigator.pop(context);
-    }
-
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error during logout: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
   }
-}
 
   void _showLogoutConfirmation() {
     showDialog(
@@ -193,7 +195,7 @@ Future<void> _handleLogout() async {
                 foregroundColor: Colors.red,
               ),
               onPressed: () {
-                Navigator.pop(context);
+                GoRouter.of(context).pop();
                 _handleLogout();
               },
               child: const Text('Logout'),
@@ -204,7 +206,7 @@ Future<void> _handleLogout() async {
     );
   }
 
-  @override
+   @override
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
@@ -227,23 +229,21 @@ Future<void> _handleLogout() async {
           children: [
             UserAccountsDrawerHeader(
               currentAccountPicture: ProfileAvatar(
-          user: currentUser,
-          radius: 30,
-          showEditButton: false,
-        ),
-        accountName: Text('${currentUser.firstname} ${currentUser.lastname}'),
-        accountEmail: Text(currentUser.email),
-      ),
+                user: currentUser,
+                radius: 30,
+                showEditButton: false,
+              ),
+              accountName: Text('${currentUser.firstname} ${currentUser.lastname}'),
+              accountEmail: Text(currentUser.email),
+            ),
             ListTile(
               leading: const Icon(Icons.person_outline),
               title: const Text('View Profile'),
               onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ProfileScreen(user: currentUser),
-                  ),
+                GoRouter.of(context).pop();
+                GoRouter.of(context).go(
+                Routes.profile,
+                extra: currentUser, 
                 );
               },
             ),
@@ -251,14 +251,9 @@ Future<void> _handleLogout() async {
               leading: const Icon(Icons.edit),
               title: Text(currentUser.usertype == 'Admin' ? 'User Requests' : 'Edit Profile'),
               onTap: () {
-                Navigator.pop(context);
+                GoRouter.of(context).pop();
                 if (currentUser.usertype == 'Admin') {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => AdminPage(),
-                    ),
-                  );
+                  GoRouter.of(context).go(Routes.adminVerify);
                 } else {
                   _navigateToEditProfile();
                 }
@@ -266,57 +261,32 @@ Future<void> _handleLogout() async {
             ),
             ListTile(
               leading: const Icon(Icons.upload_file),
-              title: Text(currentUser.usertype == 'Admin' ? 'AllDonor' : 'Upload Documents'),
+              title: Text(currentUser.usertype == 'Admin' ? 'All Donors' : 'Upload Documents'),
               onTap: () {
-                Navigator.pop(context);
-
+                GoRouter.of(context).pop();
                 if (currentUser.usertype == 'Admin') {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => AllDonorPage(),
-                    ),
-                  );
+                  GoRouter.of(context).go(Routes.allDonors);
                 } else {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => DocumentUploadScreen(user: currentUser),
-                    ),
-                  );
+                  GoRouter.of(context).go(Routes.documentUpload, extra: currentUser);
                 }
               },
             ),
-            ListTile(
-              leading: const Icon(Icons.upload_file),
-              title: Text(currentUser.usertype == 'Admin' ? 'All Recipient ' : 'Upload Documents'),
-              onTap: () {
-                Navigator.pop(context);
-
-                if (currentUser.usertype == 'Admin') {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => AllRecipientPage(),
-                    ),
-                  );
-                } else {
-                  Center(
-                    child: Text(
-                      'Welcome to Dashboard',
-                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                    ),
-                  );
-                }
-              },
-            ),
+            if (currentUser.usertype == 'Admin')
+              ListTile(
+                leading: const Icon(Icons.people),
+                title: const Text('All Recipients'),
+                onTap: () {
+                  GoRouter.of(context).pop();
+                  GoRouter.of(context).go(Routes.allRecipients);
+                },
+              ),
             const Divider(),
             const Spacer(),
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
               title: const Text('Logout', style: TextStyle(color: Colors.red)),
               onTap: () {
-                Navigator.pop(context);
+                GoRouter.of(context).pop();
                 _showLogoutConfirmation();
               },
             ),
@@ -325,20 +295,20 @@ Future<void> _handleLogout() async {
         ),
       ),
       body: currentUser.usertype == 'donor'
-    ? Center(
-        child: Text(
-          'Welcome to Dashboard',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-        ),
-      )
-    : currentUser.usertype == 'Admin'
-        ? Center(
-            child: Text(
-              'Welcome to Admin Dashboard',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-          )
-        : DonorListPage(),
+          ? const Center(
+              child: Text(
+                'Welcome to Dashboard',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+            )
+          : currentUser.usertype == 'Admin'
+              ? const Center(
+                  child: Text(
+                    'Welcome to Admin Dashboard',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                )
+              : DonorListPage(),
     );
   }
 }

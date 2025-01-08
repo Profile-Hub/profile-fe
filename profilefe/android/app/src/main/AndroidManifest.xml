@@ -54,9 +54,10 @@
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT" />
             <data android:mimeType="text/plain" />
-             <package android:name="com.google.android.gms" />
-            <package android:name="com.facebook.katana" />
-            <package android:name="com.android.chrome" />
         </intent>
+        <!-- Move <package> tags outside of the <intent> block -->
+        <package android:name="com.google.android.gms" />
+        <package android:name="com.facebook.katana" />
+        <package android:name="com.android.chrome" />
     </queries>
 </manifest>

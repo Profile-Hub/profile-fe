@@ -4,6 +4,7 @@ import '../services/location_api_service.dart';
 import '../services/signup_service.dart';
 import '../services/email_service.dart';
 import 'dart:async';
+import 'package:go_router/go_router.dart';
 
 extension StringExtension on String {
   String capitalize() {
@@ -297,6 +298,7 @@ void _resendOtp() {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: BackButton(),
         title: Text('Sign Up'),
         elevation: 0,
       ),
@@ -593,7 +595,7 @@ void _resendOtp() {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(content: Text('Signup successful!')),
                                   );
-                                  Navigator.pop(context);
+                                  GoRouter.of(context).pop();
                                 } else {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(content: Text('Signup failed. Please try again.')),

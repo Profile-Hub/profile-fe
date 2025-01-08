@@ -5,6 +5,8 @@ import '../models/Documentmodel.dart';
 import '../services/getAlluser_services.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:go_router/go_router.dart';
+import '../routes.dart';
 
 class AllRecipientPage extends StatefulWidget {
   @override
@@ -29,6 +31,7 @@ class _AllRecipientPageState extends State<AllRecipientPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: BackButton(),
         title: Text('All Recipients'),
       ),
       body: FutureBuilder<List<Alluser>>(
@@ -66,19 +69,17 @@ class _AllRecipientPageState extends State<AllRecipientPage> {
     );
   }
 
-  void _navigateToRecipientDetails(BuildContext context, Alluser recipient) async {
-    try {
-      Alluser recipientDetails = await AlluserData().getUserById(recipient.id);
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (BuildContext context) => RecipientDetailsPage(recipient: recipient, recipientDetails: recipientDetails),
-        ),
-      );
-    } catch (e) {
-      _showErrorDialog(context, 'Failed to load recipient details: $e');
-    }
+ void _navigateToRecipientDetails(BuildContext context, Alluser recipient) async {
+  try {
+    Alluser recipientDetails = await AlluserData().getUserById(recipient.id);
+    GoRouter.of(context).push(
+      Routes.allRecipients,  // Use your predefined route
+      extra: {'recipient': recipient, 'recipientDetails': recipientDetails},  // Pass data using 'extra'
+    );
+  } catch (e) {
+    _showErrorDialog(context, 'Failed to load recipient details: $e');
   }
+}
 
   void _showErrorDialog(BuildContext context, String message) {
     showDialog(
@@ -90,7 +91,7 @@ class _AllRecipientPageState extends State<AllRecipientPage> {
           actions: <Widget>[
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop();
+               GoRouter.of(context).pop();
               },
               child: Text('Close'),
             ),
@@ -105,6 +106,7 @@ class RecipientDetailsPage extends StatelessWidget {
   final Alluser recipient;
   final Alluser recipientDetails;
 
+  // Non-const constructor
   RecipientDetailsPage({required this.recipient, required this.recipientDetails});
 
   Future<List<Document>> fetchRecipientDocuments(String donorId, String country) async {
@@ -239,4 +241,3 @@ class RecipientDetailsPage extends StatelessWidget {
     }
   }
 }
-

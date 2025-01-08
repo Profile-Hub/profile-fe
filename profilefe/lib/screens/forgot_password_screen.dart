@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import '../services/forgot_password_service.dart';
-
+import 'package:go_router/go_router.dart';
+import '../routes.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
+  // Removed const constructor for GoRouter compatibility
+  ForgotPasswordScreen({Key? key}) : super(key: key);
+
   @override
   _ForgotPasswordScreenState createState() => _ForgotPasswordScreenState();
 }
@@ -77,7 +81,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       _showSnackbar(response.message);
 
       if (response.success) {
-        Navigator.pop(context); // Navigate back to the login screen
+        GoRouter.of(context).pop();
       }
     }
   }
