@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/user_provider.dart';
 import '../routes.dart';
+import 'package:go_router/go_router.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -25,9 +26,9 @@ class _SplashScreenState extends State<SplashScreen> {
 
     if (mounted) {
       if (authProvider.isAuthenticated) {
-        Navigator.pushReplacementNamed(context, Routes.home);
+        GoRouter.of(context).go( Routes.home);
       } else {
-        Navigator.pushReplacementNamed(context, Routes.login);
+        GoRouter.of(context).go( Routes.login);
       }
     }
   }

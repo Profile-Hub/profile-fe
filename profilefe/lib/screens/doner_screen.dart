@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import '../models/allDoner.dart';
 import '../services/getdoner_service.dart';
 import './donerDetails_screen.dart';
+import '../routes.dart';
+import 'package:go_router/go_router.dart';
+
 class DonorListPage extends StatefulWidget {
   @override
   _DonorListPageState createState() => _DonorListPageState();
@@ -42,11 +45,8 @@ class _DonorListPageState extends State<DonorListPage> {
                 final donor = donors[index];
                 return GestureDetector(
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => DonorDetailPage(donorId: donor.id))
-                    );
-                  },
+                   GoRouter.of(context).go('${Routes.donorDetails}/${donor.id}');  // Use GoRouter for navigation
+                     },
                   child: Card(
                     margin: EdgeInsets.all(10),
                     child: Padding(

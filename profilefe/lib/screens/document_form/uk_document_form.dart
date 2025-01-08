@@ -8,7 +8,7 @@ import '../../server_config.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class UKDocumentForm extends StatefulWidget {
-  const UKDocumentForm({Key? key}) : super(key: key);
+    UKDocumentForm({Key? key}) : super(key: key);
 
   @override
   _UKDocumentFormState createState() => _UKDocumentFormState();
@@ -166,6 +166,7 @@ class _UKDocumentFormState extends State<UKDocumentForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: BackButton(),
         title: const Text('UK Document Form'),
         backgroundColor: Colors.blueAccent,
       ),

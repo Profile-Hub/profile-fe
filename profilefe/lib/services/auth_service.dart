@@ -56,8 +56,7 @@ class AuthService {
          final userJson = jsonEncode(loginResponse.user.toJson()); 
           await _storage.write(key: 'auth_token', value: _token);
           await _storage.write(key: 'user_data', value: userJson);
-          print('Token saved: $_token');
-          print('Token saved: $userJson');
+          // print('Token saved: $_token');
         }
         return loginResponse;
       }

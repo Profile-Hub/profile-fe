@@ -1,9 +1,13 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:go_router/go_router.dart';
 import 'models/user.dart';
 import 'providers/auth_provider.dart';
 import 'providers/user_provider.dart';
+import 'routes.dart';
+import 'route_observer.dart';
 import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
@@ -17,38 +21,28 @@ import 'screens/email_change_screen.dart';
 import 'screens/change_password_screen.dart';
 import 'screens/subscription_plans_screen.dart';
 import 'screens/profile_screen.dart';
-import 'routes.dart';
-
-class CustomRouteObserver extends NavigatorObserver {
-  @override
-  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) async {
-    super.didPush(route, previousRoute);
-    if (route.settings.name != null && route.settings.name != Routes.splashScreen) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('lastRoute', route.settings.name!);
-    }
-  }
-
-  @override
-  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) async {
-    super.didReplace(newRoute: newRoute, oldRoute: oldRoute);
-    if (newRoute?.settings.name != null && newRoute?.settings.name != Routes.splashScreen) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('lastRoute', newRoute!.settings.name!);
-    }
-  }
-}
+import 'screens/signup_screen.dart';
+import 'screens/forgot_password_screen.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized(); // Ensure Flutter bindings are initialized
+
   SharedPreferences prefs = await SharedPreferences.getInstance();
   String? lastRoute = prefs.getString('lastRoute') ?? Routes.splashScreen;
 
-  if (lastRoute == Routes.login || lastRoute == Routes.splashScreen) {
-    lastRoute = Routes.home;
-  }
+  // Initialize UserProvider and load user data
+  final userProvider = UserProvider();
+  await userProvider.loadUser();
 
-  runApp(MainApp(initialRoute: lastRoute));
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => userProvider),
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+      ],
+      child: MainApp(initialRoute: lastRoute),
+    ),
+  );
 }
 
 class MainApp extends StatelessWidget {
@@ -58,152 +52,110 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => UserProvider()),
-      ],
-      child: MaterialApp(
-        title: 'Profile Hub',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
+    final GoRouter router = GoRouter(
+      initialLocation: initialRoute,
+      routes: [
+        GoRoute(
+          path: Routes.splashScreen,
+          builder: (context, state) => SplashScreen(),
         ),
-        initialRoute: initialRoute,
-        navigatorObservers: [CustomRouteObserver()],
-        onGenerateRoute: (RouteSettings settings) {
-          // Create a builder function that will properly scope the Provider access
-          Widget buildAuthenticatedRoute(BuildContext context, Widget Function(User user) builder) {
-            return AuthWrapper(
-              child: Consumer<UserProvider>(
-                builder: (context, userProvider, _) => builder(userProvider.user!),
-              ),
-            );
-          }
-
-          // Simple wrapper for routes that don't need user data
-          Widget buildSimpleAuthRoute(Widget child) {
-            return AuthWrapper(child: child);
-          }
-
-          // Handle the splash screen case first
-          if (settings.name == Routes.splashScreen) {
-            return MaterialPageRoute(
-              builder: (_) => SplashScreen(),
-              settings: settings,
-            );
-          }
-
-          // Use a builder pattern to create the routes
-          Widget Function(BuildContext) builder;
-          
-          switch (settings.name) {
-            case Routes.login:
-              builder = (_) => LoginScreen();
-              break;
-
-            case Routes.home:
-              builder = (context) => buildAuthenticatedRoute(
-                context,
-                (user) => HomeScreen(user: user),
-              );
-              break;
-
-            case Routes.adminVerify:
-              builder = (_) => buildSimpleAuthRoute(AdminPage());
-              break;
-
-            case Routes.allDonors:
-              builder = (_) => buildSimpleAuthRoute(AllDonorPage());
-              break;
-
-            case Routes.allRecipients:
-              builder = (_) => buildSimpleAuthRoute(AllRecipientPage());
-              break;
-
-            case Routes.donorDetails:
-              builder = (context) => buildSimpleAuthRoute(
-                Builder(
-                  builder: (context) {
-                    final args = settings.arguments;
-                    final donorId = args is String ? args : '';
-                    return DonorDetailPage(donorId: donorId);
-                  },
-                ),
-              );
-              break;
-
-            case Routes.documentUpload:
-              builder = (context) => buildAuthenticatedRoute(
-                context,
-                (user) => DocumentUploadScreen(user: user),
-              );
-              break;
-
-            case Routes.profile:
-              builder = (context) => buildAuthenticatedRoute(
-                context,
-                (user) => ProfileScreen(user: user),
-              );
-              break;
-
-            case Routes.editProfile:
-              builder = (context) => buildAuthenticatedRoute(
-                context,
-                (user) => EditProfileScreen(user: user),
-              );
-              break;
-
-            case Routes.changeEmail:
-              builder = (context) => buildAuthenticatedRoute(
-                context,
-                (user) => ChangeEmailScreen(user: user),
-              );
-              break;
-
-            case Routes.changePassword:
-              builder = (_) => buildSimpleAuthRoute(ChangePasswordScreen());
-              break;
-
-            case Routes.subscriptionPlans:
-              builder = (_) => buildSimpleAuthRoute(SubscriptionPlansScreen());
-              break;
-
-            default:
-              builder = (_) => SplashScreen();
-          }
-
-          return MaterialPageRoute(
-            builder: builder,
-            settings: settings,
-          );
-        },
-      ),
-    );
-  }
-}
-class AuthWrapper extends StatelessWidget {
-  final Widget child;
-
-  const AuthWrapper({Key? key, required this.child}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<AuthProvider>(
-      builder: (context, authProvider, _) {
-        if (!authProvider.isInitialized) {
-          return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
+        GoRoute(
+          path: Routes.signup,
+          builder: (context, state) => SignupScreen(),
+        ),
+        GoRoute(
+          path: Routes.forgotPassword,
+          builder: (context, state) => ForgotPasswordScreen(),
+        ),
+        GoRoute(
+          path: Routes.login,
+          builder: (context, state) => LoginScreen(),
+        ),
+        GoRoute(
+          path: Routes.home,
+          builder: (context, state) {
+            final userProvider = Provider.of<UserProvider>(context, listen: false);
+            print(userProvider.user);
+            return userProvider.user != null
+                ? HomeScreen(user: userProvider.user!)
+                : LoginScreen();
+          },
+        ),
+        GoRoute(
+          path: Routes.adminVerify,
+          builder: (context, state) => AdminPage(),
+        ),
+        GoRoute(
+          path: Routes.allDonors,
+          builder: (context, state) => AllDonorPage(),
+        ),
+        GoRoute(
+          path: Routes.allRecipients,
+          builder: (context, state) => AllRecipientPage(),
+        ),
+       GoRoute(
+          path: '${Routes.donorDetails}/:id',  
+             builder: (context, state) {
+            final donorId = state.pathParameters['id'] ?? '';  
+              return DonorDetailPage(donorId: donorId);
+               },
             ),
-          );
-        }
-        
-        if (!authProvider.isAuthenticated) {
-          return LoginScreen();
-        }
-        
-        return child;
-      },
+        GoRoute(
+          path: Routes.documentUpload,
+          builder: (context, state) {
+            final userProvider = Provider.of<UserProvider>(context, listen: false);
+            return userProvider.user != null
+                ? DocumentUploadScreen(user: userProvider.user!)
+                : LoginScreen();
+          },
+        ),
+        GoRoute(
+          path: Routes.profile,
+          builder: (context, state) {
+            final userProvider = Provider.of<UserProvider>(context, listen: false);
+            return userProvider.user != null
+                ? ProfileScreen(user: userProvider.user!)
+                : LoginScreen();
+          },
+        ),
+        GoRoute(
+          path: Routes.editProfile,
+          builder: (context, state) {
+            final userProvider = Provider.of<UserProvider>(context, listen: false);
+            return userProvider.user != null
+                ? EditProfileScreen(user: userProvider.user!)
+                : LoginScreen();
+          },
+        ),
+        GoRoute(
+          path: Routes.changeEmail,
+          builder: (context, state) {
+            final userProvider = Provider.of<UserProvider>(context, listen: false);
+            return userProvider.user != null
+                ? ChangeEmailScreen(user: userProvider.user!)
+                : LoginScreen();
+          },
+        ),
+        GoRoute(
+          path: Routes.changePassword,
+          builder: (context, state) => ChangePasswordScreen(),
+        ),
+        GoRoute(
+          path: Routes.subscriptionPlans,
+          builder: (context, state) => SubscriptionPlansScreen(),
+        ),
+      ],
+      observers: [
+        CustomRouteObserver(),
+      ],
+    );
+
+    return MaterialApp.router(
+      title: 'Profile Hub',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      routerConfig: router,
     );
   }
 }

@@ -15,12 +15,12 @@ import './widgets/profile_avatar.dart';
 import '../providers/user_provider.dart';
 import '../routes.dart';
 import 'package:provider/provider.dart';
-
+import 'package:go_router/go_router.dart';
 
 class HomeScreen extends StatefulWidget {
   final User user;
 
-  const HomeScreen({Key? key, required this.user}) : super(key: key);
+   HomeScreen({Key? key, required this.user}) : super(key: key);
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -88,35 +88,35 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                _navigateToEditProfile();
-              },
-              child: const Text('Complete Profile'),
-            ),
+             onPressed: () => GoRouter.of(context).pop(),  
+             child: const Text('Cancel'), 
+                ),
+           ElevatedButton(
+            onPressed: () {
+            GoRouter.of(context).pop();  
+                   _navigateToEditProfile();    
+                   },
+                  child: const Text('Complete Profile'),  
+                   ),
           ],
         );
       },
     );
   }
 
-   Future<void> _navigateToEditProfile() async {
-    final result = await Navigator.pushNamed(
-      context,
-      Routes.editProfile,
-      arguments: currentUser,
-    );
-    if (result != null && result is User) {
-      setState(() {
-        currentUser = result;
-      });
-      Provider.of<UserProvider>(context, listen: false).setUser(result);
-    }
+  Future<void> _navigateToEditProfile() async {
+  final result = await GoRouter.of(context).push<User>(
+    Routes.editProfile,
+    extra: currentUser,
+  );
+
+  if (result != null) {
+    setState(() {
+      currentUser = result;
+    });
+    Provider.of<UserProvider>(context, listen: false).setUser(result);
   }
+}
 
    Future<void> _handleLogout() async {
     try {
@@ -140,7 +140,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final success = await _authService.logout();
 
       if (context.mounted) {
-        Navigator.pop(context);
+         GoRouter.of(context).pop();
       }
 
       if (success) {
@@ -150,11 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
         
         if (context.mounted) {
           Provider.of<UserProvider>(context, listen: false).clearUser();
-          Navigator.pushNamedAndRemoveUntil(
-            context,
-            Routes.login,
-            (route) => false,
-          );
+          GoRouter.of(context).go(Routes.login);
         }
       } else {
         if (context.mounted) {
@@ -199,7 +195,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 foregroundColor: Colors.red,
               ),
               onPressed: () {
-                Navigator.pop(context);
+                GoRouter.of(context).pop();
                 _handleLogout();
               },
               child: const Text('Logout'),
@@ -244,11 +240,10 @@ class _HomeScreenState extends State<HomeScreen> {
               leading: const Icon(Icons.person_outline),
               title: const Text('View Profile'),
               onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(
-                  context,
-                  Routes.profile,
-                  arguments: currentUser,
+                GoRouter.of(context).pop();
+                GoRouter.of(context).go(
+                Routes.profile,
+                extra: currentUser, 
                 );
               },
             ),
@@ -256,9 +251,9 @@ class _HomeScreenState extends State<HomeScreen> {
               leading: const Icon(Icons.edit),
               title: Text(currentUser.usertype == 'Admin' ? 'User Requests' : 'Edit Profile'),
               onTap: () {
-                Navigator.pop(context);
+                GoRouter.of(context).pop();
                 if (currentUser.usertype == 'Admin') {
-                  Navigator.pushNamed(context, Routes.adminVerify);
+                  GoRouter.of(context).go(Routes.adminVerify);
                 } else {
                   _navigateToEditProfile();
                 }
@@ -268,15 +263,11 @@ class _HomeScreenState extends State<HomeScreen> {
               leading: const Icon(Icons.upload_file),
               title: Text(currentUser.usertype == 'Admin' ? 'All Donors' : 'Upload Documents'),
               onTap: () {
-                Navigator.pop(context);
+                GoRouter.of(context).pop();
                 if (currentUser.usertype == 'Admin') {
-                  Navigator.pushNamed(context, Routes.allDonors);
+                  GoRouter.of(context).go(Routes.allDonors);
                 } else {
-                  Navigator.pushNamed(
-                    context,
-                    Routes.documentUpload,
-                    arguments: currentUser,
-                  );
+                  GoRouter.of(context).go(Routes.documentUpload, extra: currentUser);
                 }
               },
             ),
@@ -285,8 +276,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 leading: const Icon(Icons.people),
                 title: const Text('All Recipients'),
                 onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, Routes.allRecipients);
+                  GoRouter.of(context).pop();
+                  GoRouter.of(context).go(Routes.allRecipients);
                 },
               ),
             const Divider(),
@@ -295,7 +286,7 @@ class _HomeScreenState extends State<HomeScreen> {
               leading: const Icon(Icons.logout, color: Colors.red),
               title: const Text('Logout', style: TextStyle(color: Colors.red)),
               onTap: () {
-                Navigator.pop(context);
+                GoRouter.of(context).pop();
                 _showLogoutConfirmation();
               },
             ),

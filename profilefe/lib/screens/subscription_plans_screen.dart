@@ -3,6 +3,9 @@ import 'package:flutter_stripe/flutter_stripe.dart';
 import '../services/stripe_service.dart';
 import 'package:flutter/material.dart' hide Card;
 import 'package:flutter/material.dart' as material show Card;
+import 'package:go_router/go_router.dart';
+import '../routes.dart';
+
 class SubscriptionPlan {
   final String id;
   final String name;
@@ -90,7 +93,8 @@ Future<void> _handleSubscription(
       await Stripe.instance.presentPaymentSheet();
 
       // Close loading indicator
-      Navigator.pop(context);
+      GoRouter.of(context).pop();
+
 
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
@@ -98,7 +102,8 @@ Future<void> _handleSubscription(
       );
 
       // Handle post-payment logic (e.g., update user's subscription status)
-      Navigator.pop(context);
+      GoRouter.of(context).pop();
+
     } catch (e) {
       // Close loading indicator if it's showing
       Navigator.maybeOf(context)?.pop();

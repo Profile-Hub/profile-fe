@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-// import '../models/login_response.dart';
+import 'package:go_router/go_router.dart';
 import '../services/auth_service.dart';
-import 'signup_screen.dart';
+import './signup_screen.dart';
 import 'home_screen.dart';
-import 'forgot_password_screen.dart';
-import '../routes.dart';
+import './forgot_password_screen.dart';
+import '../routes.dart'; 
+import 'package:go_router/go_router.dart';
+
 class LoginScreen extends StatefulWidget {
   @override
   _LoginScreenState createState() => _LoginScreenState();
@@ -16,12 +18,12 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
-  bool _isLoading = false; 
+  bool _isLoading = false;
 
   Future<void> _handleLogin() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
-        _isLoading = true; 
+        _isLoading = true;
       });
 
       try {
@@ -32,16 +34,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
         if (loginResponse != null && loginResponse.success) {
           print('Login successful!');
-          // print('User ID: ${loginResponse.user.id}');
-          // print('Token: ${loginResponse.token}');
 
           // Save token for future use
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('authToken', loginResponse.token);
           final token = loginResponse.token;
-
           if (token.isNotEmpty) {
-             Navigator.pushReplacementNamed(context, Routes.home);
+             GoRouter.of(context).go(Routes.home);
           } else {
             print('Token is empty');
           }
@@ -62,7 +61,8 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     }
   }
-    Future<void> _handleGoogleSignIn() async {
+
+  Future<void> _handleGoogleSignIn() async {
     setState(() {
       _isLoading = true;
     });
@@ -71,7 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final loginResponse = await _authService.signInWithGoogle();
 
       if (loginResponse != null && loginResponse.success) {
-        Navigator.pushReplacementNamed(context, Routes.home);
+        GoRouter.of(context).go(Routes.home);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Google sign in failed')),
@@ -88,38 +88,6 @@ class _LoginScreenState extends State<LoginScreen> {
       });
     }
   }
-
-  // Future<void> _handleFacebookSignIn() async {
-  //   setState(() {
-  //     _isLoading = true;
-  //   });
-
-  //   try {
-  //     final loginResponse = await _authService.signInWithFacebook();
-
-  //     if (loginResponse != null && loginResponse.success) {
-  //       Navigator.push(
-  //         context,
-  //         MaterialPageRoute(
-  //           builder: (context) => HomeScreen(user: loginResponse.user),
-  //         ),
-  //       );
-  //     } else {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         SnackBar(content: Text('Facebook sign in failed')),
-  //       );
-  //     }
-  //   } catch (e) {
-  //     print('Error during Facebook sign in: $e');
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(content: Text('An error occurred during Facebook sign in')),
-  //     );
-  //   } finally {
-  //     setState(() {
-  //       _isLoading = false;
-  //     });
-  //   }
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -180,8 +148,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: _isLoading ? null : _handleLogin,
                         child: _isLoading
                             ? CircularProgressIndicator(
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.white),
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                               )
                             : Text(
                                 'Login',
@@ -198,12 +165,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         alignment: Alignment.centerRight,
                         child: TextButton(
                           onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ForgotPasswordScreen(),
-                              ),
-                            );
+                            GoRouter.of(context).go(Routes.forgotPassword);  // Use GoRouter for navigation
                           },
                           child: Text('Forgot Password?'),
                         ),
@@ -226,9 +188,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           _socialLoginButton(
                             'assets/google_logo.png',
                             'Google',
-                             _handleGoogleSignIn,
+                            _handleGoogleSignIn,
                           ),
-                         
                         ],
                       ),
                       SizedBox(height: 24),
@@ -238,12 +199,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           Text("Don't have an account? "),
                           TextButton(
                             onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => SignupScreen(),
-                                ),
-                              );
+                              GoRouter.of(context).go(Routes.signup);  // Use GoRouter for navigation
                             },
                             child: Text('Sign Up'),
                           ),

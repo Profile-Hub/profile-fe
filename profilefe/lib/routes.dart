@@ -2,14 +2,18 @@ class Routes {
   static const String splashScreen = '/';
   static const String login = '/login';
   static const String home = '/home';
-  static const String adminVerify = '/admin-verify';
-  static const String allDonors = '/all-donors';
-  static const String allRecipients = '/all-recipients';
-  static const String donorDetails = '/donor-details';
-  static const String documentUpload = '/document-upload';
-  static const String editProfile = '/edit-profile';
-  static const String changeEmail = '/change-email';
-  static const String changePassword = '/change-password';
-  static const String subscriptionPlans = '/subscription-plans';
+  static const String adminVerify = '/adminverify';
+  static const String allDonors = '/alldonors';
+  static const String allRecipients = '/allrecipients';
+  static const String donorDetails = '/donordetails';
+  static const String documentUpload = '/documentupload';
+  static const String editProfile = '/editprofile';
+  static const String changeEmail = '/changeemail';
+  static const String changePassword = '/changepassword';
+  static const String subscriptionPlans = '/subscriptionplans';
   static const String profile ='/profile';
+  static const String donnerDetails ='/donnerdetails';
+  static const String forgotPassword ='/forgotpassword';
+  static const String signup ='/signup';
+
 }

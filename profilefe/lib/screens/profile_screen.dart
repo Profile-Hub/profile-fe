@@ -6,7 +6,7 @@ import 'widgets/profile_avatar.dart';
 class ProfileScreen extends StatefulWidget {
   final User user;
 
-  const ProfileScreen({Key? key, required this.user}) : super(key: key);
+ ProfileScreen({Key? key, required this.user}) : super(key: key);
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -234,6 +234,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: BackButton(),
         title: const Text('Profile'),
         centerTitle: true,
       ),

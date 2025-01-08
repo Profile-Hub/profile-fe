@@ -11,11 +11,22 @@ class AuthProvider with ChangeNotifier {
   User? _currentUser;
   String? _token;
   bool _isInitialized = false;
-
+ 
   User? get currentUser => _currentUser;
   String? get token => _token;
   bool get isAuthenticated => _token != null && _currentUser != null;
   bool get isInitialized => _isInitialized;
+
+  // Stream to listen for authentication state changes
+  Stream<AuthState> get authStateChanges async* {
+    yield* Stream.periodic(Duration(seconds: 1), (_) {
+      if (isAuthenticated) {
+        return AuthState.authenticated;
+      } else {
+        return AuthState.unauthenticated;
+      }
+    });
+  }
 
   Future<void> initialize() async {
     if (_isInitialized) return;
@@ -105,3 +116,5 @@ class AuthProvider with ChangeNotifier {
     }
   }
 }
+
+enum AuthState { authenticated, unauthenticated }
