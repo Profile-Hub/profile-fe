@@ -23,6 +23,10 @@ import 'screens/subscription_plans_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/signup_screen.dart';
 import 'screens/forgot_password_screen.dart';
+import 'screens/Chat_screen.dart';
+import 'screens/DonnerChat_Screen.Dart';
+import 'services/chat_services.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Ensure Flutter bindings are initialized
@@ -47,7 +51,6 @@ void main() async {
 
 class MainApp extends StatelessWidget {
   final String initialRoute;
-
   const MainApp({Key? key, required this.initialRoute}) : super(key: key);
 
   @override
@@ -109,6 +112,28 @@ class MainApp extends StatelessWidget {
                 : LoginScreen();
           },
         ),
+        GoRoute(
+        path: '${Routes.chat}/:conversationSid/:userName/:profileImage',
+        builder: (context, state) {
+          final conversationSid = state.pathParameters['conversationSid']?? '';
+          final userName = state.pathParameters['userName']?? '';
+          final profileImage = state.pathParameters['profileImage']?? '';
+          return ChatScreen(
+            conversationSid: conversationSid,
+            userName: userName,
+            profileImage: profileImage,
+          );
+        },
+      ),
+    GoRoute(
+        path: '${Routes.donnerchat}/:conversationSid',
+        builder: (context, state) {
+          final conversationSid = state.pathParameters['conversationSid']?? '';
+          return DonorChatScreen(
+            conversationSid: conversationSid,
+          );
+        },
+      ),
         GoRoute(
           path: Routes.profile,
           builder: (context, state) {

@@ -1,4 +1,7 @@
+import 'avatar.dart';
+
 class Doner {
+  Avatar? avatar;
   final String firstname;
   final String lastname;
   final String? middleName;
@@ -11,6 +14,7 @@ class Doner {
   final String id;
 
   Doner({
+    this.avatar,
     required this.firstname,
     required this.lastname,
     this.middleName,
@@ -25,6 +29,7 @@ class Doner {
 
   factory Doner.fromJson(Map<String, dynamic> json) {
     return Doner(
+      avatar: json['avatar'] != null ? Avatar.fromJson(json['avatar']) : null,
       firstname: json['firstname'] ?? '',
       lastname: json['lastname'] ?? '',
       middleName: json['middleName'],

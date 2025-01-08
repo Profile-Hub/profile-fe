@@ -4,6 +4,13 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/donerDetails.dart';
 import '../models/Documentmodel.dart';
 import '../services/getdoner_service.dart';
+import '../services/getdoner_service.dart';
+import '../services/chat_services.dart';
+import  './Chat_screen.dart';
+import '../routes.dart';
+import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
+
 
 class DonorDetailPage extends StatelessWidget {
   final String donorId;
@@ -51,7 +58,7 @@ class DonorDetailPage extends StatelessWidget {
                     children: [
                       Center(
                         child: CircleAvatar(
-                          backgroundImage: NetworkImage(donor.avatar!.url),
+                          backgroundImage: NetworkImage("${donor.avatar!.url}"),
                           radius: 50,
                         ),
                       ),
@@ -151,28 +158,31 @@ class DonorDetailPage extends StatelessWidget {
                                 const SizedBox(height: 20),
 Center(
   child: Container(
-    width: double.infinity, // Stretch the button
-    padding: const EdgeInsets.symmetric(horizontal: 20), // Add left and right padding
+    width: double.infinity, 
+    padding: const EdgeInsets.symmetric(horizontal: 20), 
     child: ElevatedButton(
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.blue, // Set background color to blue
-        padding: const EdgeInsets.symmetric(vertical: 15), // Add vertical padding for height
+        backgroundColor: Colors.blue, 
+        padding: const EdgeInsets.symmetric(vertical: 15), 
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8), // Optional: Add rounded corners
+          borderRadius: BorderRadius.circular(8),
         ),
       ),
-      onPressed: () {
-      //  Navigator.push(
-      //     context,
-      //     MaterialPageRoute(
-      //       builder: (context) => ChatScreen(
-      //         conversationSid: 'your_conversation_sid', 
-      //         userId: 'your_user_id',                
-      //         recipientName: 'Recipient Name',       
-      //         authToken: 'your_auth_token',          
-      //       ),
-      //     ),
-      //   );
+      onPressed: () async {
+        try {
+          final donorId = donor.id; 
+           final chatService = ChatServices(); 
+          final conversationSid = await chatService.getOrCreateConversation(donor.id);
+
+          GoRouter.of(context).go(
+            '${Routes.chat}/$conversationSid/${donor.firstname}/${donor.avatar!.url}',
+          );
+        } catch (e) {
+          print("Error fetching conversation SID: $e");
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Failed to initiate chat")),
+          );
+        }
       },
       child: const Text(
         'Let\'s Chat',

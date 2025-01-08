@@ -15,5 +15,7 @@ class Routes {
   static const String donnerDetails ='/donnerdetails';
   static const String forgotPassword ='/forgotpassword';
   static const String signup ='/signup';
-
+  static const String chat='/chatarea';
+  static const String donnerchat='/donorchatarea';
+  
 }
