@@ -26,15 +26,16 @@ import 'screens/forgot_password_screen.dart';
 import 'screens/Chat_screen.dart';
 import 'screens/DonnerChat_Screen.Dart';
 import 'services/chat_services.dart';
+import './services/stripe_service.dart';
+
 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Ensure Flutter bindings are initialized
-
+  await StripeService.init();
   SharedPreferences prefs = await SharedPreferences.getInstance();
   String? lastRoute = prefs.getString('lastRoute') ?? Routes.splashScreen;
 
-  // Initialize UserProvider and load user data
   final userProvider = UserProvider();
   await userProvider.loadUser();
 

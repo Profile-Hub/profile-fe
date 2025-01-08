@@ -105,13 +105,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     
     try {
       final response = await http.get(
+        
         Uri.parse(widget.user.avatar!.url),
+        
         headers: {
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods': 'GET',
         },
       );
-
       if (response.statusCode == 200) {
         if (mounted) {
           setState(() {
