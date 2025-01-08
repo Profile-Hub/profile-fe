@@ -23,14 +23,15 @@ import 'screens/subscription_plans_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/signup_screen.dart';
 import 'screens/forgot_password_screen.dart';
+import './services/stripe_service.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Ensure Flutter bindings are initialized
-
+  await StripeService.init();
   SharedPreferences prefs = await SharedPreferences.getInstance();
   String? lastRoute = prefs.getString('lastRoute') ?? Routes.splashScreen;
 
-  // Initialize UserProvider and load user data
   final userProvider = UserProvider();
   await userProvider.loadUser();
 
