@@ -16,7 +16,7 @@ class LoginResponse {
     return LoginResponse(
       success: json['success'] as bool,
       user: User.fromJson(json['user']),
-      token: json['auth_token'] as String, // Correct field name from response
+      token: json['auth_token'] as String, 
       message: json['message'] as String?,
     );
   }

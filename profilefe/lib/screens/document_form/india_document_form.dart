@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 
 class IndiaDocumentForm extends StatefulWidget {
-  const IndiaDocumentForm({Key? key}) : super(key: key);
+   IndiaDocumentForm({Key? key}) : super(key: key);
 
   @override
   _IndiaDocumentFormState createState() => _IndiaDocumentFormState();
@@ -64,6 +64,7 @@ class _IndiaDocumentFormState extends State<IndiaDocumentForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: BackButton(),
         title: const Text('Upload Documents - India'),
       ),
       body: SingleChildScrollView(

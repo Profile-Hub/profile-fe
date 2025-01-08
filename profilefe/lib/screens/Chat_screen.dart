@@ -1,6 +1,5 @@
-// chat_screen.dart
 import 'package:flutter/material.dart';
-import 'package:twilio_conversations/twilio_conversations.dart';
+import 'package:twilio_chat_conversation/twilio_chat_conversation.dart';
 import '../services/chat_services.dart';
 
 class ChatScreen extends StatefulWidget {

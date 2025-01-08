@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/login_response.dart';
+import '../models/user.dart';
 import '../server_config.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -14,6 +15,7 @@ class AuthService {
   static final AuthService _instance = AuthService._internal();
   static final _storage = FlutterSecureStorage();
   String? _token;
+  User? _user;
 
    final GoogleSignIn _googleSignIn = GoogleSignIn(
     clientId: kIsWeb 
@@ -45,14 +47,16 @@ class AuthService {
     try {
       final response = await http.post(url, headers: headers, body: body);
       if (response.statusCode == 200) {
-        print('Response body: ${response.body}');
+        // print('Response body: ${response.body}');
         final jsonResponse = jsonDecode(response.body);
         final loginResponse = LoginResponse.fromJson(jsonResponse);
-
+        
         if (loginResponse.success) {
           _token = loginResponse.token;
+         final userJson = jsonEncode(loginResponse.user.toJson()); 
           await _storage.write(key: 'auth_token', value: _token);
-          print('Token saved: $_token');
+          await _storage.write(key: 'user_data', value: userJson);
+          // print('Token saved: $_token');
         }
         return loginResponse;
       }
@@ -124,43 +128,7 @@ class AuthService {
     }
   }
 
- /* Future<LoginResponse?> signInWithFacebook() async {
-    try {
-      
-      final LoginResult result = await FacebookAuth.instance.login();
 
-      if (result.status == LoginStatus.success) {
-        
-        final String accessToken = result.accessToken!.token;
-
-        
-        final url = Uri.parse('${ServerConfig.baseUrl}/Facebook-login');
-        final response = await http.post(
-          url,
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({
-            'accessToken': accessToken,
-          }),
-        );
-
-        if (response.statusCode == 200) {
-          final jsonResponse = jsonDecode(response.body);
-          final loginResponse = LoginResponse.fromJson(jsonResponse);
-
-          if (loginResponse.success) {
-            _token = loginResponse.token;
-            await _storage.write(key: 'auth_token', value: _token);
-          }
-          return loginResponse;
-        }
-      }
-      return null;
-    } catch (e) {
-      print('Facebook login error: $e');
-      return null;
-    }
-  }
-*/
 Future<LoginResponse?> signInWithGoogle() async {
     try {
       // Sign in with Google
@@ -191,7 +159,7 @@ Future<LoginResponse?> signInWithGoogle() async {
       // Prepare the payload for your backend
       final Map<String, dynamic> payload = {
         'accessToken': googleAuth.accessToken,
-        'idToken': googleAuth.idToken, // This might be null for web
+        'idToken': googleAuth.idToken, 
         'platform': kIsWeb ? 'web' : Platform.operatingSystem,
         'email': _extractEmail(userInfo),
         'displayName': _extractDisplayName(userInfo),

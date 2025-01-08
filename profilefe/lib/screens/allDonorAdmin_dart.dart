@@ -4,6 +4,8 @@ import '../models/Documentmodel.dart';
 import '../services/getAlluser_services.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:go_router/go_router.dart';
+import '../routes.dart'; 
 
 class AllDonorPage extends StatefulWidget {
   @override
@@ -28,17 +30,18 @@ class _AllDonorPageState extends State<AllDonorPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('All Donors'),
+        leading: BackButton(),
+        title: Text('All Donors'),
       ),
       body: FutureBuilder<List<Alluser>>(
         future: _donorsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No donors found.'));
+            return Center(child: Text('No donors found.'));
           } else {
             final donors = snapshot.data!;
             return ListView.builder(
@@ -50,7 +53,7 @@ class _AllDonorPageState extends State<AllDonorPage> {
                       ? CircleAvatar(
                           backgroundImage: NetworkImage(donor.avatar!.url),
                         )
-                      : const CircleAvatar(child: Icon(Icons.person)),
+                      : CircleAvatar(child: Icon(Icons.person)),
                   title: Text('${donor.firstname} ${donor.lastname}'),
                   subtitle: Text('${donor.country ?? 'Unknown'} | ${donor.phoneNumber ?? 'N/A'}'),
                   onTap: () {
@@ -64,15 +67,12 @@ class _AllDonorPageState extends State<AllDonorPage> {
       ),
     );
   }
-void _navigateToDonorDetails(BuildContext context, Alluser donor) async {
+
+  void _navigateToDonorDetails(BuildContext context, Alluser donor) async {
     try {
       Alluser donorDetails = await AlluserData().getUserById(donor.id);
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (BuildContext context) => DonorDetailsPage(donor: donor, donorDetails: donorDetails),
-        ),
-      );
+      // Use GoRouter for navigation instead of Navigator.push
+      GoRouter.of(context).go('/donorDetails/${donor.id}');
     } catch (e) {
       _showErrorDialog(context, 'Failed to load donor details: $e');
     }
@@ -88,7 +88,7 @@ void _navigateToDonorDetails(BuildContext context, Alluser donor) async {
           actions: <Widget>[
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                GoRouter.of(context).pop();
               },
               child: Text('Close'),
             ),
@@ -103,6 +103,7 @@ class DonorDetailsPage extends StatelessWidget {
   final Alluser donor;
   final Alluser donorDetails;
 
+  // Remove the 'const' keyword here
   DonorDetailsPage({required this.donor, required this.donorDetails});
 
   Future<List<Document>> fetchdonorDocuments(String donorId, String country) async {
@@ -117,7 +118,7 @@ class DonorDetailsPage extends StatelessWidget {
         title: Text('${donor.firstname} ${donor.lastname}'),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -157,16 +158,16 @@ class DonorDetailsPage extends StatelessWidget {
                                 children: [
                                   Text(
                                     'Document ${index + 1}',
-                                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                   ),
-                                  const SizedBox(height: 10),
+                                  SizedBox(height: 10),
                                   Card(
                                     elevation: 5,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Padding(
-                                      padding: const EdgeInsets.all(16.0),
+                                      padding: EdgeInsets.all(16.0),
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
@@ -185,25 +186,25 @@ class DonorDetailsPage extends StatelessWidget {
                                                         children: [
                                                           TextSpan(
                                                             text: '$fileName: ',
-                                                            style: const TextStyle(
-                                                              fontSize: 18, // Increased size
-                                                              fontWeight: FontWeight.bold, // Bold font
+                                                            style: TextStyle(
+                                                              fontSize: 18,
+                                                              fontWeight: FontWeight.bold,
                                                               color: Colors.black,
                                                             ),
                                                           ),
                                                           TextSpan(
                                                             text: fileValue,
-                                                            style: const TextStyle(
+                                                            style: TextStyle(
                                                               fontSize: 16,
-                                                              color: Colors.lightBlue, // Light blue color
+                                                              color: Colors.lightBlue,
                                                             ),
                                                           ),
                                                         ],
                                                       ),
                                                     ),
                                                   ),
-                                                  const SizedBox(width: 10),
-                                                  const Icon(Icons.image, color: Colors.blue),
+                                                  SizedBox(width: 10),
+                                                  Icon(Icons.image, color: Colors.blue),
                                                 ],
                                               ),
                                             );
@@ -212,10 +213,10 @@ class DonorDetailsPage extends StatelessWidget {
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(height: 20),
+                                  SizedBox(height: 20),
                                 ],
                               )
-                            : const SizedBox.shrink();
+                            : SizedBox.shrink();
                       },
                     );
                   }
@@ -237,8 +238,3 @@ class DonorDetailsPage extends StatelessWidget {
     }
   }
 }
-
-
-
-  
-

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import 'package:go_router/go_router.dart';
+import '../routes.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
-  const ChangePasswordScreen({Key? key}) : super(key: key);
+  // Removed the 'const' constructor
+  ChangePasswordScreen({Key? key}) : super(key: key);
 
   @override
   State<ChangePasswordScreen> createState() => _ChangePasswordScreenState();
@@ -43,7 +46,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(response['message'])),
           );
-          Navigator.pop(context);
+          GoRouter.of(context).pop();
         }
       } else {
         _showError(response['message'] ?? 'Failed to update password');
@@ -65,6 +68,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: BackButton(),
         title: const Text('Change Password'),
         centerTitle: true,
       ),

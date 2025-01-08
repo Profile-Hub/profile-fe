@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../services/admin_services.dart';
 import '../models/adminmodel.dart';
 import '../models/Documentmodel.dart';
 import '../services/getAlluser_services.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:go_router/go_router.dart';
+import '../routes.dart';
 
 class AdminPage extends StatefulWidget {
   @override
@@ -201,7 +204,7 @@ class _AdminPageState extends State<AdminPage> {
                 SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    GoRouter.of(context).pop();
                   },
                   child: Text('Close'),
                 ),
@@ -246,21 +249,22 @@ class _AdminPageState extends State<AdminPage> {
                         ),
                       ],
                     ),
-                    onTap: () => _showUserDetails(user),
+                    onTap: () {
+                      context.push('/user-details/${user.userId?.id}');
+                    },
                   ),
                 );
               },
             ),
     );
   }
+
   void _openDocument(BuildContext context, String url) async {
-  final uri = Uri.parse(url);
-  if (await canLaunchUrl(uri)) {
-    await launchUrl(uri);
-  } else {
-    throw 'Could not open the document';
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else {
+      throw 'Could not open the document';
+    }
   }
 }
-}
-
-
