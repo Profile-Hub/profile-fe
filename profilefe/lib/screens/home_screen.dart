@@ -15,6 +15,7 @@ import './widgets/profile_avatar.dart';
 import '../providers/user_provider.dart';
 import '../services/chat_services.dart';
 import './DonnerChat_Screen.Dart';
+import './sendermssg_screen.dart';
 import '../routes.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -32,37 +33,26 @@ class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final AuthService _authService = AuthService();
   final ProfileCompletionService _profileCompletionService = ProfileCompletionService();
-  final ChatServices  _chatservice=ChatServices();
   late User currentUser;
   final unreadMessagesCount = 0;
-  String conversationSid = '';
 
   @override
   void initState() {
     super.initState();
     currentUser = widget.user;
-     _initializeConversationSid();
     _checkProfileCompletion();
     
   }
 
-Future<void> _initializeConversationSid() async {
-  try {
-    final sid = await _chatservice.getConversationByDonor();
-    setState(() {
-      conversationSid = sid; 
-    });
-    print(conversationSid); 
-  } catch (e) {
-    print("Error initializing conversation SID: $e");
-  }
-}
+
   Future<void> _checkProfileCompletion() async {
     try {
       final response = await _profileCompletionService.checkProfileCompletion();
       
+      if( currentUser.usertype != 'Admin'){
       if (response.success && response.notify && context.mounted) {
         _showProfileCompletionDialog(response.missingFields);
+      }
       }
     } catch (e) {
       if (context.mounted) {
@@ -260,14 +250,8 @@ actions: [
                 ),
             ],
           ),
-          onPressed: () {
-            if (conversationSid != null) {
-    GoRouter.of(context).go('${Routes.donnerchat}/$conversationSid');
-  } else {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Conversation SID not initialized")),
-    );
-  }
+          onPressed: () {   
+               GoRouter.of(context).go(Routes.senderscreen);
           },
         ),
         // Profile Icon

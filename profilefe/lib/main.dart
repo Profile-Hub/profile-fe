@@ -26,9 +26,11 @@ import 'screens/forgot_password_screen.dart';
 import 'screens/Chat_screen.dart';
 import 'screens/DonnerChat_Screen.Dart';
 import 'services/chat_services.dart';
+import  'screens/sendermssg_screen.dart';
 import './services/stripe_service.dart';
 
 final secureStorage = FlutterSecureStorage();
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -108,26 +110,30 @@ void main() async {
             return LoginScreen();
           },
         ),
-      ),
-      GoRoute(
-        path: '${Routes.chat}/:conversationSid/:userName/:profileImage',
+
+        GoRoute(
+        path: '${Routes.chat}/:conversationSid',
         builder: (context, state) {
-          final conversationSid = state.pathParameters['conversationSid'] ?? '';
-          final userName = state.pathParameters['userName'] ?? '';
-          final profileImage = state.pathParameters['profileImage'] ?? '';
+           final data = state.extra as Map<String, dynamic>? ?? {};
           return ChatScreen(
-            conversationSid: conversationSid,
-            userName: userName,
-            profileImage: profileImage,
+            conversationSid: data['conversationSid'] ?? '',
+            userName: data['userName'] ?? '',
+            profileImage: data['profileImage'] ?? '',
           );
         },
       ),
       GoRoute(
+          path: Routes.senderscreen,
+          builder: (context, state) => SenderScreen(),
+        ),
+    GoRoute(
         path: '${Routes.donnerchat}/:conversationSid',
         builder: (context, state) {
-          final conversationSid = state.pathParameters['conversationSid'] ?? '';
+         final data = state.extra as Map<String, dynamic>? ?? {};
           return DonorChatScreen(
-            conversationSid: conversationSid,
+           conversationSid: data['conversationSid'] ?? '',
+            userName: data['userName'] ?? '',
+            profileImage: data['profileImage'] ?? '',
           );
         },
       ),

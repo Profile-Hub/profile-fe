@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:go_router/go_router.dart';
+import '../../routes.dart';
 
 class IndiaDocumentForm extends StatefulWidget {
    IndiaDocumentForm({Key? key}) : super(key: key);
@@ -64,7 +66,12 @@ class _IndiaDocumentFormState extends State<IndiaDocumentForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: BackButton(),
+        leading: IconButton(
+    icon: const Icon(Icons.arrow_back),
+    onPressed: () {
+      GoRouter.of(context).go(Routes.home);
+    },
+  ),
         title: const Text('Upload Documents - India'),
       ),
       body: SingleChildScrollView(

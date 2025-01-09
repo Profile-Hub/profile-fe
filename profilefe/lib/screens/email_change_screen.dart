@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/user.dart';
 import '../services/email_service.dart';
+import 'package:go_router/go_router.dart';
 
 class ChangeEmailScreen extends StatefulWidget {
   final User user;
@@ -86,7 +87,12 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: BackButton(),
+        leading: IconButton(
+    icon: const Icon(Icons.arrow_back),
+    onPressed: () {
+      GoRouter.of(context).pop();
+    },
+  ),
         title: const Text('Change Email'),
       ),
       body: Padding(

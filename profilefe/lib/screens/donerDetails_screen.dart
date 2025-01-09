@@ -31,8 +31,13 @@ class DonorDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: BackButton(),
-        title: const Text('Donor Details')),
+        leading: IconButton(
+    icon: const Icon(Icons.arrow_back),
+    onPressed: () {
+       GoRouter.of(context).go(Routes.home);
+    },
+  ),
+        title: const Text('All Details')),
       body: FutureBuilder<DonerDetails>(
         future: fetchDonorDetails(donorId),
         builder: (context, snapshot) {
@@ -175,7 +180,12 @@ Center(
           final conversationSid = await chatService.getOrCreateConversation(donor.id);
 
           GoRouter.of(context).go(
-            '${Routes.chat}/$conversationSid/${donor.firstname}/${donor.avatar!.url}',
+            '${Routes.chat}/$conversationSid',
+            extra: {
+         'conversationSid':conversationSid,
+         'userName':donor.firstname,
+         'profileImage':donor.avatar!.url,
+      },
           );
         } catch (e) {
           print("Error fetching conversation SID: $e");
