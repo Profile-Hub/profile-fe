@@ -26,13 +26,13 @@ import 'screens/forgot_password_screen.dart';
 import 'screens/Chat_screen.dart';
 import 'screens/DonnerChat_Screen.Dart';
 import 'services/chat_services.dart';
-import './services/stripe_service.dart';
+
 
 final secureStorage = FlutterSecureStorage();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await StripeService.init();
+
   
   final userProvider = UserProvider();
   await userProvider.initializeFromSecureStorage();

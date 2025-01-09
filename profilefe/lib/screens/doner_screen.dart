@@ -30,14 +30,12 @@ class _DonorListPageState extends State<DonorListPage> {
     try {
       // Check subscription status
       final status = await _subscriptionService.checkSubscriptionStatus();
-
-      if (!status.hasActiveSubscription || 
-          (status.subscription?.credits == 0 && status.subscription?.credits != -1)) {
-        // No active subscription or no credits, show subscription plans
-        GoRouter.of(context).push(Routes.subscriptionPlans);
-        return;
-      }
-
+        if ((status.subscription?.credit == null || 
+        (status.subscription?.credit == 0))) {
+      // No active subscription, no credits, or null credits; show subscription plans
+      GoRouter.of(context).push(Routes.subscriptionPlans);
+      return;
+    }
       // Attempt to deduct credit
       final success = await _subscriptionService.deductCredit();
       if (!success) {
