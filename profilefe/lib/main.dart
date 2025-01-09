@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 import 'models/user.dart';
 import 'providers/auth_provider.dart';
@@ -28,97 +28,93 @@ import 'screens/DonnerChat_Screen.Dart';
 import 'services/chat_services.dart';
 import './services/stripe_service.dart';
 
-
+final secureStorage = FlutterSecureStorage();
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // Ensure Flutter bindings are initialized
+  WidgetsFlutterBinding.ensureInitialized();
   await StripeService.init();
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  String? lastRoute = prefs.getString('lastRoute') ?? Routes.splashScreen;
-
+  
   final userProvider = UserProvider();
-  await userProvider.loadUser();
+  await userProvider.initializeFromSecureStorage();
 
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => userProvider),
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-      ],
-      child: MainApp(initialRoute: lastRoute),
-    ),
-  );
-}
-
-class MainApp extends StatelessWidget {
-  final String initialRoute;
-  const MainApp({Key? key, required this.initialRoute}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final GoRouter router = GoRouter(
-      initialLocation: initialRoute,
-      routes: [
-        GoRoute(
-          path: Routes.splashScreen,
-          builder: (context, state) => SplashScreen(),
-        ),
-        GoRoute(
-          path: Routes.signup,
-          builder: (context, state) => SignupScreen(),
-        ),
-        GoRoute(
-          path: Routes.forgotPassword,
-          builder: (context, state) => ForgotPasswordScreen(),
-        ),
-        GoRoute(
-          path: Routes.login,
-          builder: (context, state) => LoginScreen(),
-        ),
-        GoRoute(
-          path: Routes.home,
-          builder: (context, state) {
-            final userProvider = Provider.of<UserProvider>(context, listen: false);
-            print(userProvider.user);
-            return userProvider.user != null
-                ? HomeScreen(user: userProvider.user!)
-                : LoginScreen();
+  final router = GoRouter(
+    debugLogDiagnostics: true, 
+    routes: [
+      GoRoute(
+        path: Routes.splashScreen,
+        builder: (context, state) => SplashScreen(),
+      ),
+      GoRoute(
+        path: Routes.signup,
+        builder: (context, state) => SignupScreen(),
+      ),
+      GoRoute(
+        path: Routes.forgotPassword,
+        builder: (context, state) => ForgotPasswordScreen(),
+      ),
+      GoRoute(
+        path: Routes.login,
+        builder: (context, state) => LoginScreen(),
+      ),
+      GoRoute(
+        path: Routes.home,
+        builder: (context, state) => FutureBuilder<User?>(
+          future: Provider.of<UserProvider>(context, listen: false).getCurrentUser(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
+            if (snapshot.hasData && snapshot.data != null) {
+              return HomeScreen(user: snapshot.data!);
+            }
+            return LoginScreen();
           },
         ),
-        GoRoute(
-          path: Routes.adminVerify,
-          builder: (context, state) => AdminPage(),
-        ),
-        GoRoute(
-          path: Routes.allDonors,
-          builder: (context, state) => AllDonorPage(),
-        ),
-        GoRoute(
-          path: Routes.allRecipients,
-          builder: (context, state) => AllRecipientPage(),
-        ),
-       GoRoute(
-          path: '${Routes.donorDetails}/:id',  
-             builder: (context, state) {
-            final donorId = state.pathParameters['id'] ?? '';  
-              return DonorDetailPage(donorId: donorId);
-               },
-            ),
-        GoRoute(
-          path: Routes.documentUpload,
-          builder: (context, state) {
-            final userProvider = Provider.of<UserProvider>(context, listen: false);
-            return userProvider.user != null
-                ? DocumentUploadScreen(user: userProvider.user!)
-                : LoginScreen();
+      ),
+      GoRoute(
+        path: Routes.adminVerify,
+        builder: (context, state) => AdminPage(),
+      ),
+      GoRoute(
+        path: Routes.allDonors,
+        builder: (context, state) => AllDonorPage(),
+      ),
+      GoRoute(
+        path: Routes.allRecipients,
+        builder: (context, state) => AllRecipientPage(),
+      ),
+      GoRoute(
+        path: '${Routes.donorDetails}/:id',
+        builder: (context, state) {
+          final donorId = state.pathParameters['id'] ?? '';
+          return DonorDetailPage(donorId: donorId);
+        },
+      ),
+      GoRoute(
+        path: Routes.documentUpload,
+        builder: (context, state) => FutureBuilder<User?>(
+          future: Provider.of<UserProvider>(context, listen: false).getCurrentUser(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
+            if (snapshot.hasData && snapshot.data != null) {
+              return DocumentUploadScreen(user: snapshot.data!);
+            }
+            return LoginScreen();
           },
         ),
-        GoRoute(
+      ),
+      GoRoute(
         path: '${Routes.chat}/:conversationSid/:userName/:profileImage',
         builder: (context, state) {
-          final conversationSid = state.pathParameters['conversationSid']?? '';
-          final userName = state.pathParameters['userName']?? '';
-          final profileImage = state.pathParameters['profileImage']?? '';
+          final conversationSid = state.pathParameters['conversationSid'] ?? '';
+          final userName = state.pathParameters['userName'] ?? '';
+          final profileImage = state.pathParameters['profileImage'] ?? '';
           return ChatScreen(
             conversationSid: conversationSid,
             userName: userName,
@@ -126,56 +122,125 @@ class MainApp extends StatelessWidget {
           );
         },
       ),
-    GoRoute(
+      GoRoute(
         path: '${Routes.donnerchat}/:conversationSid',
         builder: (context, state) {
-          final conversationSid = state.pathParameters['conversationSid']?? '';
+          final conversationSid = state.pathParameters['conversationSid'] ?? '';
           return DonorChatScreen(
             conversationSid: conversationSid,
           );
         },
       ),
-        GoRoute(
-          path: Routes.profile,
-          builder: (context, state) {
-            final userProvider = Provider.of<UserProvider>(context, listen: false);
-            return userProvider.user != null
-                ? ProfileScreen(user: userProvider.user!)
-                : LoginScreen();
+      GoRoute(
+        path: Routes.profile,
+        builder: (context, state) => FutureBuilder<User?>(
+          future: Provider.of<UserProvider>(context, listen: false).getCurrentUser(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
+            if (snapshot.hasData && snapshot.data != null) {
+              return ProfileScreen(user: snapshot.data!);
+            }
+            return LoginScreen();
           },
         ),
-        GoRoute(
-          path: Routes.editProfile,
-          builder: (context, state) {
-            final userProvider = Provider.of<UserProvider>(context, listen: false);
-            return userProvider.user != null
-                ? EditProfileScreen(user: userProvider.user!)
-                : LoginScreen();
+      ),
+      GoRoute(
+        path: Routes.editProfile,
+        builder: (context, state) => FutureBuilder<User?>(
+          future: Provider.of<UserProvider>(context, listen: false).getCurrentUser(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
+            if (snapshot.hasData && snapshot.data != null) {
+              return EditProfileScreen(user: snapshot.data!);
+            }
+            return LoginScreen();
           },
         ),
-        GoRoute(
-          path: Routes.changeEmail,
-          builder: (context, state) {
-            final userProvider = Provider.of<UserProvider>(context, listen: false);
-            return userProvider.user != null
-                ? ChangeEmailScreen(user: userProvider.user!)
-                : LoginScreen();
+      ),
+      GoRoute(
+        path: Routes.changeEmail,
+        builder: (context, state) => FutureBuilder<User?>(
+          future: Provider.of<UserProvider>(context, listen: false).getCurrentUser(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
+            if (snapshot.hasData && snapshot.data != null) {
+              return ChangeEmailScreen(user: snapshot.data!);
+            }
+            return LoginScreen();
           },
         ),
-        GoRoute(
-          path: Routes.changePassword,
-          builder: (context, state) => ChangePasswordScreen(),
-        ),
-        GoRoute(
-          path: Routes.subscriptionPlans,
-          builder: (context, state) => SubscriptionPlansScreen(),
-        ),
-      ],
-      observers: [
-        CustomRouteObserver(),
-      ],
-    );
+      ),
+      GoRoute(
+        path: Routes.changePassword,
+        builder: (context, state) => ChangePasswordScreen(),
+      ),
+      GoRoute(
+        path: Routes.subscriptionPlans,
+        builder: (context, state) => SubscriptionPlansScreen(),
+      ),
+    ],
+    redirect: (BuildContext context, GoRouterState state) async {
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      final user = await userProvider.getCurrentUser();
+      
+      final isLoginRoute = state.matchedLocation == Routes.login;
+      final isSignupRoute = state.matchedLocation == Routes.signup;
+      final isForgotPasswordRoute = state.matchedLocation == Routes.forgotPassword;
+      final isSplashRoute = state.matchedLocation == Routes.splashScreen;
 
+      // Allow access to auth routes even when not logged in
+      if (isLoginRoute || isSignupRoute || isForgotPasswordRoute || isSplashRoute) {
+        if (user != null) {
+          return Routes.home;
+        }
+        return null;
+      }
+
+      // Redirect to login if not authenticated
+      if (user == null) {
+        return Routes.login;
+      }
+
+      return null;
+    },
+    observers: [
+      CustomRouteObserver(),
+    ],
+  );
+
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => userProvider),
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+      ],
+      child: MainApp(router: router),
+    ),
+  );
+}
+
+class MainApp extends StatelessWidget {
+  final GoRouter router;
+  
+  const MainApp({
+    Key? key,
+    required this.router,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
     return MaterialApp.router(
       title: 'Profile Hub',
       theme: ThemeData(
