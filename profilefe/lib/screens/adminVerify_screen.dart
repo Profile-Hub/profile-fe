@@ -204,7 +204,7 @@ class _AdminPageState extends State<AdminPage> {
                 SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () {
-                    GoRouter.of(context).pop();
+                     GoRouter.of(context).go(Routes.home);
                   },
                   child: Text('Close'),
                 ),
@@ -220,6 +220,12 @@ class _AdminPageState extends State<AdminPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+    icon: const Icon(Icons.arrow_back),
+    onPressed: () {
+       GoRouter.of(context).go(Routes.home);
+    },
+  ),
         title: Text('User Request'),
       ),
       body: _isLoading
@@ -250,7 +256,7 @@ class _AdminPageState extends State<AdminPage> {
                       ],
                     ),
                     onTap: () {
-                      context.push('/user-details/${user.userId?.id}');
+                      GoRouter.of(context).go('/donordetails/${user.userId?.id}');
                     },
                   ),
                 );

@@ -31,7 +31,12 @@ class _AllRecipientPageState extends State<AllRecipientPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: BackButton(),
+       leading: IconButton(
+    icon: const Icon(Icons.arrow_back),
+    onPressed: () {
+      GoRouter.of(context).go(Routes.home);
+    },
+  ),
         title: Text('All Recipients'),
       ),
       body: FutureBuilder<List<Alluser>>(
@@ -73,7 +78,7 @@ class _AllRecipientPageState extends State<AllRecipientPage> {
   try {
     Alluser recipientDetails = await AlluserData().getUserById(recipient.id);
     GoRouter.of(context).push(
-      Routes.allRecipients,  // Use your predefined route
+      '/donorDetails/${recipient.id}',  // Use your predefined route
       extra: {'recipient': recipient, 'recipientDetails': recipientDetails},  // Pass data using 'extra'
     );
   } catch (e) {

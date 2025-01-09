@@ -6,6 +6,8 @@ import 'package:http_parser/http_parser.dart'; // Add this import
 import 'package:flutter/foundation.dart';
 import '../../server_config.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:go_router/go_router.dart';
+import '../../routes.dart';
 
 class USDocumentForm extends StatefulWidget {
     USDocumentForm({Key? key}) : super(key: key);
@@ -168,7 +170,12 @@ class _USDocumentFormState extends State<USDocumentForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: BackButton(),
+        leading: IconButton(
+    icon: const Icon(Icons.arrow_back),
+    onPressed: () {
+      GoRouter.of(context).go(Routes.home);
+    },
+  ),
         title: const Text('US Document Form'),
         backgroundColor: Colors.blueAccent,
       ),

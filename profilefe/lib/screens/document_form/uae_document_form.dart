@@ -5,7 +5,9 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart'; // Add this import
 import 'package:flutter/foundation.dart';
 import '../../server_config.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../routes.dart';
 
 class UAEDocumentForm extends StatefulWidget {
    UAEDocumentForm({Key? key}) : super(key: key);
@@ -163,7 +165,12 @@ class _UAEDocumentFormState extends State<UAEDocumentForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: BackButton(),
+        leading: IconButton(
+    icon: const Icon(Icons.arrow_back),
+    onPressed: () {
+      GoRouter.of(context).go(Routes.home);
+    },
+  ),
         title: const Text('UAE Document Form'),
         backgroundColor: Colors.blueAccent,
       ),

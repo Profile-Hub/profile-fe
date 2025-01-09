@@ -4,6 +4,7 @@ import '../services/location_api_service.dart';
 import '../services/signup_service.dart';
 import '../services/email_service.dart';
 import 'dart:async';
+import '../routes.dart';
 import 'package:go_router/go_router.dart';
 
 extension StringExtension on String {
@@ -298,7 +299,12 @@ void _resendOtp() {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: BackButton(),
+        leading: IconButton(
+    icon: const Icon(Icons.arrow_back),
+    onPressed: () {
+      GoRouter.of(context).go(Routes.login);
+    },
+  ),
         title: Text('Sign Up'),
         elevation: 0,
       ),

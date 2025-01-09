@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import '../services/chat_services.dart';
+import '../routes.dart';
+import '../models/user.dart';
+import 'package:go_router/go_router.dart';
+import '../providers/user_provider.dart';
+import 'package:provider/provider.dart';
 
 class ChatScreen extends StatefulWidget {
   final String conversationSid;
   final String userName;
   final String profileImage;
-  
+
   ChatScreen({
     required this.conversationSid,
     required this.userName,
@@ -22,10 +27,23 @@ class _ChatScreenState extends State<ChatScreen> {
   List<Map<String, dynamic>> _messages = [];
   final ScrollController _scrollController = ScrollController();
   bool _isTyping = false;
+  String? userId;
 
   @override
   void initState() {
     super.initState();
+    _loadUserData();
+    _fetchMessages();
+  }
+
+  Future<void> _loadUserData() async {
+    final userProvider = UserProvider();
+    await userProvider.loadUser();
+    final user = Provider.of<UserProvider>(context, listen: false).user;
+    setState(() {
+      userId = user?.id;
+    });
+    print('User ID: ${user?.id}');
   }
 
   void _scrollToBottom() {
@@ -46,13 +64,12 @@ class _ChatScreenState extends State<ChatScreen> {
         _messages = messages.map((message) => {
           ...message,
           'timestamp': message['timestamp'] ?? DateTime.now(),
-          'isReceived': message['author'] != "You",
+          'isReceived': message['author'] != userId, 
         }).toList();
         
         _messages.sort((a, b) => 
           (a['timestamp'] as DateTime).compareTo(b['timestamp'] as DateTime));
       });
-      
       WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
     } catch (e) {
       print("Error fetching messages: $e");
@@ -62,32 +79,29 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _sendMessage() async {
     final message = _messageController.text.trim();
     if (message.isEmpty) return;
-
+   _fetchMessages();
     final timestamp = DateTime.now();
-    
-    // Clear input immediately
     _messageController.clear();
     setState(() {
       _isTyping = false;
     });
-    
+
     try {
       final chatService = ChatServices();
       await chatService.sendMessage(
         widget.conversationSid,
         message,
       );
-      
+
       setState(() {
         _messages.add({
-          "author": "You",
+          "author": userId,
           "body": message,
           "timestamp": timestamp,
           "isReceived": false,
         });
-        _fetchMessages();
       });
-      
+
       WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
     } catch (e) {
       print("Error sending message: $e");
@@ -104,11 +118,10 @@ class _ChatScreenState extends State<ChatScreen> {
       backgroundColor: Colors.white,
       body: Center(
         child: Card(
-          margin: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width * 0.15),
+          margin: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width * 0.01),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           child: Column(
             children: [
-              // Header (unchanged)
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: const BoxDecoration(
@@ -117,6 +130,12 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
                 child: Row(
                   children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      onPressed: () {
+                        GoRouter.of(context).go(Routes.home); 
+                      },
+                    ),
                     CircleAvatar(
                       backgroundImage: NetworkImage(widget.profileImage),
                       radius: 20,
@@ -133,7 +152,6 @@ class _ChatScreenState extends State<ChatScreen> {
                   ],
                 ),
               ),
-              // Messages Section (unchanged)
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
@@ -143,14 +161,14 @@ class _ChatScreenState extends State<ChatScreen> {
                     itemBuilder: (context, index) {
                       final message = _messages[index];
                       final bool isReceived = message['isReceived'] ?? false;
-                      
+
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 8),
                         child: Align(
-                          alignment: isReceived ? Alignment.centerRight : Alignment.centerLeft,
+                          alignment: isReceived ? Alignment.centerLeft : Alignment.centerRight,
                           child: Container(
                             constraints: BoxConstraints(
-                              maxWidth: MediaQuery.of(context).size.width * 0.45,
+                              maxWidth: MediaQuery.of(context).size.width * 0.65,
                             ),
                             padding: const EdgeInsets.symmetric(
                               horizontal: 16,
@@ -166,9 +184,9 @@ class _ChatScreenState extends State<ChatScreen> {
                               ),
                             ),
                             child: Column(
-                              crossAxisAlignment: isReceived ? 
-                                CrossAxisAlignment.end : 
-                                CrossAxisAlignment.start,
+                              crossAxisAlignment: isReceived 
+                                  ? CrossAxisAlignment.start 
+                                  : CrossAxisAlignment.end,
                               children: [
                                 Text(
                                   message['body'] ?? '',
@@ -194,7 +212,6 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                 ),
               ),
-              // Modified Input Section
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
                 decoration: const BoxDecoration(
