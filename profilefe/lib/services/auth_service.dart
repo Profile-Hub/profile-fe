@@ -9,7 +9,8 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:async';
 import 'dart:io' if (dart.library.html) 'dart:html';
 import 'package:universal_io/io.dart';
-
+import '../providers/user_provider.dart';
+import 'package:flutter/material.dart';
 
 class AuthService {
   static final AuthService _instance = AuthService._internal();
@@ -56,7 +57,6 @@ class AuthService {
          final userJson = jsonEncode(loginResponse.user.toJson()); 
           await _storage.write(key: 'auth_token', value: _token);
           await _storage.write(key: 'user_data', value: userJson);
-          // print('Token saved: $_token');
         }
         return loginResponse;
       }
@@ -185,6 +185,8 @@ Future<LoginResponse?> signInWithGoogle() async {
       if (response.statusCode == 200) {
         final jsonResponse = jsonDecode(response.body);
         final loginResponse = LoginResponse.fromJson(jsonResponse);
+        final userJson = jsonEncode(loginResponse.user.toJson()); 
+          await _storage.write(key: 'user_data', value: userJson);
 
         if (loginResponse.success) {
           // Store the authentication token

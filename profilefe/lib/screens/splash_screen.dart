@@ -22,7 +22,6 @@ class _SplashScreenState extends State<SplashScreen> {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
 
     await authProvider.initialize();
-    await userProvider.loadUser();
 
     if (mounted) {
       if (authProvider.isAuthenticated) {
