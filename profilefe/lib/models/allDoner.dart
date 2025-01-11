@@ -12,6 +12,7 @@ class Doner {
   final String? country;
   final String? usertype;
   final String id;
+  final List<String>? organDonations;
 
   Doner({
     this.avatar,
@@ -25,6 +26,7 @@ class Doner {
     this.country,
     this.usertype,
     required this.id,
+    this.organDonations,
   });
 
   factory Doner.fromJson(Map<String, dynamic> json) {
@@ -40,6 +42,9 @@ class Doner {
       country: json['country'],
       usertype: json['usertype'],
       id: json['id'] ?? 'default_id',
+      organDonations: (json['organDonations'] as List<dynamic>?)
+          ?.map((item) => item as String)
+          .toList(), 
     );
   }
 }
