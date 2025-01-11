@@ -16,21 +16,38 @@ class DonorCard extends StatelessWidget {
           children: [
             Text(
               'Name: ${donor.firstname} ${donor.middleName ?? ''} ${donor.lastname}',
-              style: Theme.of(context).textTheme.titleMedium,
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20,),
             ),
-            SizedBox(height: 10),
+            Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
             _buildInfoRow('Age', donor.age?.toString() ?? 'N/A'),
+           SizedBox(width: 7),
+            Text('|', style: TextStyle(fontWeight: FontWeight.bold)),
+            SizedBox(width: 7),
             _buildInfoRow('Gender', donor.gender ?? 'N/A'),
+            SizedBox(width: 7),
+           Text('|', style: TextStyle(fontWeight: FontWeight.bold)),
+            SizedBox(width: 7),
             _buildInfoRow('City', donor.city ?? 'N/A'),
+          ],
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
             _buildInfoRow('State', donor.state ?? 'N/A'),
+            SizedBox(width: 7),
+            Text('|', style: TextStyle(fontWeight: FontWeight.bold)),
+            SizedBox(width: 7),
             _buildInfoRow('Country', donor.country ?? 'N/A'),
-            _buildInfoRow('Usertype', donor.usertype ?? 'N/A'),
+          ],
+        ),
+         _buildOrganDonationsRow(donor.organDonations),
           ],
         ),
       ),
     );
   }
-
   Widget _buildInfoRow(String label, String value) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 4),
@@ -39,6 +56,7 @@ class DonorCard extends StatelessWidget {
           Text(
             '$label: ',
             style: TextStyle(fontWeight: FontWeight.bold),
+            
           ),
           Text(value),
         ],
@@ -46,3 +64,60 @@ class DonorCard extends StatelessWidget {
     );
   }
 }
+Widget _buildInfoColumn(String label, String value) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        label,
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 16,
+        ),
+      ),
+      SizedBox(height: 2), 
+      Text(
+        value,
+        style: TextStyle(
+          fontSize: 14,
+          color: Colors.grey[700],
+        ),
+      ),
+      SizedBox(height: 16), 
+    ],
+  );
+}
+ Widget _buildOrganDonationsRow(List<String>? organDonations) {
+    if (organDonations == null || organDonations.isEmpty) {
+      return _buildInfoColumn('Organ Donations', 'N/A');
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Organ Donations: ',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+        ),
+      Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 5.0), 
+              child: Wrap(
+                spacing: 5.0, 
+                runSpacing: 5.0,
+                children: [
+                  Text(
+                    organDonations.join(' | '),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[900],
+                    ),
+                    overflow: TextOverflow.ellipsis, 
+                  ),
+                ],
+              ),
+            ),
+          ),
+      ],
+    );
+  }

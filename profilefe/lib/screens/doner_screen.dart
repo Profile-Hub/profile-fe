@@ -45,7 +45,7 @@ class _DonorListPageState extends State<DonorListPage> {
       }
 
       // Navigate to donor details
-      GoRouter.of(context).go('${Routes.donorDetails}/${donor.id}');
+      // GoRouter.of(context).go('${Routes.donorDetails}/${donor.id}');
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: ${e.toString()}')),
