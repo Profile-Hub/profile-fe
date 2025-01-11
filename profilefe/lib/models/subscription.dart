@@ -1,15 +1,15 @@
 class SubscriptionStatus {
-  final bool hasActiveSubscription;
+  final bool success;
   final Subscription? subscription;
 
   SubscriptionStatus({
-    required this.hasActiveSubscription,
+    required this.success,
     this.subscription,
   });
 
   factory SubscriptionStatus.fromJson(Map<String, dynamic> json) {
     return SubscriptionStatus(
-      hasActiveSubscription: json['hasActiveSubscription'],
+      success: json['success'],
       subscription: json['subscription'] != null
           ? Subscription.fromJson(json['subscription'])
           : null,
@@ -18,24 +18,26 @@ class SubscriptionStatus {
 }
 
 class Subscription {
-  final String id;
-  final int credits;
-  final String status;
-  final DateTime expirationDate;
+  final String? id; // `id` might be null if not always present
+  final int? credit; // Allow nullable `credit`
+  final String? status; // Allow nullable `status`
+  final DateTime? expirationDate; // Allow nullable `expirationDate`
 
   Subscription({
-    required this.id,
-    required this.credits,
-    required this.status,
-    required this.expirationDate,
+    this.id,
+    this.credit,
+    this.status,
+    this.expirationDate,
   });
 
   factory Subscription.fromJson(Map<String, dynamic> json) {
     return Subscription(
-      id: json['_id'],
-      credits: json['credits'],
-      status: json['status'],
-      expirationDate: DateTime.parse(json['expirationDate']),
+      id: json['_id'], // Map `_id` to `id`
+      credit: json['credit'], // Accept nullable `credit`
+      status: json['status'], // Accept nullable `status`
+      expirationDate: json['expirationDate'] != null
+          ? DateTime.parse(json['expirationDate'])
+          : null, // Handle nullable `expirationDate`
     );
   }
 }

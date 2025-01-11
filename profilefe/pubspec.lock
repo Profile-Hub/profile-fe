@@ -73,6 +73,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.8"
+  eventify:
+    dependency: transitive
+    description:
+      name: eventify
+      sha256: b829429f08586cc2001c628e7499e3e3c2493a1d895fd73b00ecb23351aa5a66
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.1"
   fake_async:
     dependency: transitive
     description:
@@ -222,14 +230,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "11.3.0"
-  flutter_stripe_web:
-    dependency: "direct main"
-    description:
-      name: flutter_stripe_web
-      sha256: c555abcef31b3ef9ec12efb7c706f8d400124a35237831a1252e01aa1af742e7
-      url: "https://pub.dev"
-    source: hosted
-    version: "6.3.0"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -240,6 +240,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  fluttertoast:
+    dependency: transitive
+    description:
+      name: fluttertoast
+      sha256: "24467dc20bbe49fd63e57d8e190798c4d22cbbdac30e54209d153a15273721d1"
+      url: "https://pub.dev"
+    source: hosted
+    version: "8.2.10"
   freezed_annotation:
     dependency: transitive
     description:
@@ -584,6 +592,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.1.2"
+  razorpay_flutter:
+    dependency: "direct main"
+    description:
+      name: razorpay_flutter
+      sha256: "5ae44cdea5312f8ef830ec04e31f9bdeeb83522ef1f314a25c463dd934c37cad"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.3.7"
   shared_preferences:
     dependency: "direct main"
     description:
@@ -693,14 +709,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "11.3.0"
-  stripe_js:
-    dependency: transitive
-    description:
-      name: stripe_js
-      sha256: d12c628c82e0cea0f5c93c7751c8b01d5ef25f417797c270cd62713564cdee6f
-      url: "https://pub.dev"
-    source: hosted
-    version: "6.2.1"
   stripe_platform_interface:
     dependency: transitive
     description:
@@ -725,14 +733,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.3"
-  twilio_chat_conversation:
-    dependency: "direct main"
-    description:
-      name: twilio_chat_conversation
-      sha256: "23f5f7101907200ae4c3e3967bd67b49140a84890ad6b888060934488f1ac146"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.4"
   typed_data:
     dependency: transitive
     description:
