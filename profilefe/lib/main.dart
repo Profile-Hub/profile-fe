@@ -111,7 +111,7 @@ void main() async {
             return LoginScreen();
           },
         ),
-
+      ),
         GoRoute(
         path: '${Routes.chat}/:conversationSid',
         builder: (context, state) {
@@ -123,6 +123,7 @@ void main() async {
           );
         },
       ),
+      
       GoRoute(
           path: Routes.senderscreen,
           builder: (context, state) => SenderScreen(),

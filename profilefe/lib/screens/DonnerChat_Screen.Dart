@@ -37,7 +37,7 @@ class _DonorChatScreenState extends State<DonorChatScreen> {
 
   Future<void> _loadUserData() async {
     final userProvider = UserProvider();
-    await userProvider.loadUser();
+    await userProvider.getCurrentUser();
     final user = Provider.of<UserProvider>(context, listen: false).user;
     setState(() {
       userId = user?.id;
