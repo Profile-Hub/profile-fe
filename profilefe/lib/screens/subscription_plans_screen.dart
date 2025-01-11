@@ -13,6 +13,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../server_config.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'dart:js' as js;
 
 // Model class to represent a subscription plan
 class SubscriptionPlan {
@@ -38,8 +39,7 @@ class SubscriptionPlan {
    final _storage = FlutterSecureStorage();
 // Service class to handle all Razorpay-related operations
 class RazorpayService {
-  final String apiUrl = 'http://localhost:4000'; 
-  final String apiKey = 'rzp_test_Z3Ii9PSZueytu2'; 
+  final String apiKey = 'rzp_test_TzdLYDjiaegAyF'; 
   Future<void> _loadToken() async {
     _token = await _storage.read(key: 'auth_token');
   }
@@ -94,7 +94,102 @@ class RazorpayService {
       throw Exception('Network error: $e');
     }
   }
+
+   Future<void> initializePayment({
+    required String orderId,
+    required int amount,
+    required String name,
+    required Function(String paymentId, String orderId, String signature) onSuccess,
+    required Function(String error) onError,
+  }) async {
+    if (kIsWeb) {
+      _initializeWebPayment(
+        orderId: orderId,
+        amount: amount,
+        name: name,
+        onSuccess: onSuccess,
+        onError: onError,
+      );
+    } else {
+      _initializeNativePayment(
+        orderId: orderId,
+        amount: amount,
+        name: name,
+        onSuccess: onSuccess,
+        onError: onError,
+      );
+    }
+  }
+
+  void _initializeWebPayment({
+    required String orderId,
+    required int amount,
+    required String name,
+    required Function(String paymentId, String orderId, String signature) onSuccess,
+    required Function(String error) onError,
+  }) {
+    final options = {
+      'key': apiKey,
+      'amount': amount,
+      'order_id': orderId,
+      'name': name,
+      'handler': js.allowInterop((response) {
+        onSuccess(
+          response['razorpay_payment_id'],
+          response['razorpay_order_id'],
+          response['razorpay_signature'],
+        );
+      }),
+      'prefill': {
+        'contact': '',
+        'email': '',
+      },
+      'theme': {
+        'color': '#2196F3',
+      }
+    };
+
+    final razorpay = js.context.callMethod('Razorpay', [js.JsObject.jsify(options)]);
+    razorpay.callMethod('open');
+  }
+
+  void _initializeNativePayment({
+    required String orderId,
+    required int amount,
+    required String name,
+    required Function(String paymentId, String orderId, String signature) onSuccess,
+    required Function(String error) onError,
+  }) {
+    final razorpay = Razorpay();
+    
+    razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, (PaymentSuccessResponse response) {
+      onSuccess(response.paymentId!, response.orderId!, response.signature!);
+      razorpay.clear();
+    });
+
+    razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, (PaymentFailureResponse response) {
+      onError(response.message ?? 'Payment failed');
+      razorpay.clear();
+    });
+
+    final options = {
+      'key': apiKey,
+      'amount': amount,
+      'order_id': orderId,
+      'name': name,
+      'prefill': const {
+        'contact': '',
+        'email': '',
+      },
+      'theme': {
+        'color': '#2196F3',
+      }
+    };
+
+    razorpay.open(options);
+  }
 }
+
 
 // Screen to display subscription plans
 class SubscriptionPlansScreen extends StatefulWidget {
@@ -238,43 +333,55 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
   }
 
   // Handle subscription purchase
-  Future<void> _handleSubscription(SubscriptionPlan plan) async {
-    try {
-      setState(() => _isLoading = true);
+Future<void> _handleSubscription(SubscriptionPlan plan) async {
+  try {
+    setState(() => _isLoading = true);
+    final orderData = await _razorpayService.createOrder(plan.id, plan.price.toInt());
 
-      // Create order on backend
-      final orderData = await _razorpayService.createOrder(
-        plan.id,
-        plan.price.toInt(),
+    await _razorpayService.initializePayment(
+      orderId: orderData['orderId'],
+      amount: orderData['amount'],
+      name: 'Donor Connect',
+      onSuccess: (paymentId, orderId, signature) async {
+        await _verifyAndCompletePayment(paymentId, orderId, signature);
+      },
+      onError: _showError,
+    );
+  } catch (e) {
+    _showError('Failed to initialize payment: $e');
+  } finally {
+    if (mounted) setState(() => _isLoading = false);
+  }
+}
+Future<void> _verifyAndCompletePayment(String paymentId, String orderId, String signature) async {
+  try {
+    setState(() => _isLoading = true);
+    await _razorpayService.verifyPayment(orderId, paymentId, signature);
+    
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('hasActiveSubscription', true);
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Payment successful! Your subscription is now active.'),
+          backgroundColor: Colors.green,
+        ),
       );
 
-      // Configure payment options
-      var options = {
-        'key': _razorpayService.apiKey,
-        'amount': plan.price.toInt(),
-        'name': 'Donor Connect',
-        'order_id': orderData['orderId'],
-        'description': '${plan.name} Subscription',
-        'timeout': 300,
-        'prefill': {
-          // Add user details if available
-          // 'contact': 'USER_PHONE',
-          // 'email': 'USER_EMAIL',
-        },
-        'theme': {
-          'color': '#2196F3',
-        }
-      };
-
-      _razorpay.open(options);
-    } catch (e) {
-      _showError('Failed to initiate payment: ${e.toString()}');
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
+      if (widget.returnRoute != null) {
+        context.go(widget.returnRoute!);
+      } else {
+        context.pop();
       }
     }
+  } catch (e) {
+    _showError('Payment verification failed: ${e.toString()}');
+  } finally {
+    if (mounted) setState(() => _isLoading = false);
   }
+}
+
 
   @override
   void dispose() {
