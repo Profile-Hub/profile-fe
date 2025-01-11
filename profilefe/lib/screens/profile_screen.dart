@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../models/user.dart';
 import 'package:intl/intl.dart';
 import 'widgets/profile_avatar.dart';
+import 'package:go_router/go_router.dart';
+import '../routes.dart';
 
 class ProfileScreen extends StatefulWidget {
   final User user;
@@ -234,7 +236,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: BackButton(),
+        leading: IconButton(
+    icon: const Icon(Icons.arrow_back),
+    onPressed: () {
+      GoRouter.of(context).go(Routes.home);
+    },
+  ),
         title: const Text('Profile'),
         centerTitle: true,
       ),

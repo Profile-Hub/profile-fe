@@ -68,7 +68,12 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: BackButton(),
+        leading: IconButton(
+    icon: const Icon(Icons.arrow_back),
+    onPressed: () {
+      GoRouter.of(context).pop();
+    },
+  ),
         title: const Text('Change Password'),
         centerTitle: true,
       ),

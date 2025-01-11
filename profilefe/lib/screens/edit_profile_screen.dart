@@ -678,7 +678,12 @@ Future<void> _selectImage() async {
 
     return Scaffold(
       appBar: AppBar(
-        leading: BackButton(),
+        leading: IconButton(
+    icon: const Icon(Icons.arrow_back),
+    onPressed: () {
+      GoRouter.of(context).pop();
+    },
+  ),
         title: const Text('Edit Profile'),
         centerTitle: true,
       ),

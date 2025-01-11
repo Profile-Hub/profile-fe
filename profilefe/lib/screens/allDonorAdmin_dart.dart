@@ -30,7 +30,12 @@ class _AllDonorPageState extends State<AllDonorPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: BackButton(),
+        leading: IconButton(
+    icon: const Icon(Icons.arrow_back),
+    onPressed: () {
+     GoRouter.of(context).go(Routes.home);
+    },
+  ),
         title: Text('All Donors'),
       ),
       body: FutureBuilder<List<Alluser>>(

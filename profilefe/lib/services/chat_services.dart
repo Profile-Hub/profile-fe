@@ -6,7 +6,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class ChatServices {
    final String baseUrl = ServerConfig.baseUrl;
    String? _token;
-
+  List<Map<String, dynamic>>? _userDetails;
+  List<Map<String, dynamic>>? get userDetails => _userDetails;
   static final _storage = FlutterSecureStorage(); 
   Future<void> _loadToken() async {
     _token = await _storage.read(key: 'auth_token');
@@ -29,15 +30,15 @@ class ChatServices {
       throw Exception('Failed to fetch conversation SID');
     }
   }
-Future<String> getConversationByDonor() async {
-  print(baseUrl);
+Future<String> getConversationByDonor(String reciptent) async {
   await _loadToken();
-  final response = await http.get(
+  final response = await  http.post(
     Uri.parse('$baseUrl/conversation/donor'),
     headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $_token',
     },
+    body: jsonEncode({'reciptent': reciptent}),
   );
 
   if (response.statusCode == 200) {
@@ -97,5 +98,32 @@ Future<String> getConversationByDonor() async {
     };
   }).toList();
 }
+ Future<List<Map<String, dynamic>>?> getSenderDetails() async {
+  await _loadToken();
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/conversation/senderdetails'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $_token',
+        },
+      );
 
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        if (data['success'] == true) {
+          _userDetails = List<Map<String, dynamic>>.from(data['data']);
+         
+          return _userDetails!;
+        } else {
+          throw Exception('No conversation found');
+        }
+      } else {
+        throw Exception('Failed to fetch conversation SID');
+      }
+    } catch (error) {
+      print("Error fetching data: $error");
+    }
+  }
 }
