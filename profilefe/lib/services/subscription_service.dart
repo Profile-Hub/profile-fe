@@ -32,15 +32,17 @@ class SubscriptionService {
     }
   }
 
-  Future<bool> deductCredit() async {
+  Future<bool> deductCredit(donorId) async {
     await _loadToken();
     try {
       
       final response = await http.post(
-        Uri.parse('$baseUrl/deduct-credits'),
+        Uri.parse('$baseUrl/select-single-doner'),
         headers: {
           'Authorization': 'Bearer $_token', 
+            'Content-Type': 'application/json',
         },
+        body: jsonEncode({'donorId': donorId}),
       );
 
       if (response.statusCode == 200) {

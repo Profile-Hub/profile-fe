@@ -1,30 +1,98 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import 'package:profilefe/main.dart';
+import 'package:profilefe/providers/auth_provider.dart';
+import 'package:profilefe/providers/user_provider.dart';
+import 'package:profilefe/routes.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget( MyApp());
+  late GoRouter testRouter;
+  late UserProvider userProvider;
+  late AuthProvider authProvider;
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  setUp(() {
+    userProvider = UserProvider();
+    authProvider = AuthProvider();
+    
+    testRouter = GoRouter(
+      initialLocation: Routes.login,
+      routes: [
+        GoRoute(
+          path: Routes.login,
+          builder: (context, state) => const Scaffold(
+            body: Center(child: Text('Login Screen')),
+          ),
+        ),
+        GoRoute(
+          path: Routes.home,
+          builder: (context, state) => const Scaffold(
+            body: Center(child: Text('Home Screen')),
+          ),
+        ),
+      ],
+    );
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+  testWidgets('App should show login screen initially', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider<UserProvider>(create: (_) => userProvider),
+          ChangeNotifierProvider<AuthProvider>(create: (_) => authProvider),
+        ],
+        child: MainApp(router: testRouter),
+      ),
+    );
+    
+    await tester.pumpAndSettle();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Verify we're on the login screen
+    expect(find.text('Login Screen'), findsOneWidget);
+    expect(find.text('Home Screen'), findsNothing);
+  });
+
+  testWidgets('App should initialize with required providers', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider<UserProvider>(create: (_) => userProvider),
+          ChangeNotifierProvider<AuthProvider>(create: (_) => authProvider),
+        ],
+        child: MainApp(router: testRouter),
+      ),
+    );
+
+    // Verify providers are available
+    expect(
+      tester.element(find.byType(MaterialApp)).read<UserProvider>(),
+      isNotNull,
+    );
+    expect(
+      tester.element(find.byType(MaterialApp)).read<AuthProvider>(),
+      isNotNull,
+    );
+  });
+
+  // Example of a navigation test - add more based on your app's requirements
+  testWidgets('Router should work correctly', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider<UserProvider>(create: (_) => userProvider),
+          ChangeNotifierProvider<AuthProvider>(create: (_) => authProvider),
+        ],
+        child: MainApp(router: testRouter),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    // Initially on login screen
+    expect(find.text('Login Screen'), findsOneWidget);
+
+    // You can add more navigation tests here based on your app's flow
+    // For example, simulating login and checking if it navigates to home
   });
 }

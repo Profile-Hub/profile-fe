@@ -5,6 +5,7 @@ import '../server_config.dart';
 import '../models/donerDetails.dart';
 import '../models/Documentmodel.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../models/selectedDonerModel.dart';
 
 class DonnerService {
   final String baseUrl = ServerConfig.baseUrl;
@@ -121,6 +122,35 @@ class DonnerService {
         return 'china';
       default:
         return '';
+    }
+  }
+   Future<List<SelectedDoner>> getAllSelectedDoner() async {
+    await _loadToken();
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/get-allSelected-doner'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $_token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+
+        // Decoding the response into the SelectedDonerResponse model
+        final selectedDonerResponse = SelectedDonerResponse.fromJson(data);
+        
+        if (selectedDonerResponse.success) {
+          return selectedDonerResponse.data;
+        } else {
+          throw Exception('Failed to load selected donors');
+        }
+      } else {
+        throw Exception('Failed to load selected donors. Status Code: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Failed to connect to server: $e');
     }
   }
 

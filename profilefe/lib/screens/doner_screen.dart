@@ -27,26 +27,57 @@ class _DonorListPageState extends State<DonorListPage> {
   }
 
   Future<void> _handleDonorTap(BuildContext context, Doner donor) async {
+    // Show confirmation dialog
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Confirm Unlock'),
+          content: Text('Are you sure you want to unlock this donor?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text('Confirm'),
+            ),
+          ],
+        );
+      },
+    );
+
+    // If user cancels, do nothing
+    if (confirm != true) return;
+
     try {
       // Check subscription status
       final status = await _subscriptionService.checkSubscriptionStatus();
-        if ((status.subscription?.credit == null || 
-        (status.subscription?.credit == 0))) {
-      // No active subscription, no credits, or null credits; show subscription plans
-      GoRouter.of(context).push(Routes.subscriptionPlans);
-      return;
-    }
+      if (status.subscription?.credit == null || 
+    status.subscription!.credit == 0 || 
+    status.subscription!.status == "expired" || 
+    status.subscription!.status == "canceled") {
+  GoRouter.of(context).push(Routes.subscriptionPlans);
+  return;
+}
       // Attempt to deduct credit
-      final success = await _subscriptionService.deductCredit();
+      final success = await _subscriptionService.deductCredit(donor.id);
       if (!success) {
         // Failed to deduct credit, show subscription plans
         GoRouter.of(context).push(Routes.subscriptionPlans);
         return;
       }
 
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('You have successfully unlocked this donor.')),
+      );
+
       // Navigate to donor details
-      // GoRouter.of(context).go('${Routes.donorDetails}/${donor.id}');
+      GoRouter.of(context).go('${Routes.donorDetails}/${donor.id}');
     } catch (e) {
+      // Show error message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: ${e.toString()}')),
       );

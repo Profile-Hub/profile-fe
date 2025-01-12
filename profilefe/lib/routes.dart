@@ -18,4 +18,5 @@ class Routes {
   static const String chat='/chatarea';
   static const String donnerchat='/donorchatarea';
   static const String senderscreen='/senderscreen';
+  static const String selectedDonorsScreen ='/selectedDonorsScreen';
 }
