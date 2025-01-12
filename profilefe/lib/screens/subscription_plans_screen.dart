@@ -126,7 +126,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
     SubscriptionPlan(
       id: 'basic',
       name: 'Basic Plan',
-      price: 1000000,
+      price: 10000,
       contacts: 3,
       features: [
         '3 Contact Views',
@@ -138,7 +138,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
     SubscriptionPlan(
       id: 'standard',
       name: 'Standard Plan',
-      price: 2000000,
+      price: 20000,
       contacts: 6,
       features: [
         '6 Contact Views',
@@ -151,7 +151,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
     SubscriptionPlan(
       id: 'premium',
       name: 'Premium Plan',
-      price: 5000000,
+      price: 50000,
       contacts: -1,
       features: [
         'Unlimited Contact Views',
@@ -237,7 +237,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
     super.dispose();
   }
 
-  @override
+   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
@@ -256,18 +256,21 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
               children: [
                 Text(
                   'Select Your Subscription Plan',
-                  style: Theme.of(context).textTheme.titleLarge,
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).primaryColor,
+                  ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 Text(
                   'Choose a plan that best suits your needs',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: Colors.grey[600],
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
                 ...plans.map((plan) => _buildPlanCard(plan)).toList(),
               ],
             ),
@@ -284,74 +287,123 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
     );
   }
 
-  // Build subscription plan card
   Widget _buildPlanCard(SubscriptionPlan plan) {
     final bool isPremium = plan.id == 'premium';
+    final theme = Theme.of(context);
     
     return material.Card(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      elevation: isPremium ? 4 : 1,
+      margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+      elevation: isPremium ? 8 : 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: isPremium 
+            ? BorderSide(color: theme.primaryColor, width: 2)
+            : BorderSide.none,
+      ),
       child: Container(
         decoration: isPremium ? BoxDecoration(
-          border: Border.all(
-            color: Theme.of(context).primaryColor,
-            width: 2,
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              theme.primaryColor.withOpacity(0.05),
+              Colors.white,
+              theme.primaryColor.withOpacity(0.05),
+            ],
           ),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
         ) : null,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               if (isPremium) _buildPremiumBadge(),
+              Text(
+                plan.name,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: isPremium ? theme.primaryColor : null,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '₹',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      color: theme.primaryColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    plan.price.toStringAsFixed(0),
+                    style: theme.textTheme.headlineLarge?.copyWith(
+                      color: theme.primaryColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'per quarter',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: Colors.grey[600],
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
               Container(
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  color: theme.primaryColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  plan.name,
-                  style: Theme.of(context).textTheme.titleMedium,
+                  plan.contacts == -1
+                      ? 'Unlimited Contacts'
+                      : '${plan.contacts} Contacts',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ),
-              const SizedBox(height: 16),
-              Text(
-                plan.formattedPrice,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: Theme.of(context).primaryColor,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                plan.contacts == -1
-                    ? 'Unlimited Contacts'
-                    : '${plan.contacts} Contacts',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              ...plan.features.map((feature) => _buildFeatureRow(feature)),
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
+              ...plan.features.map((feature) => _buildFeatureRow(feature, isPremium)),
+              const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _isLoading ? null : () => _handleSubscription(plan),
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  backgroundColor: isPremium 
-                      ? Theme.of(context).primaryColor 
-                      : null,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor: isPremium ? theme.primaryColor : null,
+                  foregroundColor: isPremium ? Colors.white : null,
+                  elevation: isPremium ? 4 : 2,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text('Subscribe Now'),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Subscribe Now',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (isPremium) ...[
+                      const SizedBox(width: 8),
+                      Icon(Icons.star, size: 20),
+                    ],
+                  ],
+                ),
               ),
             ],
           ),
@@ -360,40 +412,59 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
     );
   }
 
-  // Build premium plan badge
   Widget _buildPremiumBadge() {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
         color: Theme.of(context).primaryColor,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Theme.of(context).primaryColor.withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      child: const Text(
-        'MOST POPULAR',
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-        ),
-        textAlign: TextAlign.center,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: const [
+          Icon(Icons.star, color: Colors.white, size: 16),
+          SizedBox(width: 4),
+          Text(
+            'MOST POPULAR',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1,
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  // Build feature row with checkmark
-  Widget _buildFeatureRow(String feature) {
+  Widget _buildFeatureRow(String feature, bool isPremium) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          const Icon(Icons.check_circle,
-              color: Colors.green, size: 20),
-          const SizedBox(width: 8),
+          Icon(
+            Icons.check_circle,
+            color: isPremium ? Theme.of(context).primaryColor : Colors.green,
+            size: 22,
+          ),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
               feature,
-              style: const TextStyle(fontSize: 14),
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: isPremium ? FontWeight.w500 : FontWeight.normal,
+              ),
             ),
           ),
         ],
