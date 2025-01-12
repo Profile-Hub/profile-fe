@@ -1,8 +1,3 @@
-// First, add these dependencies to pubspec.yaml:
-// razorpay_flutter: ^1.3.5
-// shared_preferences: ^2.2.2 (for storing subscription status)
-// http: ^1.1.0 (for API calls)
-
 import 'package:flutter/material.dart' hide Card;
 import 'package:flutter/material.dart' as material show Card;
 import 'package:razorpay_flutter/razorpay_flutter.dart';
@@ -13,7 +8,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../server_config.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'dart:js' as js;
+
+import 'razorpay_web.dart' if (dart.library.io) 'razorpay_mobile.dart';
 
 // Model class to represent a subscription plan
 class SubscriptionPlan {
@@ -31,19 +27,20 @@ class SubscriptionPlan {
     required this.features,
   });
 
-  // Helper method to format price for display
   String get formattedPrice => '₹${(price / 100).toStringAsFixed(2)}';
 }
-  final String baseUrl = ServerConfig.baseUrl;
-    String? _token;
-   final _storage = FlutterSecureStorage();
+
 // Service class to handle all Razorpay-related operations
 class RazorpayService {
-  final String apiKey = 'rzp_test_TzdLYDjiaegAyF'; 
+  final String apiKey = 'rzp_test_TzdLYDjiaegAyF';
+  final String baseUrl = ServerConfig.baseUrl;
+  final _storage = FlutterSecureStorage();
+  String? _token;
+
   Future<void> _loadToken() async {
     _token = await _storage.read(key: 'auth_token');
   }
-  // Create order on the backend
+
   Future<Map<String, dynamic>> createOrder(String planId, int amount) async {
     try {
       await _loadToken();
@@ -52,7 +49,6 @@ class RazorpayService {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $_token',
-          
         },
         body: jsonEncode({
           'planId': planId,
@@ -70,7 +66,6 @@ class RazorpayService {
     }
   }
 
-  // Verify payment with backend
   Future<void> verifyPayment(String orderId, String paymentId, String signature) async {
     try {
       await _loadToken();
@@ -95,103 +90,25 @@ class RazorpayService {
     }
   }
 
-   Future<void> initializePayment({
+  Future<void> initializePayment({
     required String orderId,
     required int amount,
     required String name,
     required Function(String paymentId, String orderId, String signature) onSuccess,
     required Function(String error) onError,
   }) async {
-    if (kIsWeb) {
-      _initializeWebPayment(
-        orderId: orderId,
-        amount: amount,
-        name: name,
-        onSuccess: onSuccess,
-        onError: onError,
-      );
-    } else {
-      _initializeNativePayment(
-        orderId: orderId,
-        amount: amount,
-        name: name,
-        onSuccess: onSuccess,
-        onError: onError,
-      );
-    }
-  }
-
-  void _initializeWebPayment({
-    required String orderId,
-    required int amount,
-    required String name,
-    required Function(String paymentId, String orderId, String signature) onSuccess,
-    required Function(String error) onError,
-  }) {
-    final options = {
-      'key': apiKey,
-      'amount': amount,
-      'order_id': orderId,
-      'name': name,
-      'handler': js.allowInterop((response) {
-        onSuccess(
-          response['razorpay_payment_id'],
-          response['razorpay_order_id'],
-          response['razorpay_signature'],
-        );
-      }),
-      'prefill': {
-        'contact': '',
-        'email': '',
-      },
-      'theme': {
-        'color': '#2196F3',
-      }
-    };
-
-    final razorpay = js.context.callMethod('Razorpay', [js.JsObject.jsify(options)]);
-    razorpay.callMethod('open');
-  }
-
-  void _initializeNativePayment({
-    required String orderId,
-    required int amount,
-    required String name,
-    required Function(String paymentId, String orderId, String signature) onSuccess,
-    required Function(String error) onError,
-  }) {
-    final razorpay = Razorpay();
-    
-    razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, (PaymentSuccessResponse response) {
-      onSuccess(response.paymentId!, response.orderId!, response.signature!);
-      razorpay.clear();
-    });
-
-    razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, (PaymentFailureResponse response) {
-      onError(response.message ?? 'Payment failed');
-      razorpay.clear();
-    });
-
-    final options = {
-      'key': apiKey,
-      'amount': amount,
-      'order_id': orderId,
-      'name': name,
-      'prefill': const {
-        'contact': '',
-        'email': '',
-      },
-      'theme': {
-        'color': '#2196F3',
-      }
-    };
-
-    razorpay.open(options);
+    final razorpayHandler = getRazorpayHandler();
+    await razorpayHandler.initializePayment(
+      apiKey: apiKey,
+      orderId: orderId,
+      amount: amount,
+      name: name,
+      onSuccess: onSuccess,
+      onError: onError,
+    );
   }
 }
 
-
-// Screen to display subscription plans
 class SubscriptionPlansScreen extends StatefulWidget {
   final String? returnRoute;
   
@@ -202,17 +119,14 @@ class SubscriptionPlansScreen extends StatefulWidget {
 }
 
 class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
-  // Initialize Razorpay instance
-  late Razorpay _razorpay;
   late RazorpayService _razorpayService;
   bool _isLoading = false;
 
-  // List of available subscription plans
   final List<SubscriptionPlan> plans = [
     SubscriptionPlan(
       id: 'basic',
       name: 'Basic Plan',
-      price: 10000, // Price in paise (₹100)
+      price: 10000,
       contacts: 3,
       features: [
         '3 Contact Views',
@@ -224,7 +138,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
     SubscriptionPlan(
       id: 'standard',
       name: 'Standard Plan',
-      price: 20000, // Price in paise (₹200)
+      price: 20000,
       contacts: 6,
       features: [
         '6 Contact Views',
@@ -237,7 +151,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
     SubscriptionPlan(
       id: 'premium',
       name: 'Premium Plan',
-      price: 50000, // Price in paise (₹500)
+      price: 50000,
       contacts: -1,
       features: [
         'Unlimited Contact Views',
@@ -253,74 +167,9 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
   @override
   void initState() {
     super.initState();
-    _initializePayment();
-  }
-
-  // Initialize Razorpay instance and set up event handlers
-  void _initializePayment() {
-    _razorpay = Razorpay();
     _razorpayService = RazorpayService();
-
-    _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
-    _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
-    _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
   }
 
-  // Handle successful payment
-  void _handlePaymentSuccess(PaymentSuccessResponse response) async {
-    try {
-      setState(() => _isLoading = true);
-
-      // Verify payment with backend
-      await _razorpayService.verifyPayment(
-        response.orderId!,
-        response.paymentId!,
-        response.signature!,
-      );
-
-      // Store subscription status locally
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('hasActiveSubscription', true);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Payment successful! Your subscription is now active.'),
-            backgroundColor: Colors.green,
-          ),
-        );
-
-        // Navigate back or to specified route
-        if (widget.returnRoute != null) {
-          context.go(widget.returnRoute!);
-        } else {
-          context.pop();
-        }
-      }
-    } catch (e) {
-      _showError('Payment verification failed: ${e.toString()}');
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
-  }
-
-  // Handle payment failure
-  void _handlePaymentError(PaymentFailureResponse response) {
-    _showError('Payment failed: ${response.message ?? "Unknown error"}');
-  }
-
-  // Handle external wallet selection
-  void _handleExternalWallet(ExternalWalletResponse response) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('External wallet selected: ${response.walletName}'),
-      ),
-    );
-  }
-
-  // Show error message to user
   void _showError(String message) {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -332,64 +181,63 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
     }
   }
 
-  // Handle subscription purchase
-Future<void> _handleSubscription(SubscriptionPlan plan) async {
-  try {
-    setState(() => _isLoading = true);
-    final orderData = await _razorpayService.createOrder(plan.id, plan.price.toInt());
+  Future<void> _handleSubscription(SubscriptionPlan plan) async {
+    try {
+      setState(() => _isLoading = true);
+      final orderData = await _razorpayService.createOrder(plan.id, plan.price.toInt());
 
-    await _razorpayService.initializePayment(
-      orderId: orderData['orderId'],
-      amount: orderData['amount'],
-      name: 'Donor Connect',
-      onSuccess: (paymentId, orderId, signature) async {
-        await _verifyAndCompletePayment(paymentId, orderId, signature);
-      },
-      onError: _showError,
-    );
-  } catch (e) {
-    _showError('Failed to initialize payment: $e');
-  } finally {
-    if (mounted) setState(() => _isLoading = false);
-  }
-}
-Future<void> _verifyAndCompletePayment(String paymentId, String orderId, String signature) async {
-  try {
-    setState(() => _isLoading = true);
-    await _razorpayService.verifyPayment(orderId, paymentId, signature);
-    
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('hasActiveSubscription', true);
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Payment successful! Your subscription is now active.'),
-          backgroundColor: Colors.green,
-        ),
+      await _razorpayService.initializePayment(
+        orderId: orderData['orderId'],
+        amount: orderData['amount'],
+        name: 'Donor Connect',
+        onSuccess: (paymentId, orderId, signature) async {
+          await _verifyAndCompletePayment(paymentId, orderId, signature);
+        },
+        onError: _showError,
       );
-
-      if (widget.returnRoute != null) {
-        context.go(widget.returnRoute!);
-      } else {
-        context.pop();
-      }
+    } catch (e) {
+      _showError('Failed to initialize payment: $e');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
-  } catch (e) {
-    _showError('Payment verification failed: ${e.toString()}');
-  } finally {
-    if (mounted) setState(() => _isLoading = false);
   }
-}
+
+  Future<void> _verifyAndCompletePayment(String paymentId, String orderId, String signature) async {
+    try {
+      setState(() => _isLoading = true);
+      await _razorpayService.verifyPayment(orderId, paymentId, signature);
+      
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('hasActiveSubscription', true);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Payment successful! Your subscription is now active.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        if (widget.returnRoute != null) {
+          context.go(widget.returnRoute!);
+        } else {
+          context.pop();
+        }
+      }
+    } catch (e) {
+      _showError('Payment verification failed: ${e.toString()}');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
 
   @override
   void dispose() {
-    _razorpay.clear();
     super.dispose();
   }
 
-  @override
+   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
@@ -408,18 +256,21 @@ Future<void> _verifyAndCompletePayment(String paymentId, String orderId, String 
               children: [
                 Text(
                   'Select Your Subscription Plan',
-                  style: Theme.of(context).textTheme.titleLarge,
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).primaryColor,
+                  ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 Text(
                   'Choose a plan that best suits your needs',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: Colors.grey[600],
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
                 ...plans.map((plan) => _buildPlanCard(plan)).toList(),
               ],
             ),
@@ -436,74 +287,123 @@ Future<void> _verifyAndCompletePayment(String paymentId, String orderId, String 
     );
   }
 
-  // Build subscription plan card
   Widget _buildPlanCard(SubscriptionPlan plan) {
     final bool isPremium = plan.id == 'premium';
+    final theme = Theme.of(context);
     
     return material.Card(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      elevation: isPremium ? 4 : 1,
+      margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+      elevation: isPremium ? 8 : 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: isPremium 
+            ? BorderSide(color: theme.primaryColor, width: 2)
+            : BorderSide.none,
+      ),
       child: Container(
         decoration: isPremium ? BoxDecoration(
-          border: Border.all(
-            color: Theme.of(context).primaryColor,
-            width: 2,
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              theme.primaryColor.withOpacity(0.05),
+              Colors.white,
+              theme.primaryColor.withOpacity(0.05),
+            ],
           ),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
         ) : null,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               if (isPremium) _buildPremiumBadge(),
+              Text(
+                plan.name,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: isPremium ? theme.primaryColor : null,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '₹',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      color: theme.primaryColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    plan.price.toStringAsFixed(0),
+                    style: theme.textTheme.headlineLarge?.copyWith(
+                      color: theme.primaryColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'per quarter',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: Colors.grey[600],
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
               Container(
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  color: theme.primaryColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  plan.name,
-                  style: Theme.of(context).textTheme.titleMedium,
+                  plan.contacts == -1
+                      ? 'Unlimited Contacts'
+                      : '${plan.contacts} Contacts',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ),
-              const SizedBox(height: 16),
-              Text(
-                plan.formattedPrice,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: Theme.of(context).primaryColor,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                plan.contacts == -1
-                    ? 'Unlimited Contacts'
-                    : '${plan.contacts} Contacts',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              ...plan.features.map((feature) => _buildFeatureRow(feature)),
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
+              ...plan.features.map((feature) => _buildFeatureRow(feature, isPremium)),
+              const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _isLoading ? null : () => _handleSubscription(plan),
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  backgroundColor: isPremium 
-                      ? Theme.of(context).primaryColor 
-                      : null,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor: isPremium ? theme.primaryColor : null,
+                  foregroundColor: isPremium ? Colors.white : null,
+                  elevation: isPremium ? 4 : 2,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text('Subscribe Now'),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Subscribe Now',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (isPremium) ...[
+                      const SizedBox(width: 8),
+                      Icon(Icons.star, size: 20),
+                    ],
+                  ],
+                ),
               ),
             ],
           ),
@@ -512,40 +412,59 @@ Future<void> _verifyAndCompletePayment(String paymentId, String orderId, String 
     );
   }
 
-  // Build premium plan badge
   Widget _buildPremiumBadge() {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
         color: Theme.of(context).primaryColor,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Theme.of(context).primaryColor.withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      child: const Text(
-        'MOST POPULAR',
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-        ),
-        textAlign: TextAlign.center,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: const [
+          Icon(Icons.star, color: Colors.white, size: 16),
+          SizedBox(width: 4),
+          Text(
+            'MOST POPULAR',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1,
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  // Build feature row with checkmark
-  Widget _buildFeatureRow(String feature) {
+  Widget _buildFeatureRow(String feature, bool isPremium) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          const Icon(Icons.check_circle,
-              color: Colors.green, size: 20),
-          const SizedBox(width: 8),
+          Icon(
+            Icons.check_circle,
+            color: isPremium ? Theme.of(context).primaryColor : Colors.green,
+            size: 22,
+          ),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
               feature,
-              style: const TextStyle(fontSize: 14),
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: isPremium ? FontWeight.w500 : FontWeight.normal,
+              ),
             ),
           ),
         ],

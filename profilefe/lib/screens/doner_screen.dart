@@ -52,14 +52,15 @@ class _DonorListPageState extends State<DonorListPage> {
     if (confirm != true) return;
 
     try {
-      // Check subscription status
       final status = await _subscriptionService.checkSubscriptionStatus();
       if (status.subscription?.credit == null || 
-    status.subscription!.credit == 0 || 
-    status.subscription!.status == "expired" || 
-    status.subscription!.status == "canceled") {
-  GoRouter.of(context).push(Routes.subscriptionPlans);
-  return;
+      status.subscription!.credit == 0 || 
+      status.subscription!.status == "expired" || 
+      status.subscription!.status == "canceled" || 
+      status.message == "No subscription found for the user") {
+    GoRouter.of(context).push(Routes.subscriptionPlans);
+    return;
+  
 }
       // Attempt to deduct credit
       final success = await _subscriptionService.deductCredit(donor.id);
