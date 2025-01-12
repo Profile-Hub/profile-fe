@@ -296,6 +296,15 @@ actions: [
                 }
               },
             ),
+           if (currentUser.usertype == 'recipient') ...[
+            ListTile(
+              leading: const Icon(Icons.people),
+              title: const Text('Unlocked Donors'),
+              onTap: () {
+                GoRouter.of(context).go(Routes.selectedDonorsScreen); 
+              },
+            ),
+          ],
             ListTile(
               leading: const Icon(Icons.upload_file),
               title: Text(currentUser.usertype == 'Admin' ? 'All Donors' : 'Upload Documents'),

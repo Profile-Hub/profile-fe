@@ -1,10 +1,12 @@
 class SubscriptionStatus {
   final bool success;
   final Subscription? subscription;
+  final String? message; 
 
   SubscriptionStatus({
     required this.success,
     this.subscription,
+    this.message, 
   });
 
   factory SubscriptionStatus.fromJson(Map<String, dynamic> json) {
@@ -13,31 +15,59 @@ class SubscriptionStatus {
       subscription: json['subscription'] != null
           ? Subscription.fromJson(json['subscription'])
           : null,
+      message: json['message'],
     );
   }
 }
 
 class Subscription {
-  final String? id; // `id` might be null if not always present
-  final int? credit; // Allow nullable `credit`
-  final String? status; // Allow nullable `status`
-  final DateTime? expirationDate; // Allow nullable `expirationDate`
+  final String? userId;
+  final String? planId;
+  final String? status;
+  final DateTime? startDate;
+  final DateTime? endDate;
+  final int? credit;
+  final String? paymentId;
+  final String? orderId;
+  final int? amount;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
 
   Subscription({
-    this.id,
-    this.credit,
+    this.userId,
+    this.planId,
     this.status,
-    this.expirationDate,
+    this.startDate,
+    this.endDate,
+    this.credit,
+    this.paymentId,
+    this.orderId,
+    this.amount,
+    this.createdAt,
+    this.updatedAt,
   });
 
   factory Subscription.fromJson(Map<String, dynamic> json) {
     return Subscription(
-      id: json['_id'], // Map `_id` to `id`
-      credit: json['credit'], // Accept nullable `credit`
-      status: json['status'], // Accept nullable `status`
-      expirationDate: json['expirationDate'] != null
-          ? DateTime.parse(json['expirationDate'])
-          : null, // Handle nullable `expirationDate`
+      userId: json['userId'],
+      planId: json['planId'],
+      status: json['status'],
+      startDate: json['startDate'] != null
+          ? DateTime.parse(json['startDate'])
+          : null,
+      endDate: json['endDate'] != null
+          ? DateTime.parse(json['endDate'])
+          : null,
+      credit: json['credit'],
+      paymentId: json['paymentId'],
+      orderId: json['orderId'],
+      amount: json['amount'],
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'])
+          : null,
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'])
+          : null,
     );
   }
 }
