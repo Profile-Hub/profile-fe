@@ -18,9 +18,16 @@ class DonnerService {
 
   Future<List<Doner>> getAllDoner() async {
     await _loadToken(); 
+     
     try {
+      final queryParams = filter?.toJson() ?? {};
+      
+      final uri = Uri.parse('$baseUrl/getallProvider').replace(
+        queryParameters: queryParams.map((key, value) => MapEntry(key, value.toString())),
+      );
+
       final response = await http.get(
-        Uri.parse('$baseUrl/getallProvider'),
+        uri,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $_token',
