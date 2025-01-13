@@ -6,6 +6,7 @@ import '../models/donerDetails.dart';
 import '../models/Documentmodel.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/selectedDonerModel.dart';
+import '../models/doner_filter_model.dart';
 
 class DonnerService {
   final String baseUrl = ServerConfig.baseUrl;
@@ -16,7 +17,7 @@ class DonnerService {
     _token = await _storage.read(key: 'auth_token');
   }
 
-  Future<List<Doner>> getAllDoner() async {
+  Future<List<Doner>> getAllDoner({DonorFilter? filter}) async {
     await _loadToken(); 
      
     try {
@@ -96,8 +97,6 @@ class DonnerService {
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      print('Received data: $data');
-
       if (data != null && data['userDocuments'] != null) {
         return List<Document>.from(
           data['userDocuments'].map((doc) => Document.fromJson(doc))

@@ -38,9 +38,9 @@ class GeolocatorService {
       );
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        return data['success'] ?? false;
-      } else {
+  final data = json.decode(response.body);
+  return data['success'] ?? false; 
+} else {
         throw Exception('Failed to post location. Status Code: ${response.statusCode}');
       }
     } catch (e) {

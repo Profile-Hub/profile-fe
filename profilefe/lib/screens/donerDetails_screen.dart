@@ -93,9 +93,62 @@ class DonorDetailPage extends StatelessWidget {
                           if (docSnapshot.connectionState == ConnectionState.waiting) {
                             return const Center(child: CircularProgressIndicator());
                           } else if (docSnapshot.hasError) {
-                            return Center(child: Text('Error: ${docSnapshot.error}'));
+                            return Center(
+              child: Card(
+                margin: const EdgeInsets.symmetric(horizontal: 20),
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.insert_drive_file,
+                        size: 48,
+                        color: Colors.red,
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'No document are available.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.blue, fontSize: 16),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
                           } else if (!docSnapshot.hasData || docSnapshot.data!.isEmpty) {
-                            return const Center(child: Text('No documents found.'));
+                            return Center(
+              child: Card(
+                margin: const EdgeInsets.symmetric(horizontal: 20),
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.insert_drive_file,
+                        size: 48,
+                        color: Colors.grey,
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'No document are available.',
+                        style: TextStyle(fontSize: 16, color: Colors.blue),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
                           } else {
                             final documents = docSnapshot.data!;
                             return Column(

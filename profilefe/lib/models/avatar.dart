@@ -14,7 +14,12 @@ class Avatar {
     );
   }
 
-  toJson() {}
+ Map<String, dynamic> toJson() {
+    return {
+      'user_id': userId,  
+      'url': url,          
+    };
+  }
 }
 
 

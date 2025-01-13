@@ -41,51 +41,71 @@ class _SelectedDonersScreenState extends State<SelectedDonersScreen> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
-          } 
-          
+          }
           if (snapshot.hasError) {
             return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.error_outline,
-                    size: 48,
-                    color: Colors.red,
+              child: Card(
+                margin: const EdgeInsets.symmetric(horizontal: 20),
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.person_off,
+                        size: 48,
+                        color: Colors.red,
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'No donors selected. Please select a donor.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.blue, fontSize: 16),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Error: ${snapshot.error}',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.red),
-                  ),
-                ],
+                ),
               ),
             );
-          } 
-          
+          }
+
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.person_off,
-                    size: 48,
-                    color: Colors.grey,
+            // Show a friendly message when no selected donors are found
+            return Center(
+              child: Card(
+                margin: const EdgeInsets.symmetric(horizontal: 20),
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.person_off,
+                        size: 48,
+                        color: Colors.grey,
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'No donors selected. Please select a donor.',
+                        style: TextStyle(fontSize: 16, color: Colors.blue),
+                      ),
+                    ],
                   ),
-                  SizedBox(height: 16),
-                  Text(
-                    'No selected donors found.',
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
-                  ),
-                ],
+                ),
               ),
             );
           }
 
           final selectedDoners = snapshot.data!;
-          
+
           return ListView.builder(
             padding: const EdgeInsets.all(8),
             itemCount: selectedDoners.length,

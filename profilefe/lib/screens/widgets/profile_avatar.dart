@@ -45,7 +45,6 @@ class _ProfileAvatarState extends State<ProfileAvatar> {
 
   Future<void> _preloadNetworkImage() async {
     if (!mounted || widget.user.avatar?.url == null) return;
-    
     setState(() => isLoadingNetworkImage = true);
     
     try {

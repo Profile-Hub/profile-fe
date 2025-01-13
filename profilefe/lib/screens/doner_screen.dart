@@ -16,7 +16,7 @@ class DonorListPage extends StatefulWidget {
 class _DonorListPageState extends State<DonorListPage> {
   late Future<List<Doner>> _donors;
   final SubscriptionService _subscriptionService = SubscriptionService();
-
+  DonorFilter? _currentFilter;
   @override
   void initState() {
     super.initState();
