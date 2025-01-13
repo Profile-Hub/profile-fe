@@ -19,6 +19,7 @@ import './sendermssg_screen.dart';
 import '../routes.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import '../services/geolocatorservice.dart';
 
 class HomeScreen extends StatefulWidget {
   final User user;
@@ -33,6 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final AuthService _authService = AuthService();
   final ProfileCompletionService _profileCompletionService = ProfileCompletionService();
+  final GeolocatorService _geolocatorService = GeolocatorService();
   late User currentUser;
   final unreadMessagesCount = 0;
 
@@ -41,9 +43,20 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     currentUser = widget.user;
     _checkProfileCompletion();
-    
+    _updateUserLocation();
   }
-
+ Future<void> _updateUserLocation() async {
+    try {
+      final success = await _geolocatorService.postLocation();
+      if (success) {
+        debugPrint("Location updated successfully.");
+      } else {
+        debugPrint("Failed to update location.");
+      }
+    } catch (e) {
+      debugPrint("Error updating location: $e");
+    }
+  }
 
   Future<void> _checkProfileCompletion() async {
     try {

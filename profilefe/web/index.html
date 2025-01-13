@@ -2,7 +2,10 @@
 <html>
 <head>
   <meta name="google-signin-client_id" content="989849803787-ulkqn66upm45sn4euasbdbue60qe506r.apps.googleusercontent.com">
-
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Your App Name">
+  <meta name="theme-color" content="#0175C2">
   
   <base href="$FLUTTER_BASE_HREF">
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
@@ -21,7 +24,6 @@
     });
   };
 </script>
-<script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></script>
   <!--
     If you are serving your web app in a path other than the root, change the
     href value below to reflect the base path you are serving from.
@@ -56,19 +58,10 @@
 <body>
   <script src="flutter_bootstrap.js" async></script>
   <script>
-    // Initialize google sign in
-    window.googleSignInStart = function() {
-      google.accounts.id.initialize({
-        client_id: 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com',
-        callback: handleCredentialResponse
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('flutter_service_worker.js');
       });
-    };
-
-    function handleCredentialResponse(response) {
-      // This function will be called after successful sign-in
-      if (window.onGoogleSignInSuccess) {
-        window.onGoogleSignInSuccess(response.credential);
-      }
     }
   </script>
 </body>

@@ -5,6 +5,8 @@ import '../services/subscription_service.dart';
 import './widgets/donor_card.dart';
 import '../routes.dart';
 import 'package:go_router/go_router.dart';
+import '../models/doner_filter_model.dart';
+import './widgets/dono_filter_widjet.dart';
 
 class DonorListPage extends StatefulWidget {
   @override
@@ -14,16 +16,23 @@ class DonorListPage extends StatefulWidget {
 class _DonorListPageState extends State<DonorListPage> {
   late Future<List<Doner>> _donors;
   final SubscriptionService _subscriptionService = SubscriptionService();
-
+  DonorFilter? _currentFilter;
   @override
   void initState() {
     super.initState();
     _donors = fetchDonors();
   }
 
-  Future<List<Doner>> fetchDonors() async {
+   Future<List<Doner>> fetchDonors() async {
     final donorService = DonnerService();
-    return await donorService.getAllDoner();
+    return await donorService.getAllDoner(filter: _currentFilter);
+  }
+
+  void _handleFilterChange(DonorFilter filter) {
+    setState(() {
+      _currentFilter = filter;
+      _donors = fetchDonors();
+    });
   }
 
   Future<void> _handleDonorTap(BuildContext context, Doner donor) async {
@@ -88,7 +97,31 @@ class _DonorListPageState extends State<DonorListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: FutureBuilder<List<Doner>>(
+      body: 
+       Column(
+        children: [
+           ElevatedButton(
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                builder: (context) => DraggableScrollableSheet(
+                  initialChildSize: 0.9,
+                  minChildSize: 0.5,
+                  maxChildSize: 0.9,
+                  builder: (_, controller) => SingleChildScrollView(
+                    controller: controller,
+                    child: DonorFilterWidget(
+                      onFilterChanged: _handleFilterChange,
+                    ),
+                  ),
+                ),
+              );
+            },
+            child: Text('Filter Donors'),
+          ),
+          Expanded(child: 
+      FutureBuilder<List<Doner>>(
         future: _donors,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -111,7 +144,11 @@ class _DonorListPageState extends State<DonorListPage> {
             },
           );
         },
+        
       ),
+    ),
+        ],
+       ),
     );
   }
 }

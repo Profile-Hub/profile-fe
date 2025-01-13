@@ -30,6 +30,15 @@
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
 	<key>UISupportedInterfaceOrientations</key>
+	<!--Geo location-->
+	 <key>NSLocationWhenInUseUsageDescription</key>
+    <string>This app needs access to location when open to provide location-based features.</string>
+    <key>NSLocationAlwaysUsageDescription</key>
+    <string>This app needs access to location when in the background.</string>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>This app needs access to location when open and in the background.</string>
+	<!-- Required for iOS 14+ -->
+    <key>NSLocationTemporaryUsageDescriptionDictionary</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
@@ -80,6 +89,8 @@
 <dict>
     <key>NSAllowsArbitraryLoads</key>
     <true/>
+	<key>YourPurposeKey</key>
+        <string>The app needs temporary access to location for feature X</string>
 </dict>
 <true/>
 </dict>
