@@ -100,7 +100,11 @@ class _DonorListPageState extends State<DonorListPage> {
       body: 
        Column(
         children: [
-           ElevatedButton(
+          Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: TextButton.icon(
+            icon: const Icon(Icons.tune, size: 20),  
+            label: const Text('Filter'),
             onPressed: () {
               showModalBottomSheet(
                 context: context,
@@ -118,7 +122,11 @@ class _DonorListPageState extends State<DonorListPage> {
                 ),
               );
             },
-            child: Text('Filter Donors'),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.primary,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            ),
+          ),
           ),
           Expanded(child: 
       FutureBuilder<List<Doner>>(
