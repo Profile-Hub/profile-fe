@@ -116,8 +116,11 @@ class _DonorListPageState extends State<DonorListPage> {
                   builder: (_, controller) => SingleChildScrollView(
                     controller: controller,
                     child: DonorFilterWidget(
-                      onFilterChanged: _handleFilterChange,
-                    ),
+                    onFilterChanged: _handleFilterChange,
+                    onClose: () {
+                        Navigator.pop(context);  // This will close the current screen/dialog
+                    },
+                ),
                   ),
                 ),
               );

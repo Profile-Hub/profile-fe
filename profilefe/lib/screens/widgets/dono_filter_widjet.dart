@@ -5,8 +5,13 @@ import '../../models/location_models.dart' as LocationModels;
 
 class DonorFilterWidget extends StatefulWidget {
   final Function(DonorFilter) onFilterChanged;
+  final VoidCallback onClose;
 
-  const DonorFilterWidget({Key? key, required this.onFilterChanged}) : super(key: key);
+  const DonorFilterWidget({
+    Key? key, 
+    required this.onFilterChanged,
+    required this.onClose, 
+  }) : super(key: key);
 
   @override
   State<DonorFilterWidget> createState() => _DonorFilterWidgetState();
@@ -143,6 +148,8 @@ class _DonorFilterWidgetState extends State<DonorFilterWidget> {
         gender: _selectedGender,
         organsDonating: selectedOrgansList,
       ));
+      
+      widget.onClose(); 
     }
   }
 
@@ -304,12 +311,12 @@ class _DonorFilterWidgetState extends State<DonorFilterWidget> {
 
               // Apply Button
               SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _isLoadingLocations ? null : _applyFilters,
-                  child: Text('Apply Filters'),
-                ),
-              ),
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _isLoadingLocations ? null : _applyFilters,
+                        child: Text('Apply Filters'),
+                      ),
+                    ),
             ],
           ),
         ),
