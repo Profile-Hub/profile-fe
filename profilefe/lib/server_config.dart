@@ -1,4 +1,4 @@
 class ServerConfig {
-  static String baseUrl = 'http://localhost:4000/api/v1/';
+  static String baseUrl = 'http://34.172.215.70/api/v1/';
 
 }
