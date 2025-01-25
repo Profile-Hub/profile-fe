@@ -3,9 +3,9 @@ import 'package:http/http.dart' as http;
 import '../models/location_models.dart';
 
 class LocationApiService {
-  static const String baseUrl = 'https://www.universal-tutorial.com/api';
+  static const String baseUrl = 'https://api.ipgeolocation.io';
   static const String email = 'rishumehta7370@gmail.com'; 
-  static const String apiKey = 'avgKXjKnsBh-P8j6RSpFR-eplSHfkQdLnWmUeUtrBx93TKqfTmxnZvqdvEOp4SaU3L0';
+  static const String apiKey = '7e9883f9-3f07-425a-af04-4cdfbfade932';
 
   String? _authToken;
 
@@ -16,7 +16,6 @@ class LocationApiService {
       headers: {
         'Accept': 'application/json',
         'api-token': apiKey,
-        'user-email': email,
       },
     );
 

@@ -33,7 +33,7 @@ class _SelectedDonersScreenState extends State<SelectedDonersScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => _handleBack(context),
         ),
-        title: const Text('Selected Donors'),
+        title: const Text('Donors'),
         centerTitle: true,
       ),
       body: FutureBuilder<List<SelectedDoner>>(
