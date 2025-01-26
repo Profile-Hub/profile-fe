@@ -1,31 +1,40 @@
 class Country {
   final String name;
-  final String shortName;
-  final int phoneCode;
+  final String phoneCode;
+  final List<State>? states;
 
   Country({
     required this.name,
-    required this.shortName,
     required this.phoneCode,
+    this.states,
   });
 
   factory Country.fromJson(Map<String, dynamic> json) {
     return Country(
-      name: json['country_name'],
-      shortName: json['country_short_name'],
-      phoneCode: json['country_phone_code'],
+      name: json['name'],
+      phoneCode: json['phoneCode'] ?? '',
+      states: json['states'] != null 
+        ? (json['states'] as List).map((s) => State.fromJson(s)).toList()
+        : null,
     );
   }
 }
 
 class State {
   final String name;
+  final List<City>? cities;
 
-  State({required this.name});
+  State({
+    required this.name,
+    this.cities,
+  });
 
   factory State.fromJson(Map<String, dynamic> json) {
     return State(
-      name: json['state_name'],
+      name: json['name'],
+      cities: json['cities'] != null
+        ? (json['cities'] as List).map((c) => City.fromJson(c)).toList()
+        : null,
     );
   }
 }
@@ -36,8 +45,6 @@ class City {
   City({required this.name});
 
   factory City.fromJson(Map<String, dynamic> json) {
-    return City(
-      name: json['city_name'],
-    );
+    return City(name: json['name']);
   }
 }
