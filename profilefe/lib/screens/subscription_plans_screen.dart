@@ -8,7 +8,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../server_config.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
+import '../routes.dart';
 import 'razorpay_web.dart' if (dart.library.io) 'razorpay_mobile.dart';
 
 // Model class to represent a subscription plan
@@ -230,6 +230,10 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
       if (mounted) setState(() => _isLoading = false);
     }
   }
+  void _handleBack(BuildContext context) {
+    // Navigate to home or another specific route
+    context.go(Routes.home); // Replace 'Routes.home' with your desired route
+  }
 
 
   @override
@@ -237,7 +241,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
     super.dispose();
   }
 
-   @override
+ @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
@@ -246,7 +250,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
             title: const Text('Choose a Plan'),
             leading: IconButton(
               icon: const Icon(Icons.arrow_back),
-              onPressed: () => context.pop(),
+              onPressed: () => _handleBack(context),
             ),
           ),
           body: SingleChildScrollView(
@@ -293,15 +297,16 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
     
     return material.Card(
       margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
-      elevation: isPremium ? 8 : 2,
+      elevation: 8,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: isPremium 
-            ? BorderSide(color: theme.primaryColor, width: 2)
-            : BorderSide.none,
+        side: BorderSide(
+          color: theme.primaryColor, 
+          width: 2
+        ),
       ),
       child: Container(
-        decoration: isPremium ? BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -312,7 +317,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
             ],
           ),
           borderRadius: BorderRadius.circular(16),
-        ) : null,
+        ),
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -323,7 +328,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
                 plan.name,
                 style: theme.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: isPremium ? theme.primaryColor : null,
+                  color: theme.primaryColor,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -375,15 +380,15 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              ...plan.features.map((feature) => _buildFeatureRow(feature, isPremium)),
+              ...plan.features.map((feature) => _buildFeatureRow(feature, true)),
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _isLoading ? null : () => _handleSubscription(plan),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: isPremium ? theme.primaryColor : null,
-                  foregroundColor: isPremium ? Colors.white : null,
-                  elevation: isPremium ? 4 : 2,
+                  backgroundColor: theme.primaryColor,
+                  foregroundColor: Colors.white,
+                  elevation: 4,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -454,7 +459,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
         children: [
           Icon(
             Icons.check_circle,
-            color: isPremium ? Theme.of(context).primaryColor : Colors.green,
+            color: Theme.of(context).primaryColor,
             size: 22,
           ),
           const SizedBox(width: 12),
@@ -463,7 +468,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
               feature,
               style: TextStyle(
                 fontSize: 15,
-                fontWeight: isPremium ? FontWeight.w500 : FontWeight.normal,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ),

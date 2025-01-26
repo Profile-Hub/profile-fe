@@ -26,6 +26,7 @@ import 'screens/Chat_screen.dart';
 import 'screens/DonnerChat_Screen.Dart';
 import 'screens/selectedDonerList_screen.dart';
 import  'screens/sendermssg_screen.dart';
+import  'screens/Reciptentmssg_screen.dart';
 
 final secureStorage = FlutterSecureStorage();
 
@@ -124,6 +125,10 @@ void main() async {
       GoRoute(
           path: Routes.senderscreen,
           builder: (context, state) => SenderScreen(),
+        ),
+         GoRoute(
+          path: Routes.recipientMssgscreen,
+          builder: (context, state) => RecipientScreen(),
         ),
     GoRoute(
         path: '${Routes.donnerchat}/:conversationSid',
@@ -251,7 +256,7 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'Profile Hub',
+      title: 'Need a Donor',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),

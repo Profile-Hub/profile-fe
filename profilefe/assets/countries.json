@@ -1,0 +1,8 @@
+[
+    {"id":"236", "name":"United States", "phoneCode":"1"},
+    {"id":"235", "name":"United Kingdom", "phoneCode":"44"},
+    {"id":"14", "name":"Australia", "phoneCode":"61"},
+    {"id":"234", "name":"United Arab Emirates", "phoneCode":"971"},
+    {"id":"205", "name":"South Africa", "phoneCode":"27"},
+    {"id":"45", "name":"China", "phoneCode":"86"}
+  ]

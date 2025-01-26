@@ -226,10 +226,10 @@ class _HomeScreenState extends State<HomeScreen> {
           icon: const Icon(Icons.menu),
           onPressed: () => _scaffoldKey.currentState?.openDrawer(),
         ),
-        title: const Text('Home'),
+        title: const Text(''),
         centerTitle: true,
 actions: [
-   if (currentUser.usertype == 'donor')
+   if (currentUser.usertype == 'donor' )
         IconButton(
           icon: Stack(
             children: [
@@ -255,6 +255,34 @@ actions: [
           ),
           onPressed: () {   
                GoRouter.of(context).go(Routes.senderscreen);
+          },
+        ),
+        if (currentUser.usertype == 'recipient' )
+        IconButton(
+          icon: Stack(
+            children: [
+              const Icon(Icons.message),
+              if (unreadMessagesCount > 0) 
+                Positioned(
+                  right: 0,
+                  top: 0,
+                  child: CircleAvatar(
+                    radius: 8,
+                    backgroundColor: Colors.red,
+                    child: Text(
+                      '$unreadMessagesCount',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          onPressed: () {   
+               GoRouter.of(context).go(Routes.recipientMssgscreen);
           },
         ),
         // Profile Icon

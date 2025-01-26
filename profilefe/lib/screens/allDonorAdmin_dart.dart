@@ -14,7 +14,7 @@ class AllDonorPage extends StatefulWidget {
 
 class _AllDonorPageState extends State<AllDonorPage> {
   late Future<List<Alluser>> _donorsFuture;
-
+  String searchQuery = '';
   @override
   void initState() {
     super.initState();
@@ -31,12 +31,44 @@ class _AllDonorPageState extends State<AllDonorPage> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-    icon: const Icon(Icons.arrow_back),
-    onPressed: () {
-     GoRouter.of(context).go(Routes.home);
-    },
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            GoRouter.of(context).go(Routes.home);
+          },
+        ),
+        title: TextField(
+         decoration: InputDecoration(
+  hintText: 'Search Donor...',
+  border: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(12), 
+    borderSide: BorderSide(
+      color: Colors.grey, 
+      width: 0.8,         
+    ),
   ),
-        title: Text('All Donors'),
+  enabledBorder: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(12),
+    borderSide: BorderSide(
+      color: Colors.grey, 
+      width: 0.8,
+    ),
+  ),
+  focusedBorder: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(12),
+    borderSide: BorderSide(
+      color: Colors.black, 
+      width: 1.5,
+    ),
+  ),
+  contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+),
+
+          onChanged: (value) {
+            setState(() {
+              searchQuery = value.toLowerCase();
+            });
+          },
+        ),
       ),
       body: FutureBuilder<List<Alluser>>(
         future: _donorsFuture,
@@ -49,10 +81,18 @@ class _AllDonorPageState extends State<AllDonorPage> {
             return Center(child: Text('No donors found.'));
           } else {
             final donors = snapshot.data!;
+            final filteredDonors = donors.where((donor) {
+  final searchTerms = searchQuery.split(' ');
+  return donor.usertype == 'donor' &&
+      searchTerms.every((term) =>
+          donor.firstname.toLowerCase().contains(term) ||
+          donor.lastname.toLowerCase().contains(term));
+}).toList();
+
             return ListView.builder(
-              itemCount: donors.where((donor) => donor.usertype == 'donor').length,
+              itemCount: filteredDonors.length,
               itemBuilder: (context, index) {
-                final donor = donors.where((donor) => donor.usertype == 'donor').toList()[index];
+                final donor = filteredDonors[index];
                 return ListTile(
                   leading: donor.avatar != null
                       ? CircleAvatar(
@@ -60,7 +100,8 @@ class _AllDonorPageState extends State<AllDonorPage> {
                         )
                       : CircleAvatar(child: Icon(Icons.person)),
                   title: Text('${donor.firstname} ${donor.lastname}'),
-                  subtitle: Text('${donor.country ?? 'Unknown'} | ${donor.phoneNumber ?? 'N/A'}'),
+                  subtitle:
+                      Text('${donor.country ?? 'Unknown'} | ${donor.phoneNumber ?? 'N/A'}'),
                   onTap: () {
                     _navigateToDonorDetails(context, donor);
                   },
@@ -72,7 +113,6 @@ class _AllDonorPageState extends State<AllDonorPage> {
       ),
     );
   }
-
   void _navigateToDonorDetails(BuildContext context, Alluser donor) async {
     try {
       Alluser donorDetails = await AlluserData().getUserById(donor.id);

@@ -1,74 +1,105 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:flutter/services.dart' show rootBundle;
 import '../models/location_models.dart';
 
 class LocationApiService {
-  static const String baseUrl = 'https://www.universal-tutorial.com/api';
-  static const String email = 'rishumehta7370@gmail.com'; 
-  static const String apiKey = 'avgKXjKnsBh-P8j6RSpFR-eplSHfkQdLnWmUeUtrBx93TKqfTmxnZvqdvEOp4SaU3L0';
+  List<Map<String, dynamic>> _countries = [];
+  List<Map<String, dynamic>> _states = [];
+  List<Map<String, dynamic>> _cities = [];
 
-  String? _authToken;
+  LocationApiService() {
+    _loadAllData();
+  }
 
-  // Fetch auth token dynamically
-  Future<String> _fetchAuthToken() async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/getaccesstoken'),
-      headers: {
-        'Accept': 'application/json',
-        'api-token': apiKey,
-        'user-email': email,
-      },
-    );
+  Future<void> _loadAllData() async {
+    await _loadCountries();
+    await _loadStates();
+    await _loadCities();
+  }
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      _authToken = data['auth_token'];
-      return _authToken!;
-    } else {
-      throw Exception('Failed to fetch auth token');
+  Future<void> _loadCountries() async {
+    try {
+      String jsonString = await rootBundle.loadString('countries.json');
+      List<dynamic> jsonList = json.decode(jsonString);
+      _countries = jsonList.cast<Map<String, dynamic>>();
+    } catch (e) {
+      print('Error loading countries: $e');
     }
   }
 
-  // Ensure token is available
-  Future<String> _getAuthToken() async {
-    if (_authToken == null) {
-      _authToken = await _fetchAuthToken();
-    }
-    return _authToken!;
-  }
-
-  // General API call method
-  Future<List<T>> _getData<T>(String endpoint, T Function(Map<String, dynamic>) fromJson) async {
-    final authToken = await _getAuthToken();
-
-    final response = await http.get(
-      Uri.parse('$baseUrl/$endpoint'),
-      headers: {
-        'Authorization': 'Bearer $authToken',
-        'Accept': 'application/json',
-      },
-    );
-
-    if (response.statusCode == 200) {
-      List<dynamic> data = json.decode(response.body);
-      return data.map((json) => fromJson(json)).toList();
-    } else {
-      throw Exception('Failed to load data from $endpoint');
+  Future<void> _loadStates() async {
+    try {
+      String jsonString = await rootBundle.loadString('states.json');
+      List<dynamic> jsonList = json.decode(jsonString);
+      _states = jsonList.cast<Map<String, dynamic>>();
+    } catch (e) {
+      print('Error loading states: $e');
     }
   }
 
-  // Fetch countries
+  Future<void> _loadCities() async {
+    try {
+      String jsonString = await rootBundle.loadString('cities.json');
+      List<dynamic> jsonList = json.decode(jsonString);
+      _cities = jsonList.cast<Map<String, dynamic>>();
+    } catch (e) {
+      print('Error loading cities: $e');
+    }
+  }
+
   Future<List<Country>> getCountries() async {
-    return _getData('countries/', (json) => Country.fromJson(json));
+    if (_countries.isEmpty) await _loadCountries();
+
+    return _countries.map((countryData) => Country(
+      name: countryData['name'],
+      phoneCode: countryData['phoneCode']
+    )).toList();
   }
 
-  // Fetch states by country
+  // Get states for a specific country ID
+  Future<List<State>> getStatesByCountryId(String countryId) async {
+    if (_states.isEmpty) await _loadStates();
+
+    List<Map<String, dynamic>> filteredStates = _states
+      .where((state) => state['countryId'] == countryId)
+      .toList();
+
+    return filteredStates.map((stateData) => State(
+      name: stateData['name']
+    )).toList();
+  }
+
+  // Get cities for a specific state ID
+  Future<List<City>> getCitiesByStateId(String stateId) async {
+    if (_cities.isEmpty) await _loadCities();
+
+    List<Map<String, dynamic>> filteredCities = _cities
+      .where((city) => city['stateId'] == stateId)
+      .toList();
+
+    return filteredCities.map((cityData) => City(
+      name: cityData['name']
+    )).toList();
+  }
+
+  // Legacy methods maintained for compatibility
   Future<List<State>> getStates(String countryName) async {
-    return _getData('states/$countryName', (json) => State.fromJson(json));
+    if (_countries.isEmpty) await _loadCountries();
+
+    var country = _countries.firstWhere(
+      (c) => c['name'].toUpperCase() == countryName.toUpperCase(),
+      orElse: () => throw Exception('Country not found')
+    );
+    return getStatesByCountryId(country['id']);
   }
 
-  // Fetch cities by state
   Future<List<City>> getCities(String stateName) async {
-    return _getData('cities/$stateName', (json) => City.fromJson(json));
+    if (_states.isEmpty) await _loadStates();
+
+    var state = _states.firstWhere(
+      (s) => s['name'].toUpperCase() == stateName.toUpperCase(),
+      orElse: () => throw Exception('State not found')
+    );
+    return getCitiesByStateId(state['id']);
   }
 }

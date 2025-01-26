@@ -15,6 +15,7 @@ class AllRecipientPage extends StatefulWidget {
 
 class _AllRecipientPageState extends State<AllRecipientPage> {
   late Future<List<Alluser>> _recipientsFuture;
+  String searchQuery = '';
 
   Future<List<Document>> fetchRecipientDocuments(String donorId, String country) async {
     final documentService = AlluserData();
@@ -37,7 +38,39 @@ class _AllRecipientPageState extends State<AllRecipientPage> {
       GoRouter.of(context).go(Routes.home);
     },
   ),
-        title: Text('All Recipients'),
+        title: TextField(
+         decoration: InputDecoration(
+  hintText: 'Search Recipient...',
+  border: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(12), 
+    borderSide: BorderSide(
+      color: Colors.grey, 
+      width: 0.8,         
+    ),
+  ),
+  enabledBorder: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(12),
+    borderSide: BorderSide(
+      color: Colors.grey, 
+      width: 0.8,
+    ),
+  ),
+  focusedBorder: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(12),
+    borderSide: BorderSide(
+      color: Colors.black, 
+      width: 1.5,
+    ),
+  ),
+  contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+),
+
+          onChanged: (value) {
+            setState(() {
+              searchQuery = value.toLowerCase();
+            });
+          },
+        ),
       ),
       body: FutureBuilder<List<Alluser>>(
         future: _recipientsFuture,
@@ -50,10 +83,19 @@ class _AllRecipientPageState extends State<AllRecipientPage> {
             return Center(child: Text('No recipients found.'));
           } else {
             final recipients = snapshot.data!;
+  final searchParts = searchQuery.split(' ');
+  final filteredRecipients = recipients.where((recipient) {
+    
+    return recipient.usertype == 'recipient' &&
+        searchParts.every((part) =>
+            recipient.firstname.toLowerCase().contains(part) ||
+            recipient.lastname.toLowerCase().contains(part));
+  }).toList();
+
             return ListView.builder(
-              itemCount: recipients.where((recipient) => recipient.usertype == 'recipient').length,
+              itemCount: filteredRecipients.length,
               itemBuilder: (context, index) {
-                final recipient = recipients.where((recipient) => recipient.usertype == 'recipient').toList()[index];
+                final recipient = filteredRecipients[index];
                 return ListTile(
                   leading: recipient.avatar != null && recipient.avatar!.url != null
                       ? CircleAvatar(

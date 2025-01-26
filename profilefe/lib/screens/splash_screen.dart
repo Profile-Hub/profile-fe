@@ -206,22 +206,24 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     }
   }
 
-  Widget _buildLoadingIndicator() {
+   Widget _buildLoadingIndicator() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        if (_errorMessage == null) // Only show animation when there's no error
-          if (kIsWeb) 
-            const CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-            )
-          else
-            Lottie.asset(
-              'assets/animations/splash_animation.json',
-              controller: _animationController,
-              width: 200,
-              height: 200,
-            ),
+        if (_errorMessage == null) 
+          Column(
+            children: [
+              Image.asset(
+                'assets/icon.png',
+                width: 120,
+                height: 120,
+              ),
+              const SizedBox(height: 16),
+              const CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+            ],
+          ),
         if (_errorMessage != null)
           Padding(
             padding: const EdgeInsets.all(16.0),
@@ -237,7 +239,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                   _errorMessage!,
                   style: const TextStyle(
                     color: Colors.red,
-                    fontSize: 14,
+                    fontSize: 16,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -251,6 +253,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
             style: TextButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               backgroundColor: Colors.white.withOpacity(0.2),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
             child: Text(
               _errorMessage != null ? 'Retry' : 'Loading...',
@@ -274,8 +279,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Theme.of(context).primaryColor,
-              Theme.of(context).primaryColor.withOpacity(0.8),
+              const Color.fromARGB(255, 58, 151, 250), // Bright doctor-blue theme
+              const Color.fromARGB(255, 36, 144, 245), // Deeper blue
             ],
           ),
         ),

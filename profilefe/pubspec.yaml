@@ -52,6 +52,7 @@ dependencies:
   geolocator: ^10.0.0
   lottie: ^2.3.0
   universal_platform: ^1.0.0+1
+  country_state_city_pro: ^0.0.6
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -87,6 +88,11 @@ flutter:
     - assets/facebook_logo.png
     - assets/google_logo.png
     - assets/animations/splash_animation.json
+    - assets/icon.png
+    - assets/countries.json
+    - assets/states.json
+    - assets/cities.json
+
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
