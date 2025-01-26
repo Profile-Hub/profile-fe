@@ -18,55 +18,38 @@ class LocationApiService {
     await _loadCities();
   }
 
-  Future<void> _loadCountries() async {
+ Future<void> _loadCountries() async {
     try {
-      String jsonString = await rootBundle.loadString('countries.json');
+      String jsonString = await rootBundle.loadString('assets/countries.json');
       List<dynamic> jsonList = json.decode(jsonString);
       _countries = jsonList.cast<Map<String, dynamic>>();
     } catch (e) {
-      try {
-        var response = await http.get(Uri.parse('/assets/countries.json'));
-        List<dynamic> jsonList = json.decode(response.body);
-        _countries = jsonList.cast<Map<String, dynamic>>();
-      } catch (networkError) {
-        print('Error loading countries: $networkError');
-      }
+      print('Error loading countries: $e');
     }
   }
 
   Future<void> _loadStates() async {
     try {
-      String jsonString = await rootBundle.loadString('states.json');
+      String jsonString = await rootBundle.loadString('assets/states.json');
       List<dynamic> jsonList = json.decode(jsonString);
       _states = jsonList.cast<Map<String, dynamic>>();
     } catch (e) {
-      try {
-        var response = await http.get(Uri.parse('/assets/states.json'));
-        List<dynamic> jsonList = json.decode(response.body);
-        _states = jsonList.cast<Map<String, dynamic>>();
-      } catch (networkError) {
-        print('Error loading states: $networkError');
-      }
+      print('Error loading states: $e');
     }
   }
 
   Future<void> _loadCities() async {
     try {
-      String jsonString = await rootBundle.loadString('cities.json');
+      String jsonString = await rootBundle.loadString('assets/cities.json');
       List<dynamic> jsonList = json.decode(jsonString);
       _cities = jsonList.cast<Map<String, dynamic>>();
     } catch (e) {
-      try {
-        var response = await http.get(Uri.parse('/assets/cities.json'));
-        List<dynamic> jsonList = json.decode(response.body);
-        _cities = jsonList.cast<Map<String, dynamic>>();
-      } catch (networkError) {
-        print('Error loading cities: $networkError');
-      }
+      print('Error loading cities: $e');
     }
   }
 
-  // Rest of the code remains the same as in your original implementation
+
+
   Future<List<Country>> getCountries() async {
     if (_countries.isEmpty) await _loadCountries();
 
