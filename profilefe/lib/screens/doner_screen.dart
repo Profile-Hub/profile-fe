@@ -114,87 +114,95 @@ class _DonorListPageState extends State<DonorListPage> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
-            child: TextField(
-              onChanged: _handleSearch,
-                decoration: InputDecoration(
-  hintText: 'Search Donor...',
-  border: OutlineInputBorder(
-    borderRadius: BorderRadius.circular(12), 
-    borderSide: BorderSide(
-      color: Colors.grey, 
-      width: 0.8,         
-    ),
-  ),
-  enabledBorder: OutlineInputBorder(
-    borderRadius: BorderRadius.circular(12),
-    borderSide: BorderSide(
-      color: Colors.grey, 
-      width: 0.8,
-    ),
-  ),
-  focusedBorder: OutlineInputBorder(
-    borderRadius: BorderRadius.circular(12),
-    borderSide: BorderSide(
-      color: Colors.black, 
-      width: 1.5,
-    ),
-  ),
-  contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: TextButton.icon(
-              icon: const Icon(Icons.tune, size: 20),
-              label: const Text('Filter'),
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  builder: (context) => DraggableScrollableSheet(
-                    initialChildSize: 0.9,
-                    minChildSize: 0.5,
-                    maxChildSize: 0.9,
-                    builder: (_, controller) => SingleChildScrollView(
-                      controller: controller,
-                      child: DonorFilterWidget(
-                        onFilterChanged: _handleFilterChange,
-                        onClose: () {
-                          Navigator.pop(context);
-                        },
+ @override
+Widget build(BuildContext context) {
+  return Scaffold(
+    body: Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  onChanged: _handleSearch,
+                  decoration: InputDecoration(
+                    hintText: 'Search Donor...',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Colors.grey,
+                        width: 0.8,
                       ),
                     ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Colors.grey,
+                        width: 0.8,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Colors.black,
+                        width: 1.5,
+                      ),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                   ),
-                );
-              },
-              style: TextButton.styleFrom(
-                foregroundColor: Theme.of(context).colorScheme.primary,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                ),
               ),
-            ),
+              const SizedBox(width: 8),
+              TextButton.icon(
+                icon: const Icon(Icons.tune, size: 20),
+                label: const Text('Filter'),
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (context) => DraggableScrollableSheet(
+                      initialChildSize: 0.9,
+                      minChildSize: 0.5,
+                      maxChildSize: 0.9,
+                      builder: (_, controller) => SingleChildScrollView(
+                        controller: controller,
+                        child: DonorFilterWidget(
+                          onFilterChanged: _handleFilterChange,
+                          onClose: () {
+                            Navigator.pop(context);
+                          },
+                        ),
+                      ),
+                    ),
+                  );
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.primary,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  backgroundColor: Colors.grey[200],
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ],
           ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: _filteredDonors.length,
-              itemBuilder: (context, index) {
-                final donor = _filteredDonors[index];
-                return GestureDetector(
-                  onTap: () => _handleDonorTap(context, donor),
-                  child: DonorCard(donor: donor),
-                );
-              },
-            ),
+        ),
+        Expanded(
+          child: ListView.builder(
+            itemCount: _filteredDonors.length,
+            itemBuilder: (context, index) {
+              final donor = _filteredDonors[index];
+              return GestureDetector(
+                onTap: () => _handleDonorTap(context, donor),
+                child: DonorCard(donor: donor),
+              );
+            },
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
 }

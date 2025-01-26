@@ -256,7 +256,7 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'Profile Hub',
+      title: 'Need a Donor',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
