@@ -42,7 +42,7 @@ class AdminService {
   }
 
 
-  Future<VerificationResponse> approveOrRejectVerification(String userId, bool approve) async {
+  Future<VerificationResponse> approveOrRejectVerification(String documentId, bool approve) async {
     await _loadToken();
 
     try {
@@ -53,7 +53,7 @@ class AdminService {
           'Authorization': 'Bearer $_token',
         },
         body: json.encode({
-          'userId': userId,
+          'documentId': documentId,
           'approve': approve,
         }),
       );

@@ -27,6 +27,8 @@ import 'screens/DonnerChat_Screen.Dart';
 import 'screens/selectedDonerList_screen.dart';
 import  'screens/sendermssg_screen.dart';
 import  'screens/Reciptentmssg_screen.dart';
+import   'screens/ReciptentDetails_screen.dart';
+import   'screens/DocumentVerify_screen.dart';
 
 final secureStorage = FlutterSecureStorage();
 
@@ -91,6 +93,20 @@ void main() async {
         builder: (context, state) {
           final donorId = state.pathParameters['id'] ?? '';
           return DonorDetailPage(donorId: donorId);
+        },
+      ),
+       GoRoute(
+        path: '${Routes.recipientDetails}/:id',
+        builder: (context, state) {
+          final recipientId = state.pathParameters['id'] ?? '';
+          return RecipitentDetailPage(recipientId: recipientId);
+        },
+      ),
+      GoRoute(
+        path: '${Routes.documentverify}/:id',
+        builder: (context, state) {
+          final donorId = state.pathParameters['id'] ?? '';
+          return DocumentverifyPage(donorId: donorId);
         },
       ),
       GoRoute(

@@ -10,7 +10,7 @@ import '../routes.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../services/geolocatorservice.dart';
-
+import './Reciptent_screen.dart';
 class HomeScreen extends StatefulWidget {
   final User user;
 
@@ -372,12 +372,7 @@ actions: [
         ),
       ),
       body: currentUser.usertype == 'donor'
-          ? const Center(
-              child: Text(
-                'Welcome to Dashboard',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-            )
+           ? RecipientListPage()
           : currentUser.usertype == 'Admin'
               ? const Center(
                   child: Text(
