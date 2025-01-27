@@ -228,91 +228,64 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         title: const Text(''),
         centerTitle: true,
-      actions: [
-        if (currentUser.usertype == 'donor')
-          Row(
-            children: [
-              Text(
-                'Chat',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              IconButton(
-                icon: Stack(
-                  children: [
-                    const Icon(Icons.message),
-                    if (unreadMessagesCount > 0)
-                      Positioned(
-                        right: 0,
-                        top: 0,
-                        child: CircleAvatar(
-                          radius: 8,
-                          backgroundColor: Colors.red,
-                          child: Text(
-                            '$unreadMessagesCount',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+        actions: [
+          if (currentUser.usertype == 'donor' || currentUser.usertype == 'recipient')
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'Chat',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(width: 4), // Space between text and icon
+                  IconButton(
+                    icon: Stack(
+                      children: [
+                        const Icon(Icons.message),
+                        if (unreadMessagesCount > 0)
+                          Positioned(
+                            right: 0,
+                            top: 0,
+                            child: CircleAvatar(
+                              radius: 8,
+                              backgroundColor: Colors.red,
+                              child: Text(
+                                '$unreadMessagesCount',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                      ),
-                  ],
-                ),
-                onPressed: () {
-                  GoRouter.of(context).go(Routes.senderscreen);
-                },
+                      ],
+                    ),
+                    onPressed: () {
+                      GoRouter.of(context).go(
+                        currentUser.usertype == 'donor' 
+                          ? Routes.senderscreen 
+                          : Routes.recipientMssgscreen
+                      );
+                    },
+                  ),
+                ],
               ),
-            ],
+            ),
+            
+          Padding(
+            padding: const EdgeInsets.only(right: 20.0),
+            child: IconButton(
+              icon: const Icon(Icons.person),
+              onPressed: _navigateToEditProfile,
+            ),
           ),
-        if (currentUser.usertype == 'recipient')
-          Row(
-            children: [
-              Text(
-                'Chat',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              IconButton(
-                icon: Stack(
-                  children: [
-                    const Icon(Icons.message),
-                    if (unreadMessagesCount > 0)
-                      Positioned(
-                        right: 0,
-                        top: 0,
-                        child: CircleAvatar(
-                          radius: 8,
-                          backgroundColor: Colors.red,
-                          child: Text(
-                            '$unreadMessagesCount',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-                onPressed: () {
-                  GoRouter.of(context).go(Routes.recipientMssgscreen);
-                },
-              ),
-            ],
-          ),
-        // Profile Icon
-        IconButton(
-          icon: const Icon(Icons.person),
-          onPressed: _navigateToEditProfile,
-        ),
-      ],
+        ],
       ),
       drawer: Drawer(
         child: Column(

@@ -142,12 +142,15 @@ Widget build(BuildContext context) {
         Padding(
           padding: const EdgeInsets.all(10.0),
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Expanded(
+              SizedBox(
+                width: MediaQuery.of(context).size.width * 0.7, // Reduced width to 70% of screen
                 child: TextField(
                   onChanged: _handleSearch,
                   decoration: InputDecoration(
-                    hintText: 'Search Donor...',
+                    hintText: 'Search',
+                    prefixIcon: const Icon(Icons.search, color: Colors.grey),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: const BorderSide(
@@ -169,68 +172,67 @@ Widget build(BuildContext context) {
                         width: 1.5,
                       ),
                     ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 10),
                   ),
                 ),
               ),
               const SizedBox(width: 8),
               TextButton.icon(
-      icon: Icon(
-        _areFiltersApplied() ? Icons.check_circle : Icons.tune,
-        color: _areFiltersApplied() ? Colors.green : Theme.of(context).colorScheme.primary,
-        size: 20,
-      ),
-      label: const Text('Filter'),
-      onPressed: () {
-        showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          builder: (context) => DraggableScrollableSheet(
-            initialChildSize: 0.9,
-            minChildSize: 0.5,
-            maxChildSize: 0.9,
-            builder: (_, controller) => SingleChildScrollView(
-              controller: controller,
-              child: DonorFilterWidget(
-                onFilterChanged: _handleFilterChange,
-                onClose: () {
-                  Navigator.pop(context);
+                icon: Icon(
+                  _areFiltersApplied() ? Icons.check_circle : Icons.tune,
+                  color: _areFiltersApplied() ? Colors.green : Theme.of(context).colorScheme.primary,
+                  size: 20,
+                ),
+                label: const Text('Filter'),
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (context) => DraggableScrollableSheet(
+                      initialChildSize: 0.9,
+                      minChildSize: 0.5,
+                      maxChildSize: 0.9,
+                      builder: (_, controller) => SingleChildScrollView(
+                        controller: controller,
+                        child: DonorFilterWidget(
+                          onFilterChanged: _handleFilterChange,
+                          onClose: () {
+                            Navigator.pop(context);
+                          },
+                        ),
+                      ),
+                    ),
+                  );
                 },
+                style: TextButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.primary,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  backgroundColor: Colors.grey[200],
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
               ),
-            ),
-          ),
-        );
-      },
-      style: TextButton.styleFrom(
-        foregroundColor: Theme.of(context).colorScheme.primary,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        backgroundColor: Colors.grey[200],
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-    ),
-    // Reset Filter Button (Shown only if filters are applied)
-    if (_areFiltersApplied())
-      TextButton.icon(
-        icon: const Icon(
-          Icons.refresh,
-          color: Colors.red,
-          size: 20,
-        ),
-        label: const Text('Reset Filters'),
-        onPressed: () {
-          _resetFilters();
-        },
-        style: TextButton.styleFrom(
-          foregroundColor: Colors.red,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          backgroundColor: Colors.grey[200],
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      ),
+              if (_areFiltersApplied())
+                TextButton.icon(
+                  icon: const Icon(
+                    Icons.refresh,
+                    color: Colors.red,
+                    size: 20,
+                  ),
+                  label: const Text('Reset Filters'),
+                  onPressed: () {
+                    _resetFilters();
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    backgroundColor: Colors.grey[200],
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
