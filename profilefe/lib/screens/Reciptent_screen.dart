@@ -75,7 +75,8 @@ class _RecipientListPageState extends State<RecipientListPage> {
 }
 void _resetFilters() {
   setState(() {
-    _currentFilter = null; 
+    _currentFilter = null;
+     _recipients = fetchRecipients(); 
   });
 
   ScaffoldMessenger.of(context).showSnackBar(
@@ -90,12 +91,15 @@ void _resetFilters() {
           Padding(
             padding: const EdgeInsets.all(10.0),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Expanded(
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.7,
                   child: TextField(
                     onChanged: _handleSearch,
                     decoration: InputDecoration(
-                      hintText: 'Search Recipient...',
+                      hintText: 'Search',
+                    prefixIcon: const Icon(Icons.search, color: Colors.grey),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: const BorderSide(

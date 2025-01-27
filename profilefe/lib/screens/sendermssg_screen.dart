@@ -107,7 +107,7 @@ class _SenderScreenState extends State<SenderScreen> {
       GoRouter.of(context).go(Routes.home);
     },
   ),
-        title: Text("All Reciptent"),
+        title: Text("All Recipient"),
         backgroundColor: Colors.lightBlueAccent,
       ),
       body: Column(
@@ -118,7 +118,7 @@ class _SenderScreenState extends State<SenderScreen> {
               controller: _searchController,
               onChanged: _filterConversations,
               decoration: InputDecoration(
-                hintText: "Search senders...",
+                hintText: "Search Recipient",
                 prefixIcon: Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -135,8 +135,8 @@ class _SenderScreenState extends State<SenderScreen> {
                         ? Center(
                             child: Text(
                               _searchController.text.isEmpty
-                                  ? 'No senders found'
-                                  : 'No matching senders',
+                                  ? 'No Recipient found'
+                                  : 'No matching Recipient',
                               style: TextStyle(color: Colors.grey[600]),
                             ),
                           )
