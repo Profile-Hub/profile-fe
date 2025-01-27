@@ -20,7 +20,7 @@ class LocationApiService {
 
  Future<void> _loadCountries() async {
     try {
-      String jsonString = await rootBundle.loadString('assets/assets/countries.json');
+      String jsonString = await rootBundle.loadString('assets/countries.json');
       List<dynamic> jsonList = json.decode(jsonString);
       _countries = jsonList.cast<Map<String, dynamic>>();
     } catch (e) {
@@ -30,7 +30,7 @@ class LocationApiService {
 
   Future<void> _loadStates() async {
     try {
-      String jsonString = await rootBundle.loadString('assets/assets/states.json');
+      String jsonString = await rootBundle.loadString('assets/states.json');
       List<dynamic> jsonList = json.decode(jsonString);
       _states = jsonList.cast<Map<String, dynamic>>();
     } catch (e) {
@@ -40,7 +40,7 @@ class LocationApiService {
 
   Future<void> _loadCities() async {
     try {
-      String jsonString = await rootBundle.loadString('assets/assets/cities.json');
+      String jsonString = await rootBundle.loadString('assets/cities.json');
       List<dynamic> jsonList = json.decode(jsonString);
       _cities = jsonList.cast<Map<String, dynamic>>();
     } catch (e) {
