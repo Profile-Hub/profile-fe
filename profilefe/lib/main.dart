@@ -143,9 +143,22 @@ void main() async {
           builder: (context, state) => SenderScreen(),
         ),
          GoRoute(
-          path: Routes.recipientMssgscreen,
-          builder: (context, state) => RecipientScreen(),
-        ),
+  path: Routes.recipientMssgscreen,
+  builder: (context, state) => FutureBuilder<User?>(
+    future: Provider.of<UserProvider>(context, listen: false).getCurrentUser(),
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return const Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        );
+      }
+      if (snapshot.hasData && snapshot.data != null) {
+        return RecipientScreen(user: snapshot.data!);
+      }
+      return LoginScreen();
+    },
+  ),
+),
     GoRoute(
         path: '${Routes.donnerchat}/:conversationSid',
         builder: (context, state) {

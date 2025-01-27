@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import '../services/chat_services.dart';
+import '../models/user.dart';
 import '../services/getdoner_service.dart';
 import '../services/subscription_service.dart';
 import '../routes.dart';
 import 'package:go_router/go_router.dart';
 
 class RecipientScreen extends StatefulWidget {
+    final User user;
+    RecipientScreen({Key? key, required this.user}) : super(key: key);
   @override
   _RecipientScreenState createState() => _RecipientScreenState();
 }
@@ -16,6 +19,7 @@ class _RecipientScreenState extends State<RecipientScreen> {
   List<Map<String, dynamic>> _filteredConversations = [];
   final ChatServices _chatservice = ChatServices();
   bool _isLoading = true;
+  late User userId;
   String? _error;
   String conversationSid = '';
   final SubscriptionService _subscriptionService = SubscriptionService(); // Assuming you have a subscription service
@@ -23,6 +27,7 @@ class _RecipientScreenState extends State<RecipientScreen> {
   @override
   void initState() {
     super.initState();
+    userId = widget.user;
     _fetchUserdetails();
   }
 
@@ -61,76 +66,109 @@ class _RecipientScreenState extends State<RecipientScreen> {
   });
 }
 
-  Future<void> _handleDonorTap(BuildContext context, Map<String, dynamic> donor) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text('Confirm Unlock'),
-          content: Text('Are you sure you want to unlock this donor?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: Text('Confirm'),
-            ),
-          ],
-        );
-      },
-    );
+ Future<void> _handleDonorTap(BuildContext context, Map<String, dynamic> donor) async {
+  try {
+    final status = await _subscriptionService.checkSubscriptionStatus();
 
-    if (confirm != true) return;
+    // Get donor ID
+    final donorId = donor['id'] ?? '';
+    if (donorId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Donor ID is missing")),
+      );
+      return;
+    }
 
-    try {
-      final status = await _subscriptionService.checkSubscriptionStatus();
-      if (status.subscription?.credit == null ||
-          status.subscription!.credit == 0 ||
-          status.subscription!.status == "expired" ||
-          status.subscription!.status == "canceled" ||
-          status.message == "No subscription found for the user") {
-        GoRouter.of(context).push(Routes.subscriptionPlans);
-        return;
-      }
+    // Get selected donors
+    final selectedDonors = await DonnerService().getAllSelectedDoner();
+    final selectedDonorIds = selectedDonors.map((donor) => donor.id).toList();
 
-      // Proceed to unlock donor chat
-      final userId = donor['id'] ?? '';
-      if (userId.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("User ID is missing")),
-        );
-        return;
-      }
+    final isDonorSelected = selectedDonorIds.contains(donorId);
 
-      final String userName = '${donor['firstname']} ${donor['lastname']}';
-      final String profileImage = donor['avatar']?['url'] ?? 'https://via.placeholder.com/150';
-
-      print('User ID: $userId');
-      print('User Name: $userName');
-      print('Profile Image: $profileImage');
-
-      // Attempt to start chat if subscription is valid
-      final sid = await _chatservice.getOrCreateConversation(userId);
-      setState(() {
-        conversationSid = sid;
-      });
-
-      GoRouter.of(context).go(
-        '${Routes.donnerchat}/$conversationSid',
-        extra: {
-          'conversationSid': conversationSid,
-          'userName': userName,
-          'profileImage': profileImage,
+    // Condition: Subscription credit is 0 and donor is not in the selected donor list
+    if ((status.subscription?.credit == null ||
+            status.subscription!.credit == 0 ||
+            status.subscription!.status == "expired" ||
+            status.subscription!.status == "canceled" ||
+            status.message == "No subscription found for the user") &&
+        !isDonorSelected) {
+      final confirm = await showDialog<bool>(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Confirm Unlock'),
+            content: Text(
+                'You need an active subscription to unlock this donor. Would you like to view subscription plans?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: Text('View Plans'),
+              ),
+            ],
+          );
         },
       );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: ${e.toString()}")),
-      );
+
+      if (confirm == true) {
+        GoRouter.of(context).push(Routes.subscriptionPlans);
+      }
+      return;
     }
+
+    // If donor is already selected, open chat directly
+    if (isDonorSelected) {
+      openChat(context, donor);
+      return;
+    }
+
+    // Deduct credit and open chat for a new donor
+    await _subscriptionService.deductCredit(userId.id);
+
+    final String userName = '${donor['firstname']} ${donor['lastname']}';
+    final String profileImage =
+        donor['avatar']?['url'] ?? 'https://via.placeholder.com/150';
+
+    final sid = await _chatservice.getOrCreateConversation(donorId);
+    setState(() {
+      conversationSid = sid;
+    });
+
+    GoRouter.of(context).go(
+      '${Routes.donnerchat}/$conversationSid',
+      extra: {
+        'conversationSid': conversationSid,
+        'userName': userName,
+        'profileImage': profileImage,
+      },
+    );
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Error: ${e.toString()}")),
+    );
   }
+}
+
+
+
+void openChat(BuildContext context, Map<String, dynamic> donor) {
+  final userId = donor['id'] ?? '';
+  final String userName = '${donor['firstname']} ${donor['lastname']}';
+  final String profileImage = donor['avatar']?['url'] ?? 'https://via.placeholder.com/150';
+
+  GoRouter.of(context).go(
+    '${Routes.donnerchat}/$userId',
+    extra: {
+      'userId': userId,
+      'userName': userName,
+      'profileImage': profileImage,
+    },
+  );
+}
+
 
   Widget _buildErrorWidget() {
     return Center(
