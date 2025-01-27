@@ -112,6 +112,16 @@ class _RecipientFilterWidgetState extends State<RecipientFilterWidget> {
       widget.onClose();
     }
   }
+  void _resetFilters() {
+  setState(() {
+    _selectedCountry = null;
+    _selectedState = null;
+    _selectedCity = null;
+    _selectedRadius = null;
+    _selectedGender = null;
+  });
+
+}
 
   Widget _buildLocationDropdowns() {
     return Column(
@@ -218,12 +228,26 @@ class _RecipientFilterWidgetState extends State<RecipientFilterWidget> {
               SizedBox(height: 16),
 
               // Apply Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _isLoadingLocations ? null : _applyFilters,
-                  child: Text('Apply Filters'),
-                ),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: _isLoadingLocations ? null : _applyFilters,
+                      icon: const Icon(Icons.check_circle),
+                      label: const Text('Apply Filters'),
+                    ),
+                  ),
+                  const SizedBox(width: 8), // Add spacing between the buttons
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        _resetFilters();
+                      },
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Reset Filters'),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

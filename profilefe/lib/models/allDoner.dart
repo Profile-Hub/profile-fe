@@ -6,6 +6,7 @@ class Doner {
   final String lastname;
   final String? middleName;
   final int? age;
+  bool? isVerified;
   final String? gender;
   final String? city;
   final String? state;
@@ -20,6 +21,7 @@ class Doner {
     required this.lastname,
     this.middleName,
     this.age,
+    this.isVerified,
     this.gender,
     this.city,
     this.state,
@@ -36,6 +38,7 @@ class Doner {
       lastname: json['lastname'] ?? '',
       middleName: json['middleName'],
       age: json['age'],
+      isVerified:json['isVerified'],
       gender: json['gender'],
       city: json['city'],
       state: json['state'],

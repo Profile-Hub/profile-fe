@@ -6,6 +6,9 @@ import './signup_screen.dart';
 import 'home_screen.dart';
 import './forgot_password_screen.dart';
 import '../routes.dart'; 
+import '../routes.dart'; 
+import 'package:go_router/go_router.dart';
+import '../routes.dart';
 import 'package:go_router/go_router.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -19,6 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
   bool _isLoading = false;
+  bool _isPasswordVisible = false;
 
   Future<void> _handleLogin() async {
     if (_formKey.currentState!.validate()) {
@@ -40,7 +44,7 @@ class _LoginScreenState extends State<LoginScreen> {
           await prefs.setString('authToken', loginResponse.token);
           final token = loginResponse.token;
           if (token.isNotEmpty) {
-             GoRouter.of(context).go(Routes.home);
+            GoRouter.of(context).go(Routes.home);
           } else {
             print('Token is empty');
           }
@@ -135,8 +139,20 @@ class _LoginScreenState extends State<LoginScreen> {
                         decoration: InputDecoration(
                           labelText: 'Password',
                           prefixIcon: Icon(Icons.lock_outlined),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _isPasswordVisible
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _isPasswordVisible = !_isPasswordVisible;
+                              });
+                            },
+                          ),
                         ),
-                        obscureText: true,
+                        obscureText: !_isPasswordVisible,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter your password';
@@ -166,7 +182,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         alignment: Alignment.centerRight,
                         child: TextButton(
                           onPressed: () {
-                            GoRouter.of(context).go(Routes.forgotPassword);  // Use GoRouter for navigation
+                            GoRouter.of(context).go(Routes.forgotPassword);
                           },
                           child: Text('Forgot Password?'),
                         ),
@@ -200,7 +216,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           Text("Don't have an account? "),
                           TextButton(
                             onPressed: () {
-                              GoRouter.of(context).go(Routes.signup);  // Use GoRouter for navigation
+                              GoRouter.of(context).go(Routes.signup);
                             },
                             child: Text('Sign Up'),
                           ),

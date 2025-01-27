@@ -228,63 +228,85 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         title: const Text(''),
         centerTitle: true,
-actions: [
-   if (currentUser.usertype == 'donor' )
-        IconButton(
-          icon: Stack(
+      actions: [
+        if (currentUser.usertype == 'donor')
+          Row(
             children: [
-              const Icon(Icons.message),
-              if (unreadMessagesCount > 0) 
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  child: CircleAvatar(
-                    radius: 8,
-                    backgroundColor: Colors.red,
-                    child: Text(
-                      '$unreadMessagesCount',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
+              Text(
+                'Chat',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
                 ),
+              ),
+              IconButton(
+                icon: Stack(
+                  children: [
+                    const Icon(Icons.message),
+                    if (unreadMessagesCount > 0)
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: CircleAvatar(
+                          radius: 8,
+                          backgroundColor: Colors.red,
+                          child: Text(
+                            '$unreadMessagesCount',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                onPressed: () {
+                  GoRouter.of(context).go(Routes.senderscreen);
+                },
+              ),
             ],
           ),
-          onPressed: () {   
-               GoRouter.of(context).go(Routes.senderscreen);
-          },
-        ),
-        if (currentUser.usertype == 'recipient' )
-        IconButton(
-          icon: Stack(
+        if (currentUser.usertype == 'recipient')
+          Row(
             children: [
-              const Icon(Icons.message),
-              if (unreadMessagesCount > 0) 
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  child: CircleAvatar(
-                    radius: 8,
-                    backgroundColor: Colors.red,
-                    child: Text(
-                      '$unreadMessagesCount',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
+              Text(
+                'Chat',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
                 ),
+              ),
+              IconButton(
+                icon: Stack(
+                  children: [
+                    const Icon(Icons.message),
+                    if (unreadMessagesCount > 0)
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: CircleAvatar(
+                          radius: 8,
+                          backgroundColor: Colors.red,
+                          child: Text(
+                            '$unreadMessagesCount',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                onPressed: () {
+                  GoRouter.of(context).go(Routes.recipientMssgscreen);
+                },
+              ),
             ],
           ),
-          onPressed: () {   
-               GoRouter.of(context).go(Routes.recipientMssgscreen);
-          },
-        ),
         // Profile Icon
         IconButton(
           icon: const Icon(Icons.person),

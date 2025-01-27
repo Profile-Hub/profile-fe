@@ -61,6 +61,25 @@ class _DonorListPageState extends State<DonorListPage> {
       }
     });
   }
+  bool _areFiltersApplied() {
+  if (_currentFilter == null) return false;
+  return _currentFilter!.city != null ||
+      _currentFilter!.state != null ||
+      _currentFilter!.radius != null ||
+      _currentFilter!.minAge != null ||
+      _currentFilter!.maxAge != null ||
+      _currentFilter!.gender != null ||
+      (_currentFilter!.organsDonating?.isNotEmpty ?? false);
+}
+void _resetFilters() {
+  setState(() {
+    _currentFilter = null; // Reset the filter object
+  });
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text('Filters have been reset.')),
+  );
+}
 
   Future<void> _handleDonorTap(BuildContext context, Doner donor) async {
     final confirm = await showDialog<bool>(
@@ -155,37 +174,62 @@ Widget build(BuildContext context) {
               ),
               const SizedBox(width: 8),
               TextButton.icon(
-                icon: const Icon(Icons.tune, size: 20),
-                label: const Text('Filter'),
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    builder: (context) => DraggableScrollableSheet(
-                      initialChildSize: 0.9,
-                      minChildSize: 0.5,
-                      maxChildSize: 0.9,
-                      builder: (_, controller) => SingleChildScrollView(
-                        controller: controller,
-                        child: DonorFilterWidget(
-                          onFilterChanged: _handleFilterChange,
-                          onClose: () {
-                            Navigator.pop(context);
-                          },
-                        ),
-                      ),
-                    ),
-                  );
+      icon: Icon(
+        _areFiltersApplied() ? Icons.check_circle : Icons.tune,
+        color: _areFiltersApplied() ? Colors.green : Theme.of(context).colorScheme.primary,
+        size: 20,
+      ),
+      label: const Text('Filter'),
+      onPressed: () {
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          builder: (context) => DraggableScrollableSheet(
+            initialChildSize: 0.9,
+            minChildSize: 0.5,
+            maxChildSize: 0.9,
+            builder: (_, controller) => SingleChildScrollView(
+              controller: controller,
+              child: DonorFilterWidget(
+                onFilterChanged: _handleFilterChange,
+                onClose: () {
+                  Navigator.pop(context);
                 },
-                style: TextButton.styleFrom(
-                  foregroundColor: Theme.of(context).colorScheme.primary,
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  backgroundColor: Colors.grey[200],
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
               ),
+            ),
+          ),
+        );
+      },
+      style: TextButton.styleFrom(
+        foregroundColor: Theme.of(context).colorScheme.primary,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        backgroundColor: Colors.grey[200],
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    ),
+    // Reset Filter Button (Shown only if filters are applied)
+    if (_areFiltersApplied())
+      TextButton.icon(
+        icon: const Icon(
+          Icons.refresh,
+          color: Colors.red,
+          size: 20,
+        ),
+        label: const Text('Reset Filters'),
+        onPressed: () {
+          _resetFilters();
+        },
+        style: TextButton.styleFrom(
+          foregroundColor: Colors.red,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          backgroundColor: Colors.grey[200],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
             ],
           ),
         ),
