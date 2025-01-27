@@ -30,29 +30,7 @@ class ChatServices {
       throw Exception('Failed to fetch conversation SID');
     }
   }
-Future<String> getConversationByDonor(String reciptent) async {
-  await _loadToken();
-  final response = await  http.post(
-    Uri.parse('$baseUrl/conversation/donor'),
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $_token',
-    },
-    body: jsonEncode({'reciptent': reciptent}),
-  );
 
-  if (response.statusCode == 200) {
-    final data = jsonDecode(response.body);
-    if (data['success']) {
-     
-      return data['conversationId'];  
-    } else {
-      throw Exception('No conversation found');
-    }
-  } else {
-    throw Exception('Failed to fetch conversation SID');
-  }
-}
 
   // Send a message
   Future<void> sendMessage(String conversationSid, String message) async {
@@ -102,7 +80,7 @@ Future<String> getConversationByDonor(String reciptent) async {
   await _loadToken();
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/conversation/senderdetails'),
+        Uri.parse('$baseUrl/conversation/user'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $_token',
@@ -111,10 +89,8 @@ Future<String> getConversationByDonor(String reciptent) async {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-
         if (data['success'] == true) {
-          _userDetails = List<Map<String, dynamic>>.from(data['data']);
-         
+          _userDetails = List<Map<String, dynamic>>.from(data['users']);
           return _userDetails!;
         } else {
           throw Exception('No conversation found');

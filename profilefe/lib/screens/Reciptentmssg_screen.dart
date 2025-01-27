@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../services/chat_services.dart';
 import '../services/getdoner_service.dart';
+import '../services/subscription_service.dart';
 import '../routes.dart';
 import 'package:go_router/go_router.dart';
-import '../models/selectedDonerModel.dart';  // Import the model
 
 class RecipientScreen extends StatefulWidget {
   @override
@@ -12,105 +12,142 @@ class RecipientScreen extends StatefulWidget {
 
 class _RecipientScreenState extends State<RecipientScreen> {
   final TextEditingController _searchController = TextEditingController();
-  List<SelectedDoner> _filteredDonors = [];  // Changed to List<SelectedDoner>
-  List<SelectedDoner> _selectedDoners = [];  // Changed to List<SelectedDoner>
- 
+  List<Map<String, dynamic>> _conversations = [];
+  List<Map<String, dynamic>> _filteredConversations = [];
+  final ChatServices _chatservice = ChatServices();
   bool _isLoading = true;
   String? _error;
+  String conversationSid = '';
+  final SubscriptionService _subscriptionService = SubscriptionService(); // Assuming you have a subscription service
 
   @override
   void initState() {
     super.initState();
-    _fetchDonorDetails();
+    _fetchUserdetails();
   }
 
-  Future<void> _fetchDonorDetails() async {
+  Future<void> _fetchUserdetails() async {
     try {
-      _selectedDoners = await DonnerService().getAllSelectedDoner();
       setState(() {
-        _filteredDonors = _selectedDoners;
+        _isLoading = true;
+        _error = null;
+      });
+
+      final conversations = await _chatservice.getSenderDetails();
+      setState(() {
+        _conversations = conversations ?? [];
+        _filteredConversations = _conversations;
         _isLoading = false;
       });
     } catch (e) {
       setState(() {
+        _error = 'Failed to load sender details: ${e.toString()}';
         _isLoading = false;
-        _error = e.toString();
       });
     }
   }
 
-  void _filterDonors(String query) {
-    setState(() {
-      _filteredDonors = query.isEmpty
-          ? _selectedDoners
-          : _selectedDoners
-              .where((donor) =>
-                  (donor.firstname?.toLowerCase() ?? '')
-                      .contains(query.toLowerCase()) ||
-                  (donor.lastname?.toLowerCase() ?? '')
-                      .contains(query.toLowerCase()))
-              .toList();
-    });
-  }
-
-  void _navigateToChat(SelectedDoner donor) async {  // Changed to SelectedDoner
-    final String donorId = donor.id ?? '';
-    final String donorName = '${donor.firstname} ${donor.lastname}';
-    final String profileImage = donor.avatar?.url ??
-        'https://via.placeholder.com/150'; 
-        final chatService = ChatServices(); 
-        final conversationSid = await chatService.getOrCreateConversation(donorId);
-
-
-    GoRouter.of(context).go('${Routes.chat}/$conversationSid', extra: {
-      'conversationSid': conversationSid,
-      'userName': donorName,
-      'profileImage': profileImage,
-    });
-  }
-
- Widget _buildErrorWidget() {
-  return Padding(
-    padding: const EdgeInsets.all(20.0),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 16),
-        Text(
-          _error ?? 'No users exist at the moment.',
-          style: TextStyle(color: Colors.black, fontSize: 16),
-        ),
-      ],
-    ),
-  );
+ void _filterConversations(String query) {
+  setState(() {
+    _filteredConversations = query.isEmpty
+        ? _conversations
+        : _conversations
+            .where((conversation) =>
+                (conversation['firstname']?.toString().toLowerCase() ?? '')
+                    .contains(query.toLowerCase()) ||
+                (conversation['lastname']?.toString().toLowerCase() ?? '')
+                    .contains(query.toLowerCase()))  // Ensuring we are comparing to a boolean value.
+            .toList();
+  });
 }
 
-  Widget _buildNoDonorsWidget() {
+  Future<void> _handleDonorTap(BuildContext context, Map<String, dynamic> donor) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Confirm Unlock'),
+          content: Text('Are you sure you want to unlock this donor?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text('Confirm'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirm != true) return;
+
+    try {
+      final status = await _subscriptionService.checkSubscriptionStatus();
+      if (status.subscription?.credit == null ||
+          status.subscription!.credit == 0 ||
+          status.subscription!.status == "expired" ||
+          status.subscription!.status == "canceled" ||
+          status.message == "No subscription found for the user") {
+        GoRouter.of(context).push(Routes.subscriptionPlans);
+        return;
+      }
+
+      // Proceed to unlock donor chat
+      final userId = donor['id'] ?? '';
+      if (userId.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("User ID is missing")),
+        );
+        return;
+      }
+
+      final String userName = '${donor['firstname']} ${donor['lastname']}';
+      final String profileImage = donor['avatar']?['url'] ?? 'https://via.placeholder.com/150';
+
+      print('User ID: $userId');
+      print('User Name: $userName');
+      print('Profile Image: $profileImage');
+
+      // Attempt to start chat if subscription is valid
+      final sid = await _chatservice.getOrCreateConversation(userId);
+      setState(() {
+        conversationSid = sid;
+      });
+
+      GoRouter.of(context).go(
+        '${Routes.donnerchat}/$conversationSid',
+        extra: {
+          'conversationSid': conversationSid,
+          'userName': userName,
+          'profileImage': profileImage,
+        },
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: ${e.toString()}")),
+      );
+    }
+  }
+
+  Widget _buildErrorWidget() {
     return Center(
-      child: Card(
-        margin: const EdgeInsets.symmetric(horizontal: 20),
-        elevation: 4,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                Icons.person_off,
-                size: 48,
-                color: Colors.grey,
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'No donors selected. Please select a donor.',
-                style: TextStyle(fontSize: 16, color: Colors.blue),
-              ),
-            ],
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            _error ?? 'An error occurred',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.red),
           ),
-        ),
+          SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: _fetchUserdetails,
+            child: Text('Retry'),
+          ),
+        ],
       ),
     );
   }
@@ -125,7 +162,7 @@ class _RecipientScreenState extends State<RecipientScreen> {
             GoRouter.of(context).go(Routes.home);
           },
         ),
-        title: Text("All Donors"),
+        title: Text("All Donor"),
         backgroundColor: Colors.lightBlueAccent,
       ),
       body: Column(
@@ -134,9 +171,9 @@ class _RecipientScreenState extends State<RecipientScreen> {
             padding: const EdgeInsets.all(10.0),
             child: TextField(
               controller: _searchController,
-              onChanged: _filterDonors,
+              onChanged: _filterConversations,
               decoration: InputDecoration(
-                hintText: "Search donors...",
+                hintText: "Search senders...",
                 prefixIcon: Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -148,42 +185,45 @@ class _RecipientScreenState extends State<RecipientScreen> {
             child: _isLoading
                 ? Center(child: CircularProgressIndicator())
                 : _error != null
-                    ? _buildNoDonorsWidget()
-                    : _filteredDonors.isEmpty
-                        ? _buildErrorWidget()
+                    ? _buildErrorWidget()
+                    : _filteredConversations.isEmpty
+                        ? Center(
+                            child: Text(
+                              _searchController.text.isEmpty
+                                  ? 'No senders found'
+                                  : 'No matching senders',
+                              style: TextStyle(color: Colors.grey[600]),
+                            ),
+                          )
                         : ListView.builder(
-                            itemCount: _filteredDonors.length,
+                            itemCount: _filteredConversations.length,
                             itemBuilder: (context, index) {
-                              final donor = _filteredDonors[index];
-                              final donorName =
-                                  '${donor.firstname} ${donor.lastname}';
-                              final profileImage = donor.avatar?.url ??
+                              final sender = _filteredConversations[index];
+                              final userName = '${sender['firstname']} ${sender['lastname']}';
+                              final profileImage = sender['avatar']?['url'] ??
                                   'https://via.placeholder.com/150';
 
                               return Container(
-                                margin: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 8),
+                                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                                 child: Card(
-                                  elevation: 4,
+                                  elevation: 4, // Shadow effect
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: ListTile(
-                                    contentPadding:
-                                        const EdgeInsets.all(12),
+                                    contentPadding: const EdgeInsets.all(12), // Padding inside the card
                                     leading: CircleAvatar(
-                                      backgroundImage: NetworkImage(
-                                          profileImage),
-                                      radius: 30,
+                                      backgroundImage: NetworkImage(profileImage),
+                                      radius: 30, // Increased by 20% from the original 25
                                     ),
                                     title: Text(
-                                      donorName,
+                                      userName,
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 18,
                                       ),
                                     ),
-                                    onTap: () => _navigateToChat(donor),
+                                    onTap: () => _handleDonorTap(context, sender), // Use the updated method
                                   ),
                                 ),
                               );

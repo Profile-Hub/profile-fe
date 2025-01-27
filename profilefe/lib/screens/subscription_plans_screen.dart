@@ -126,7 +126,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
     SubscriptionPlan(
       id: 'basic',
       name: 'Basic Plan',
-      price: 10000,
+      price: 1,
       contacts: 3,
       features: [
         '3 Contact Views',
@@ -138,7 +138,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
     SubscriptionPlan(
       id: 'standard',
       name: 'Standard Plan',
-      price: 20000,
+      price: 2,
       contacts: 6,
       features: [
         '6 Contact Views',
@@ -151,7 +151,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
     SubscriptionPlan(
       id: 'premium',
       name: 'Premium Plan',
-      price: 50000,
+      price: 5,
       contacts: -1,
       features: [
         'Unlimited Contact Views',

@@ -29,6 +29,7 @@ class UserDetails {
   final String city;
   final String state;
   final String country;
+  final bool isVerifiedDocument;
   final List<String> organDonations;
   final String avatarUrl;
 
@@ -39,6 +40,7 @@ class UserDetails {
     required this.email,
     required this.phoneNumber,
     required this.bloodGroup,
+    required this.isVerifiedDocument,
     required this.city,
     required this.state,
     required this.country,
@@ -54,6 +56,7 @@ class UserDetails {
       email: json['email'] ?? '',
       phoneNumber: json['phoneNumber'] ?? '',
       bloodGroup: json['bloodGroup'] ?? '',
+       isVerifiedDocument: json['isVerifiedDocument'] ?? '',
       city: json['city'] ?? '',
       state: json['state'] ?? '',
       country: json['country'] ?? '',
@@ -70,6 +73,7 @@ class UserDetails {
       'email': email,
       'phoneNumber': phoneNumber,
       'bloodGroup': bloodGroup,
+      'isVerifiedDocument':isVerifiedDocument,
       'city': city,
       'state': state,
       'country': country,

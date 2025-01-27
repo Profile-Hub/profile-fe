@@ -49,33 +49,7 @@ class _AdminPageState extends State<AdminPage> {
     }
   }
 
-  Future<void> _handleApprove(String userId) async {
-    try {
-      final response = await _adminService.approveOrRejectVerification(userId, true);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(response.message)),
-      );
-      _fetchUsers(); // Refresh the list after action
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error approving user: $e')),
-      );
-    }
-  }
 
-  Future<void> _handleReject(String userId) async {
-    try {
-      final response = await _adminService.approveOrRejectVerification(userId, false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(response.message)),
-      );
-      _fetchUsers(); // Refresh the list after action
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error rejecting user: $e')),
-      );
-    }
-  }
 
   void _showUserDetails(VerificationRequest user) {
     showDialog(
@@ -245,18 +219,15 @@ class _AdminPageState extends State<AdminPage> {
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        IconButton(
-                          icon: Icon(Icons.check, color: Colors.green),
-                          onPressed: () => _handleApprove(user.userId?.id ?? ''),
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.close, color: Colors.red),
-                          onPressed: () => _handleReject(user.userId?.id ?? ''),
-                        ),
+                       if (user.userId?.isVerifiedDocument == false) 
+          Text(
+            'Not Verified',
+            style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+          ),
                       ],
                     ),
                     onTap: () {
-                      GoRouter.of(context).go('/donordetails/${user.userId?.id}');
+                      GoRouter.of(context).go('${Routes.documentverify}/${user.userId?.id}');
                     },
                   ),
                 );

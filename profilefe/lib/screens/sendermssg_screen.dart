@@ -57,11 +57,14 @@ class _SenderScreenState extends State<SenderScreen> {
   }
 
   void _navigateToChat(Map<String, dynamic> conversation) async {
-    final String userId = conversation['_id'] ?? '';
+    final  userId = conversation['_id'] ;
     final String userName = '${conversation['firstname']} ${conversation['lastname']}';
     final String profileImage = conversation['avatar']?['url'] ??
         'https://via.placeholder.com/150';
-    final sid = await _chatservice.getConversationByDonor(userId);
+  print('User ID: $userId');
+  print('User Name: $userName');
+  print('Profile Image: $profileImage');
+    final sid = await _chatservice.getOrCreateConversation(userId);
     setState(() {
       conversationSid = sid; 
     });

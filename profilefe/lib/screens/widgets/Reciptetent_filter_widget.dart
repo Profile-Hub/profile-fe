@@ -1,26 +1,26 @@
 import 'package:flutter/material.dart';
-import '../../models/doner_filter_model.dart';
+import '../../models/Recipitent_filter_modal.dart';
 import '../../services/location_api_service.dart';
 import '../../models/location_models.dart' as LocationModels;
 
-class DonorFilterWidget extends StatefulWidget {
-  final Function(DonorFilter) onFilterChanged;
+class RecipientFilterWidget extends StatefulWidget {
+  final Function(RecipientFilter) onFilterChanged;
   final VoidCallback onClose;
 
-  const DonorFilterWidget({
-    Key? key, 
+  const RecipientFilterWidget({
+    Key? key,
     required this.onFilterChanged,
-    required this.onClose, 
+    required this.onClose,
   }) : super(key: key);
 
   @override
-  State<DonorFilterWidget> createState() => _DonorFilterWidgetState();
+  State<RecipientFilterWidget> createState() => _RecipientFilterWidgetState();
 }
 
-class _DonorFilterWidgetState extends State<DonorFilterWidget> {
+class _RecipientFilterWidgetState extends State<RecipientFilterWidget> {
   final _formKey = GlobalKey<FormState>();
   final LocationApiService _locationService = LocationApiService();
-  
+
   // Location related state
   String? _selectedCountry;
   String? _selectedState;
@@ -32,46 +32,13 @@ class _DonorFilterWidgetState extends State<DonorFilterWidget> {
 
   // Other filter state
   double? _selectedRadius;
-  RangeValues _ageRange = RangeValues(18, 70);
   String? _selectedGender;
   final List<double> radiusOptions = [50, 100, 200];
-
-  // Organ donation related state
-  final Map<String, List<String>> organCategories = {
-    'Organs': [
-      'Heart', 'Lungs', 'Liver', 'Kidneys', 'Pancreas', 'Intestines'
-    ],
-    'Tissues': [
-      'Corneas', 'Skin', 'Heart Valves', 'Blood Vessels and Veins',
-      'Tendons and Ligaments', 'Bone'
-    ],
-    'Reproductive Organs': [
-      'Uterus', 'Ovaries', 'Eggs (Oocytes)', 'Fallopian Tubes',
-      'Testicles', 'Sperm'
-    ],
-    'Other Donations': [
-      'Bone Marrow and Stem Cells', 'Blood and Plasma', 'Umbilical Cord Blood'
-    ],
-    'Living Donations': [
-      'Liver Segment', 'Kidney', 'Lung Lobe', 'Skin (partial)',
-      'Bone Marrow and Stem Cells (regenerative)'
-    ],
-  };
-  Map<String, bool> selectedOrgans = {};
 
   @override
   void initState() {
     super.initState();
-    _initializeOrganSelection();
     _loadCountries();
-  }
-
-  void _initializeOrganSelection() {
-    organCategories.forEach((category, organs) {
-      organs.forEach((organ) {
-        selectedOrgans[organ] = false;
-      });
-    });
   }
 
   Future<void> _loadCountries() async {
@@ -134,24 +101,27 @@ class _DonorFilterWidgetState extends State<DonorFilterWidget> {
 
   void _applyFilters() {
     if (_formKey.currentState!.validate()) {
-      List<String> selectedOrgansList = selectedOrgans.entries
-          .where((entry) => entry.value)
-          .map((entry) => entry.key)
-          .toList();
-
-      widget.onFilterChanged(DonorFilter(
+      widget.onFilterChanged(RecipientFilter(
+        country: _selectedCountry,
         state: _selectedState,
         city: _selectedCity,
         radius: _selectedRadius,
-        minAge: _ageRange.start.round(),
-        maxAge: _ageRange.end.round(),
         gender: _selectedGender,
-        organsDonating: selectedOrgansList,
       ));
-      
-      widget.onClose(); 
+
+      widget.onClose();
     }
   }
+  void _resetFilters() {
+  setState(() {
+    _selectedCountry = null;
+    _selectedState = null;
+    _selectedCity = null;
+    _selectedRadius = null;
+    _selectedGender = null;
+  });
+
+}
 
   Widget _buildLocationDropdowns() {
     return Column(
@@ -213,48 +183,6 @@ class _DonorFilterWidgetState extends State<DonorFilterWidget> {
     );
   }
 
-  Widget _buildOrganSelection() {
-    return ExpansionPanelList(
-      elevation: 1,
-      expandedHeaderPadding: EdgeInsets.zero,
-      children: organCategories.entries.map((category) {
-        return ExpansionPanel(
-          headerBuilder: (context, isExpanded) {
-            return ListTile(
-              title: Text(category.key),
-            );
-          },
-          body: Column(
-            children: category.value.map((organ) {
-              return CheckboxListTile(
-                title: Text(organ),
-                value: selectedOrgans[organ] ?? false,
-                onChanged: (bool? value) {
-                  setState(() {
-                    selectedOrgans[organ] = value ?? false;
-                  });
-                },
-              );
-            }).toList(),
-          ),
-          isExpanded: true,
-        );
-      }).toList(),
-    );
-  }
-void _resetFilters() {
-  setState(() {
-    _selectedCountry = null;
-    _selectedState = null;
-    _selectedCity = null;
-    _selectedRadius = null;
-    _ageRange = const RangeValues(18, 70);
-    _selectedGender = null;
-    selectedOrgans.updateAll((key, value) => false);
-  });
-
-}
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -265,9 +193,9 @@ void _resetFilters() {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Filter Donors', style: Theme.of(context).textTheme.titleLarge),
+              Text('Filter Recipients', style: Theme.of(context).textTheme.titleLarge),
               SizedBox(height: 16),
-              
+
               _buildLocationDropdowns(),
               SizedBox(height: 16),
 
@@ -287,21 +215,6 @@ void _resetFilters() {
               ),
               SizedBox(height: 16),
 
-              // Age Range Slider
-              Text('Age Range: ${_ageRange.start.round()} - ${_ageRange.end.round()}'),
-              RangeSlider(
-                values: _ageRange,
-                min: 18,
-                max: 70,
-                divisions: 52,
-                labels: RangeLabels(
-                  _ageRange.start.round().toString(),
-                  _ageRange.end.round().toString(),
-                ),
-                onChanged: (values) => setState(() => _ageRange = values),
-              ),
-              SizedBox(height: 16),
-
               // Gender Selection
               DropdownButtonFormField<String>(
                 value: _selectedGender,
@@ -314,36 +227,28 @@ void _resetFilters() {
               ),
               SizedBox(height: 16),
 
-              // Organ Selection
-              Text('Select Organs for Donation', 
-                style: Theme.of(context).textTheme.titleMedium),
-              SizedBox(height: 8),
-              _buildOrganSelection(),
-              SizedBox(height: 16),
-
               // Apply Button
-             Row(
-  children: [
-    Expanded(
-      child: ElevatedButton.icon(
-        onPressed: _isLoadingLocations ? null : _applyFilters,
-        icon: const Icon(Icons.check_circle),
-        label: const Text('Apply Filters'),
-      ),
-    ),
-    const SizedBox(width: 8), // Add spacing between the buttons
-    Expanded(
-      child: ElevatedButton.icon(
-        onPressed: () {
-          _resetFilters();
-        },
-        icon: const Icon(Icons.refresh),
-        label: const Text('Reset Filters'),
-      ),
-    ),
-  ],
-),
-
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: _isLoadingLocations ? null : _applyFilters,
+                      icon: const Icon(Icons.check_circle),
+                      label: const Text('Apply Filters'),
+                    ),
+                  ),
+                  const SizedBox(width: 8), // Add spacing between the buttons
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        _resetFilters();
+                      },
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Reset Filters'),
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         ),

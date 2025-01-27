@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../models/allDoner.dart';
+import '../../models/AllReciptentmodel.dart';
 
-class DonorCard extends StatelessWidget {
-  final Doner donor;
+class RecipientCard extends StatelessWidget {
+  final Recipient recipient;
 
-  const DonorCard({Key? key, required this.donor}) : super(key: key);
+  const RecipientCard({Key? key, required this.recipient}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -20,11 +20,14 @@ class DonorCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'Name: ${donor.firstname} ${donor.middleName ?? ''} ${donor.lastname}',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                    'Name: ${recipient.firstname} ${recipient.middleName ?? ''} ${recipient.lastname}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
                   ),
                 ),
-                if (donor.isVerified == true) // Add null check if needed
+                if (recipient.isVerified == true) 
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
@@ -56,28 +59,27 @@ class DonorCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                _buildInfoRow('Age', donor.age?.toString() ?? 'N/A'),
+                _buildInfoRow('Age', recipient.age?.toString() ?? 'N/A'),
                 SizedBox(width: 7),
                 Text('|', style: TextStyle(fontWeight: FontWeight.bold)),
                 SizedBox(width: 7),
-                _buildInfoRow('Gender', donor.gender ?? 'N/A'),
+                _buildInfoRow('Gender', recipient.gender ?? 'N/A'),
                 SizedBox(width: 7),
                 Text('|', style: TextStyle(fontWeight: FontWeight.bold)),
                 SizedBox(width: 7),
-                _buildInfoRow('City', donor.city ?? 'N/A'),
+                _buildInfoRow('City', recipient.city ?? 'N/A'),
               ],
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                _buildInfoRow('State', donor.state ?? 'N/A'),
+                _buildInfoRow('State', recipient.state ?? 'N/A'),
                 SizedBox(width: 7),
                 Text('|', style: TextStyle(fontWeight: FontWeight.bold)),
                 SizedBox(width: 7),
-                _buildInfoRow('Country', donor.country ?? 'N/A'),
+                _buildInfoRow('Country', recipient.country ?? 'N/A'),
               ],
             ),
-            _buildOrganDonationsRow(donor.organDonations),
           ],
         ),
       ),
@@ -119,41 +121,6 @@ class DonorCard extends StatelessWidget {
           ),
         ),
         SizedBox(height: 16),
-      ],
-    );
-  }
-
-  Widget _buildOrganDonationsRow(List<String>? organDonations) {
-    if (organDonations == null || organDonations.isEmpty) {
-      return _buildInfoColumn('Organ Donations', 'N/A');
-    }
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Organ Donations: ',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-        ),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 5.0),
-            child: Wrap(
-              spacing: 5.0,
-              runSpacing: 5.0,
-              children: [
-                Text(
-                  organDonations.join(' | '),
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[900],
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        ),
       ],
     );
   }

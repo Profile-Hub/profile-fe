@@ -13,10 +13,12 @@ class Routes {
   static const String subscriptionPlans = '/subscriptionplans';
   static const String profile ='/profile';
   static const String donnerDetails ='/donnerdetails';
+  static const String recipientDetails ='/recipientdetails';
   static const String forgotPassword ='/forgotpassword';
   static const String signup ='/signup';
   static const String chat='/chatarea';
   static const String donnerchat='/donorchatarea';
+  static const String documentverify='/Documentverify';
   static const String senderscreen='/senderscreen';
   static const String recipientMssgscreen='/recipientMssgscreen';
   static const String selectedDonorsScreen ='/selectedDonorsScreen';
