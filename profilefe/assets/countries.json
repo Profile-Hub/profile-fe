@@ -4,5 +4,6 @@
     {"id":"14", "name":"Australia", "phoneCode":"61"},
     {"id":"234", "name":"United Arab Emirates", "phoneCode":"971"},
     {"id":"205", "name":"South Africa", "phoneCode":"27"},
-    {"id":"45", "name":"China", "phoneCode":"86"}
+    {"id":"45", "name":"China", "phoneCode":"86"},
+    {"id":"102","name":"India","phoneCode":"91","emojiU":"U+1F1EE U+1F1F3","native":"भारत"}
   ]
