@@ -73,7 +73,8 @@ class _DonorListPageState extends State<DonorListPage> {
 }
 void _resetFilters() {
   setState(() {
-    _currentFilter = null; // Reset the filter object
+    _currentFilter = null; 
+    _donors = fetchDonors();
   });
 
   ScaffoldMessenger.of(context).showSnackBar(

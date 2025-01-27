@@ -75,7 +75,8 @@ class _RecipientListPageState extends State<RecipientListPage> {
 }
 void _resetFilters() {
   setState(() {
-    _currentFilter = null; 
+    _currentFilter = null;
+     _recipients = fetchRecipients(); 
   });
 
   ScaffoldMessenger.of(context).showSnackBar(

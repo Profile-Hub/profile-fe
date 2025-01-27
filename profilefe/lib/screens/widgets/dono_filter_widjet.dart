@@ -58,6 +58,7 @@ class _DonorFilterWidgetState extends State<DonorFilterWidget> {
     ],
   };
   Map<String, bool> selectedOrgans = {};
+  Map<String, bool> expandedCategories = {};
 
   @override
   void initState() {
@@ -140,6 +141,7 @@ class _DonorFilterWidgetState extends State<DonorFilterWidget> {
           .toList();
 
       widget.onFilterChanged(DonorFilter(
+        country: _selectedCountry,
         state: _selectedState,
         city: _selectedCity,
         radius: _selectedRadius,
@@ -214,34 +216,44 @@ class _DonorFilterWidgetState extends State<DonorFilterWidget> {
   }
 
   Widget _buildOrganSelection() {
-    return ExpansionPanelList(
-      elevation: 1,
-      expandedHeaderPadding: EdgeInsets.zero,
+    return Column(
       children: organCategories.entries.map((category) {
-        return ExpansionPanel(
-          headerBuilder: (context, isExpanded) {
-            return ListTile(
-              title: Text(category.key),
-            );
-          },
-          body: Column(
-            children: category.value.map((organ) {
-              return CheckboxListTile(
-                title: Text(organ),
-                value: selectedOrgans[organ] ?? false,
-                onChanged: (bool? value) {
+        bool isExpanded = expandedCategories[category.key] ?? false;
+        return Card(
+          child: Column(
+            children: [
+              ListTile(
+                title: Text(category.key),
+                trailing: Icon(
+                  isExpanded ? Icons.expand_less : Icons.expand_more,
+                ),
+                onTap: () {
                   setState(() {
-                    selectedOrgans[organ] = value ?? false;
+                    expandedCategories[category.key] = !isExpanded;
                   });
                 },
-              );
-            }).toList(),
+              ),
+              if (isExpanded)
+                Column(
+                  children: category.value.map((organ) {
+                    return CheckboxListTile(
+                      title: Text(organ),
+                      value: selectedOrgans[organ] ?? false,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          selectedOrgans[organ] = value ?? false;
+                        });
+                      },
+                    );
+                  }).toList(),
+                ),
+            ],
           ),
-          isExpanded: true,
         );
       }).toList(),
     );
   }
+
 void _resetFilters() {
   setState(() {
     _selectedCountry = null;
