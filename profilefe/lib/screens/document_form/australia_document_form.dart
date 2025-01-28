@@ -2,28 +2,36 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
-import 'package:http_parser/http_parser.dart'; // Add this import
+import 'package:http_parser/http_parser.dart';
 import 'package:flutter/foundation.dart';
 import '../../server_config.dart';
-import '../../routes.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:go_router/go_router.dart';
 
 class AustraliaDocumentForm extends StatefulWidget {
-   AustraliaDocumentForm({Key? key}) : super(key: key);
+  final Function(bool)? onValidationChanged;
+  const AustraliaDocumentForm({Key? key, this.onValidationChanged}) : super(key: key);
 
   @override
   _AustraliaDocumentFormState createState() => _AustraliaDocumentFormState();
 }
 
 class _AustraliaDocumentFormState extends State<AustraliaDocumentForm> {
-  // Map to store selected files or bytes for each document type
+  // Map to store selected files for each document type
   Map<String, PlatformFile?> selectedFiles = {
     'Medicare Card': null,
     'Passport': null,
     'Driver License': null,
     'Birth Certificate': null,
     'Permanent residency card': null,
+  };
+
+  // Validation states for each document type
+  Map<String, bool> isValid = {
+    'Medicare Card': false,
+    'Passport': true,
+    'Driver License': true,
+    'Birth Certificate': true,
+    'Permanent residency card': true,
   };
 
   // Map to store uploading state for each document type
@@ -72,6 +80,8 @@ class _AustraliaDocumentFormState extends State<AustraliaDocumentForm> {
         if (file.size <= 5 * 1024 * 1024) { // File size limit (5MB)
           setState(() {
             selectedFiles[documentType] = file;
+            isValid[documentType] = true; // Mark as valid when a file is selected
+            _validateForm(); // Re-validate the form
           });
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -106,37 +116,32 @@ class _AustraliaDocumentFormState extends State<AustraliaDocumentForm> {
       // Add the token to the headers
       request.headers['Authorization'] = 'Bearer $_token';
       request.headers['Content-Type'] = 'multipart/form-data';
-      MediaType mediaType; 
+      MediaType mediaType;
       final extension = fileData.extension;
       if (extension == 'jpg' || extension == 'jpeg') {
-         mediaType = MediaType('image', 'jpeg');
-          } 
-          else if (extension == 'png') {
-             mediaType = MediaType('image', 'png'); 
-             }
-              else if (extension == 'pdf') {
-                 mediaType = MediaType('application', 'pdf'); 
-                 } 
-                 else {
-                   throw UnsupportedError('File type not supported. Only JPG, PNG, and PDF are allowed.'); 
-                   }
+        mediaType = MediaType('image', 'jpeg');
+      } else if (extension == 'png') {
+        mediaType = MediaType('image', 'png');
+      } else if (extension == 'pdf') {
+        mediaType = MediaType('application', 'pdf');
+      } else {
+        throw UnsupportedError('File type not supported. Only JPG, PNG, and PDF are allowed.');
+      }
       if (kIsWeb) {
-        // Web-specific handling: use bytes for file upload
         request.files.add(
           http.MultipartFile.fromBytes(
             'file',
             fileData.bytes!,
             filename: fileData.name,
-            contentType: mediaType, 
+            contentType: mediaType,
           ),
         );
       } else {
-        // Android/iOS specific handling: use file path for file upload
         request.files.add(
           await http.MultipartFile.fromPath(
             'file',
             fileData.path!,
-            contentType: mediaType, // Automatically handled by Flutter
+            contentType: mediaType,
           ),
         );
       }
@@ -166,19 +171,15 @@ class _AustraliaDocumentFormState extends State<AustraliaDocumentForm> {
     }
   }
 
+  // Form validation
+  void _validateForm() {
+    final isFormValid = isValid['Medicare Card'] == true;
+    widget.onValidationChanged?.call(isFormValid);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-    icon: const Icon(Icons.arrow_back),
-    onPressed: () {
-      GoRouter.of(context).go(Routes.home);
-    },
-  ),
-        title: const Text('Australia Document Form'),
-        backgroundColor: Colors.blueAccent,
-      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -187,6 +188,7 @@ class _AustraliaDocumentFormState extends State<AustraliaDocumentForm> {
             _buildFileInputSection(
               'Medicare Card',
               '${ServerConfig.baseUrl}aus/medicare-card',
+              isRequired: true,
             ),
             _buildFileInputSection(
               'Passport',
@@ -211,18 +213,30 @@ class _AustraliaDocumentFormState extends State<AustraliaDocumentForm> {
   }
 
   // Method to build UI for each file input section
-  Widget _buildFileInputSection(String docType, String endpoint) {
+  Widget _buildFileInputSection(String docType, String endpoint, {bool isRequired = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            docType,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
+          Row(
+            children: [
+              Text(
+                docType,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              if (isRequired)
+                const Text(
+                  ' *',
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontSize: 16,
+                  ),
+                ),
+            ],
           ),
           const SizedBox(height: 8),
           Row(
@@ -231,12 +245,14 @@ class _AustraliaDocumentFormState extends State<AustraliaDocumentForm> {
                 child: TextFormField(
                   readOnly: true,
                   onTap: isUploaded[docType]! ? null : () async {
-                    await _selectFile(docType);  // Ensure file selection completes before interacting with the input
+                    await _selectFile(docType);
                   },
                   decoration: InputDecoration(
                     hintText: selectedFiles[docType] != null
                         ? selectedFiles[docType]!.name
-                        : 'No file selected',
+                        : isRequired
+                            ? 'Required'
+                            : 'No file selected',
                     hintStyle: TextStyle(
                       color: selectedFiles[docType] != null ? Colors.black : Colors.grey,
                     ),
@@ -250,7 +266,7 @@ class _AustraliaDocumentFormState extends State<AustraliaDocumentForm> {
               const SizedBox(width: 8),
               ElevatedButton(
                 onPressed: isUploaded[docType]! ? null : () async {
-                  await _selectFile(docType);  // Ensure file selection completes before interacting with the button
+                  await _selectFile(docType);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: isUploaded[docType]! ? Colors.grey : Colors.blue,
@@ -267,7 +283,9 @@ class _AustraliaDocumentFormState extends State<AustraliaDocumentForm> {
                     ? null
                     : () => _uploadFile(docType, endpoint),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: isUploading[docType]! || isUploaded[docType]! ? Colors.grey : Colors.green,
+                  backgroundColor: isUploading[docType]! || isUploaded[docType]!
+                      ? Colors.grey
+                      : Colors.green,
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),

@@ -80,7 +80,8 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Please complete the following fields in your profile:'),
+              const Text('To become a verified user, please:'),
+              const Text('Complete the following profile fields and Upload required verification documents'),
               const SizedBox(height: 16),
               ...missingFields.map((field) => Padding(
                 padding: const EdgeInsets.only(left: 16, bottom: 8),
@@ -98,17 +99,39 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           actions: [
-            TextButton(
-             onPressed: () => GoRouter.of(context).pop(),  
-             child: const Text('Cancel'), 
+           Column(
+            mainAxisAlignment: MainAxisAlignment.start, // Adjust alignment (spaceEvenly, spaceAround, start, end, etc.)
+            children: [
+              TextButton(
+                onPressed: () => GoRouter.of(context).pop(),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  GoRouter.of(context).pop(); 
+                  GoRouter.of(context).go(Routes.documentUpload, extra: currentUser);
+                },
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.upload_file),
+                    SizedBox(width: 8),
+                    Text('Upload Documents'),
+                  ],
                 ),
-           ElevatedButton(
-            onPressed: () {
-            GoRouter.of(context).pop();  
-                   _navigateToEditProfile();    
-                   },
-                  child: const Text('Complete Profile'),  
-                   ),
+              ),
+              TextButton(
+                onPressed: () {
+                  GoRouter.of(context).pop();
+                 GoRouter.of(context).go(
+    Routes.editProfile,
+    extra: currentUser);
+                },
+                child: const Text('Complete Profile'),
+              ),
+            ],
+          ),
+
           ],
         );
       },

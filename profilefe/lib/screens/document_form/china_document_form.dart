@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
-import 'package:http_parser/http_parser.dart'; // Add this import
+import 'package:http_parser/http_parser.dart';
 import 'package:flutter/foundation.dart';
 import '../../server_config.dart';
 import '../../routes.dart';
@@ -10,7 +10,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 
 class ChinaDocumentForm extends StatefulWidget {
-   ChinaDocumentForm({Key? key}) : super(key: key);
+  final Function(bool)? onValidationChanged;
+  const ChinaDocumentForm({Key? key, this.onValidationChanged}) : super(key: key);
 
   @override
   _ChinaDocumentFormState createState() => _ChinaDocumentFormState();
@@ -23,7 +24,6 @@ class _ChinaDocumentFormState extends State<ChinaDocumentForm> {
     'Passport': null,
     'Driver License': null,
   };
-
 
   Map<String, bool> isUploading = {
     'Resident Identity Card': false,
@@ -39,10 +39,16 @@ class _ChinaDocumentFormState extends State<ChinaDocumentForm> {
     'Driver License': false,
   };
 
+  Map<String, bool> isRequired = {
+    'Resident Identity Card': true,
+    'House hold Registration': false,
+    'Passport': false,
+    'Driver License': false,
+  };
+
   String? _token;
   static final _storage = FlutterSecureStorage();
 
-  // Load token
   Future<void> _loadToken() async {
     _token = await _storage.read(key: 'auth_token');
   }
@@ -50,15 +56,14 @@ class _ChinaDocumentFormState extends State<ChinaDocumentForm> {
   @override
   void initState() {
     super.initState();
-    _loadToken(); 
+    _loadToken();
   }
 
-  
   Future<void> _selectFile(String documentType) async {
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['jpg', 'png', 'pdf'], 
+        allowedExtensions: ['jpg', 'png', 'pdf'],
       );
 
       if (result != null) {
@@ -68,6 +73,11 @@ class _ChinaDocumentFormState extends State<ChinaDocumentForm> {
           setState(() {
             selectedFiles[documentType] = file;
           });
+          
+          // Notify parent about validation change for required fields
+          if (widget.onValidationChanged != null && isRequired[documentType] == true) {
+            widget.onValidationChanged!(true);
+          }
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('File size must be less than 5MB')),
@@ -81,7 +91,6 @@ class _ChinaDocumentFormState extends State<ChinaDocumentForm> {
     }
   }
 
-  
   Future<void> _uploadFile(String documentType, String endpoint) async {
     final fileData = selectedFiles[documentType];
     if (fileData == null) {
@@ -98,40 +107,36 @@ class _ChinaDocumentFormState extends State<ChinaDocumentForm> {
     try {
       var request = http.MultipartRequest('POST', Uri.parse(endpoint));
 
-      // Add the token to the headers
       request.headers['Authorization'] = 'Bearer $_token';
       request.headers['Content-Type'] = 'multipart/form-data';
-      MediaType mediaType; 
+      
+      MediaType mediaType;
       final extension = fileData.extension;
       if (extension == 'jpg' || extension == 'jpeg') {
-         mediaType = MediaType('image', 'jpeg');
-          } 
-          else if (extension == 'png') {
-             mediaType = MediaType('image', 'png'); 
-             }
-              else if (extension == 'pdf') {
-                 mediaType = MediaType('application', 'pdf'); 
-                 } 
-                 else {
-                   throw UnsupportedError('File type not supported. Only JPG, PNG, and PDF are allowed.'); 
-                   }
+        mediaType = MediaType('image', 'jpeg');
+      } else if (extension == 'png') {
+        mediaType = MediaType('image', 'png');
+      } else if (extension == 'pdf') {
+        mediaType = MediaType('application', 'pdf');
+      } else {
+        throw UnsupportedError('File type not supported. Only JPG, PNG, and PDF are allowed.');
+      }
+
       if (kIsWeb) {
-       
         request.files.add(
           http.MultipartFile.fromBytes(
             'file',
             fileData.bytes!,
             filename: fileData.name,
-            contentType: mediaType, 
+            contentType: mediaType,
           ),
         );
       } else {
-        // Android/iOS specific handling: use file path for file upload
         request.files.add(
           await http.MultipartFile.fromPath(
             'file',
             fileData.path!,
-            contentType: mediaType, 
+            contentType: mediaType,
           ),
         );
       }
@@ -164,16 +169,6 @@ class _ChinaDocumentFormState extends State<ChinaDocumentForm> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-    icon: const Icon(Icons.arrow_back),
-    onPressed: () {
-      GoRouter.of(context).go(Routes.home);
-    },
-  ),
-        title: const Text('China Document Form'),
-        backgroundColor: Colors.blueAccent,
-      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -201,19 +196,33 @@ class _ChinaDocumentFormState extends State<ChinaDocumentForm> {
     );
   }
 
-
   Widget _buildFileInputSection(String docType, String endpoint) {
+    final bool isFieldRequired = isRequired[docType] ?? false;
+    
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            docType,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
+          Row(
+            children: [
+              Text(
+                docType,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              if (isFieldRequired) 
+                const Text(
+                  ' *',
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+            ],
           ),
           const SizedBox(height: 8),
           Row(
@@ -222,7 +231,7 @@ class _ChinaDocumentFormState extends State<ChinaDocumentForm> {
                 child: TextFormField(
                   readOnly: true,
                   onTap: isUploaded[docType]! ? null : () async {
-                    await _selectFile(docType);  
+                    await _selectFile(docType);
                   },
                   decoration: InputDecoration(
                     hintText: selectedFiles[docType] != null
@@ -235,13 +244,16 @@ class _ChinaDocumentFormState extends State<ChinaDocumentForm> {
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
+                    errorText: isFieldRequired && selectedFiles[docType] == null 
+                        ? 'This document is required'
+                        : null,
                   ),
                 ),
               ),
               const SizedBox(width: 8),
               ElevatedButton(
                 onPressed: isUploaded[docType]! ? null : () async {
-                  await _selectFile(docType);  
+                  await _selectFile(docType);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: isUploaded[docType]! ? Colors.grey : Colors.blue,
