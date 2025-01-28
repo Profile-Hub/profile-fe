@@ -29,6 +29,7 @@ class ProfileService {
        
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
+        print(data);
         return User.fromJson(data['userprofile']);
       } else {
         throw Exception('Failed to load profile');

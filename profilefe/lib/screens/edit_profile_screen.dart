@@ -12,6 +12,8 @@ import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
+import '../providers/user_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../routes.dart';
 
@@ -643,6 +645,7 @@ Future<void> _selectImage() async {
       final updatedUser = await _profileService.getProfile();
       
       if (mounted) {
+          Provider.of<UserProvider>(context, listen: false).updateUser(updatedUser);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Profile updated successfully!')),
         );
