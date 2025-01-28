@@ -601,7 +601,7 @@ void _resendOtp() {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(content: Text('Signup successful!')),
                                   );
-                                  GoRouter.of(context).pop();
+                                   GoRouter.of(context).go(Routes.login);
                                 } else {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(content: Text('Signup failed. Please try again.')),
