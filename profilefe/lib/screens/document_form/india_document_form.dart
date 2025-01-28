@@ -1,160 +1,318 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:go_router/go_router.dart';
-import '../../routes.dart';
+import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
+import 'package:flutter/foundation.dart';
+import '../../server_config.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class IndiaDocumentForm extends StatefulWidget {
-   IndiaDocumentForm({Key? key}) : super(key: key);
+  final Function(bool)? onValidationChanged;
+  const IndiaDocumentForm({Key? key, this.onValidationChanged}) : super(key: key);
 
   @override
   _IndiaDocumentFormState createState() => _IndiaDocumentFormState();
 }
 
 class _IndiaDocumentFormState extends State<IndiaDocumentForm> {
-  final _formKey = GlobalKey<FormState>();
+   Map<String, PlatformFile?> selectedFiles = {
+  'Aadhaar': null,
+  'Passport': null,
+  'Driver License': null,
+  'Voter ID': null,
+  'PAN': null,
+  'Ration Card': null,
+};
+Map<String, bool> isValid = {
+  'Aadhaar': true,
+    'Passport': true,
+    'Driver License': true,
+    'Voter ID': true,
+    'PAN': true,
+    'Ration Card': true,
+};
+   Map<String, bool> isUploading = {
+    'Aadhaar': false,
+    'Passport': false,
+    'Driver License': false,
+    'Voter ID': false,
+    'PAN': false,
+    'Ration Card': false,
+  };
 
-  // Controller for each text field
-  final TextEditingController _aadhaarNameController = TextEditingController();
-  final TextEditingController _aadhaarNumberController = TextEditingController();
-  final TextEditingController _aadhaarAddressController = TextEditingController();
-  final TextEditingController _aadhaarFatherNameController = TextEditingController();
-  final TextEditingController _passportNumberController = TextEditingController();
-  final TextEditingController _voterIdNumberController = TextEditingController();
-  final TextEditingController _driverLicenseNumberController = TextEditingController();
-  final TextEditingController _panNumberController = TextEditingController();
-  final TextEditingController _rationCardNumberController = TextEditingController();
+   Map<String, bool> isUploaded = {
+    'Aadhaar': false,
+    'Passport': false,
+    'Driver License': false,
+    'Voter ID': false,
+    'PAN': false,
+    'Ration Card': false,
+  };
 
-  // Selected file paths for document uploads
-  File? _aadhaarFile;
-  File? _passportFile;
-  File? _voterIdFile;
-  File? _driverLicenseFile;
-  File? _panCardFile;
-  File? _rationCardFile;
+  final Map<String, bool> isRequired = {
+    'Aadhaar': true,
+    'Passport': false,
+    'Driver License': false,
+    'Voter ID': false,
+    'PAN': false,
+    'Ration Card': false,
+  };
 
-  // Method to pick a file
-  Future<void> _pickFile(String documentType) async {
-    final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['jpg', 'png', 'pdf']);
-    if (result != null) {
-      setState(() {
-        switch (documentType) {
-          case 'Aadhaar':
-            _aadhaarFile = File(result.files.single.path!);
-            break;
-          case 'Passport':
-            _passportFile = File(result.files.single.path!);
-            break;
-          case 'Voter ID':
-            _voterIdFile = File(result.files.single.path!);
-            break;
-          case 'Driver License':
-            _driverLicenseFile = File(result.files.single.path!);
-            break;
-          case 'PAN Card':
-            _panCardFile = File(result.files.single.path!);
-            break;
-          case 'Ration Card':
-            _rationCardFile = File(result.files.single.path!);
-            break;
+  String? _token;
+  static final _storage = FlutterSecureStorage();
+
+  Future<void> _loadToken() async {
+    _token = await _storage.read(key: 'auth_token');
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadToken(); // Load token when the widget is initialized
+  }
+
+  // Method to select a file for a given document type with file type filter
+  Future<void> _selectFile(String documentType) async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['jpg', 'png', 'pdf'], // Restrict to specific file types
+      );
+
+      if (result != null) {
+        final file = result.files.first;
+
+        if (file.size <= 5 * 1024 * 1024) { // File size limit (5MB)
+          setState(() {
+            selectedFiles[documentType] = file;
+            isValid[documentType] = true; // Mark as valid when a file is selected
+            _validateForm(); // Re-validate the form
+          });
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('File size must be less than 5MB')),
+          );
         }
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error selecting file: $e')),
+      );
+    }
+  }
+
+  // Method to upload a file to the server
+  Future<void> _uploadFile(String documentType, String endpoint) async {
+    final fileData = selectedFiles[documentType];
+    if (fileData == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please select a file for $documentType before uploading.')),
+      );
+      return;
+    }
+
+    setState(() {
+      isUploading[documentType] = true;
+    });
+
+    try {
+      var request = http.MultipartRequest('POST', Uri.parse(endpoint));
+
+      // Add the token to the headers
+      request.headers['Authorization'] = 'Bearer $_token';
+      request.headers['Content-Type'] = 'multipart/form-data';
+      MediaType mediaType;
+      final extension = fileData.extension;
+      if (extension == 'jpg' || extension == 'jpeg') {
+        mediaType = MediaType('image', 'jpeg');
+      } else if (extension == 'png') {
+        mediaType = MediaType('image', 'png');
+      } else if (extension == 'pdf') {
+        mediaType = MediaType('application', 'pdf');
+      } else {
+        throw UnsupportedError('File type not supported. Only JPG, PNG, and PDF are allowed.');
+      }
+      if (kIsWeb) {
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            'file',
+            fileData.bytes!,
+            filename: fileData.name,
+            contentType: mediaType,
+          ),
+        );
+      } else {
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            'file',
+            fileData.path!,
+            contentType: mediaType,
+          ),
+        );
+      }
+
+      var response = await request.send();
+
+      if (response.statusCode == 200) {
+        setState(() {
+          isUploaded[documentType] = true;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$documentType uploaded successfully')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to upload $documentType')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error uploading $documentType: $e')),
+      );
+    } finally {
+      setState(() {
+        isUploading[documentType] = false;
       });
     }
   }
 
-  @override
+  // Form validation
+  void _validateForm() {
+    final isFormValid = isValid['Aadhaar'] == true;
+    widget.onValidationChanged?.call(isFormValid);
+  }
+
+   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-    icon: const Icon(Icons.arrow_back),
-    onPressed: () {
-      GoRouter.of(context).go(Routes.home);
-    },
-  ),
-        title: const Text('Upload Documents - India'),
-      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              _buildTextField('Aadhaar Card', 'Full Name', _aadhaarNameController),
-              _buildTextField('Aadhaar Card', 'Aadhaar Number', _aadhaarNumberController),
-              _buildTextField('Aadhaar Card', 'Address', _aadhaarAddressController),
-              _buildTextField('Aadhaar Card', 'Father\'s Name', _aadhaarFatherNameController),
-              _buildFileUpload('Aadhaar Card', 'Upload Aadhaar Document', _aadhaarFile),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildFileInputSection(
+              'Aadhaar',
+              '${ServerConfig.baseUrl}india/Aadhaar-card',
+            ),
+            _buildFileInputSection(
+              'Passport',
+              '${ServerConfig.baseUrl}india/passport',
+            ),
+            _buildFileInputSection(
+              'Driver License',
+              '${ServerConfig.baseUrl}india/drivers-license',
+            ),
+            _buildFileInputSection(
+              'Voter ID',
+              '${ServerConfig.baseUrl}india/voter-Id',
+            ),
+             _buildFileInputSection(
+              'PAN',
+              '${ServerConfig.baseUrl}/india/PANCard',
+            ),
+             _buildFileInputSection(
+              'Ration Card',
+              '${ServerConfig.baseUrl}india/rationCard',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-              _buildTextField('Passport', 'Passport Number', _passportNumberController),
-              _buildFileUpload('Passport', 'Upload Passport Document', _passportFile),
-
-              _buildTextField('Voter ID', 'Voter ID Number', _voterIdNumberController),
-              _buildFileUpload('Voter ID', 'Upload Voter ID Document', _voterIdFile),
-
-              _buildTextField('Driver License', 'Driver License Number', _driverLicenseNumberController),
-              _buildFileUpload('Driver License', 'Upload Driver License Document', _driverLicenseFile),
-
-              _buildTextField('PAN Card', 'PAN Number', _panNumberController),
-              _buildFileUpload('PAN Card', 'Upload PAN Card Document', _panCardFile),
-
-              _buildTextField('Ration Card', 'Ration Card Number', _rationCardNumberController),
-              _buildFileUpload('Ration Card', 'Upload Ration Card Document', _rationCardFile),
-
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16.0),
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      // Form submission logic
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Processing Data')),
-                      );
-                    }
-                  },
-                  child: const Text('Submit'),
+  // Method to build UI for each file input section
+  Widget _buildFileInputSection(String docType, String endpoint, {bool isRequired = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                docType,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
                 ),
+              ),
+              if (isRequired)
+                const Text(
+                  ' *',
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontSize: 16,
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: TextFormField(
+                  readOnly: true,
+                  onTap: isUploaded[docType]! ? null : () async {
+                    await _selectFile(docType);
+                  },
+                  decoration: InputDecoration(
+                    hintText: selectedFiles[docType] != null
+                        ? selectedFiles[docType]!.name
+                        : isRequired
+                            ? 'Required'
+                            : 'No file selected',
+                    hintStyle: TextStyle(
+                      color: selectedFiles[docType] != null ? Colors.black : Colors.grey,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton(
+                onPressed: isUploaded[docType]! ? null : () async {
+                  await _selectFile(docType);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isUploaded[docType]! ? Colors.grey : Colors.blue,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text('Choose File'),
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton(
+                onPressed: isUploading[docType]! || isUploaded[docType]!
+                    ? null
+                    : () => _uploadFile(docType, endpoint),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isUploading[docType]! || isUploaded[docType]!
+                      ? Colors.grey
+                      : Colors.green,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: isUploading[docType]!
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text('Upload'),
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  // Helper method to create text fields for input
-  Widget _buildTextField(String documentType, String label, TextEditingController controller) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: TextFormField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: label,
-          border: OutlineInputBorder(),
-        ),
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            return '$label is required';
-          }
-          return null;
-        },
-      ),
-    );
-  }
-
-  // Helper method to create a file upload button
-  Widget _buildFileUpload(String documentType, String label, File? file) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          ElevatedButton(
-            onPressed: () => _pickFile(documentType),
-            child: Text('Upload $documentType'),
-          ),
-          const SizedBox(width: 8),
-          Text(file != null ? 'File Selected' : 'No file selected'),
         ],
       ),
     );

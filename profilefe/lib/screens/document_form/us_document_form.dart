@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
-import 'package:http_parser/http_parser.dart'; // Add this import
+import 'package:http_parser/http_parser.dart';
 import 'package:flutter/foundation.dart';
 import '../../server_config.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -10,14 +10,14 @@ import 'package:go_router/go_router.dart';
 import '../../routes.dart';
 
 class USDocumentForm extends StatefulWidget {
-    USDocumentForm({Key? key}) : super(key: key);
+  final Function(bool)? onValidationChanged;
+  USDocumentForm({Key? key, this.onValidationChanged}) : super(key: key);
 
   @override
   _USDocumentFormState createState() => _USDocumentFormState();
 }
 
 class _USDocumentFormState extends State<USDocumentForm> {
-  // Map to store selected files or bytes for each document type
   Map<String, PlatformFile?> selectedFiles = {
     'Social Security Card': null,
     'Passport': null,
@@ -26,7 +26,6 @@ class _USDocumentFormState extends State<USDocumentForm> {
     'Green Card': null,
   };
 
-  // Map to store uploading state for each document type
   Map<String, bool> isUploading = {
     'Social Security Card': false,
     'Passport': false,
@@ -35,9 +34,17 @@ class _USDocumentFormState extends State<USDocumentForm> {
     'Green Card': false,
   };
 
-  // Map to store uploaded state for each document type
   Map<String, bool> isUploaded = {
     'Social Security Card': false,
+    'Passport': false,
+    'Driver License': false,
+    'Birth Certificate': false,
+    'Green Card': false,
+  };
+
+  // Map to track which documents are required
+  Map<String, bool> isRequired = {
+    'Social Security Card': true,  // Making this document required
     'Passport': false,
     'Driver License': false,
     'Birth Certificate': false,
@@ -47,7 +54,6 @@ class _USDocumentFormState extends State<USDocumentForm> {
   String? _token;
   static final _storage = FlutterSecureStorage();
 
-  // Load token
   Future<void> _loadToken() async {
     _token = await _storage.read(key: 'auth_token');
   }
@@ -55,21 +61,20 @@ class _USDocumentFormState extends State<USDocumentForm> {
   @override
   void initState() {
     super.initState();
-    _loadToken(); // Load token when the widget is initialized
+    _loadToken();
   }
 
-  // Method to select a file for a given document type with file type filter
   Future<void> _selectFile(String documentType) async {
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['jpg', 'png', 'pdf'], // Restrict to specific file types
+        allowedExtensions: ['jpg', 'png', 'pdf'],
       );
 
       if (result != null) {
         final file = result.files.first;
 
-        if (file.size <= 5 * 1024 * 1024) { // File size limit (5MB)
+        if (file.size <= 5 * 1024 * 1024) {
           setState(() {
             selectedFiles[documentType] = file;
           });
@@ -86,7 +91,6 @@ class _USDocumentFormState extends State<USDocumentForm> {
     }
   }
 
-  // Method to upload a file to the server
   Future<void> _uploadFile(String documentType, String endpoint) async {
     final fileData = selectedFiles[documentType];
     if (fileData == null) {
@@ -103,40 +107,36 @@ class _USDocumentFormState extends State<USDocumentForm> {
     try {
       var request = http.MultipartRequest('POST', Uri.parse(endpoint));
 
-      // Add the token to the headers
       request.headers['Authorization'] = 'Bearer $_token';
       request.headers['Content-Type'] = 'multipart/form-data';
-      MediaType mediaType; 
+      
+      MediaType mediaType;
       final extension = fileData.extension;
       if (extension == 'jpg' || extension == 'jpeg') {
-         mediaType = MediaType('image', 'jpeg');
-          } 
-          else if (extension == 'png') {
-             mediaType = MediaType('image', 'png'); 
-             }
-              else if (extension == 'pdf') {
-                 mediaType = MediaType('application', 'pdf'); 
-                 } 
-                 else {
-                   throw UnsupportedError('File type not supported. Only JPG, PNG, and PDF are allowed.'); 
-                   }
+        mediaType = MediaType('image', 'jpeg');
+      } else if (extension == 'png') {
+        mediaType = MediaType('image', 'png');
+      } else if (extension == 'pdf') {
+        mediaType = MediaType('application', 'pdf');
+      } else {
+        throw UnsupportedError('File type not supported. Only JPG, PNG, and PDF are allowed.');
+      }
+
       if (kIsWeb) {
-        // Web-specific handling: use bytes for file upload
         request.files.add(
           http.MultipartFile.fromBytes(
             'file',
             fileData.bytes!,
             filename: fileData.name,
-            contentType: mediaType, 
+            contentType: mediaType,
           ),
         );
       } else {
-        // Android/iOS specific handling: use file path for file upload
         request.files.add(
           await http.MultipartFile.fromPath(
             'file',
             fileData.path!,
-            contentType: mediaType, // Automatically handled by Flutter
+            contentType: mediaType,
           ),
         );
       }
@@ -166,63 +166,31 @@ class _USDocumentFormState extends State<USDocumentForm> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-    icon: const Icon(Icons.arrow_back),
-    onPressed: () {
-      GoRouter.of(context).go(Routes.home);
-    },
-  ),
-        title: const Text('US Document Form'),
-        backgroundColor: Colors.blueAccent,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildFileInputSection(
-              'Social Security Card',
-              '${ServerConfig.baseUrl}/us/social-security-card',
-            ),
-            _buildFileInputSection(
-              'Passport',
-              '${ServerConfig.baseUrl}us/passport',
-            ),
-            _buildFileInputSection(
-              'Driver License',
-              '${ServerConfig.baseUrl}us/drivers-license',
-            ),
-            _buildFileInputSection(
-              'Birth Certificate',
-              '${ServerConfig.baseUrl}us/birth-certificate',
-            ),
-            _buildFileInputSection(
-              'Green Card',
-              '${ServerConfig.baseUrl}us/green-card',
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Method to build UI for each file input section
   Widget _buildFileInputSection(String docType, String endpoint) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            docType,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
+          Row(
+            children: [
+              Text(
+                docType,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              if (isRequired[docType] == true)
+                const Text(
+                  ' *',
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+            ],
           ),
           const SizedBox(height: 8),
           Row(
@@ -231,7 +199,7 @@ class _USDocumentFormState extends State<USDocumentForm> {
                 child: TextFormField(
                   readOnly: true,
                   onTap: isUploaded[docType]! ? null : () async {
-                    await _selectFile(docType);  // Ensure file selection completes before interacting with the input
+                    await _selectFile(docType);
                   },
                   decoration: InputDecoration(
                     hintText: selectedFiles[docType] != null
@@ -244,13 +212,18 @@ class _USDocumentFormState extends State<USDocumentForm> {
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
+                    errorText: isRequired[docType] == true && 
+                             !isUploaded[docType]! && 
+                             selectedFiles[docType] == null
+                        ? 'This document is required'
+                        : null,
                   ),
                 ),
               ),
               const SizedBox(width: 8),
               ElevatedButton(
                 onPressed: isUploaded[docType]! ? null : () async {
-                  await _selectFile(docType);  // Ensure file selection completes before interacting with the button
+                  await _selectFile(docType);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: isUploaded[docType]! ? Colors.grey : Colors.blue,
@@ -287,6 +260,40 @@ class _USDocumentFormState extends State<USDocumentForm> {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildFileInputSection(
+              'Social Security Card',
+              '${ServerConfig.baseUrl}/us/social-security-card',
+            ),
+            _buildFileInputSection(
+              'Passport',
+              '${ServerConfig.baseUrl}us/passport',
+            ),
+            _buildFileInputSection(
+              'Driver License',
+              '${ServerConfig.baseUrl}us/drivers-license',
+            ),
+            _buildFileInputSection(
+              'Birth Certificate',
+              '${ServerConfig.baseUrl}us/birth-certificate',
+            ),
+            _buildFileInputSection(
+              'Green Card',
+              '${ServerConfig.baseUrl}us/green-card',
+            ),
+          ],
+        ),
       ),
     );
   }
