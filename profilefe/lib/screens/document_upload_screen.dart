@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/user.dart';
+import 'package:go_router/go_router.dart'; 
+import '../routes.dart';
 import 'document_form/india_document_form.dart';
 import 'document_form/us_document_form.dart';
 import 'document_form/uk_document_form.dart';
@@ -7,43 +9,32 @@ import 'document_form/australia_document_form.dart';
 import 'document_form/uae_document_form.dart';
 import 'document_form/china_document_form.dart';
 
-class DocumentUploadScreen extends StatefulWidget {
+class DocumentUploadScreen extends StatelessWidget {
   final User user;
 
-  // Removed 'const' constructor to make it work with GoRouter
   DocumentUploadScreen({Key? key, required this.user}) : super(key: key);
 
-  @override
-  State<DocumentUploadScreen> createState() => _DocumentUploadScreenState();
-}
-
-class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
-  late String country;
-
-  @override
-  void initState() {
-    super.initState();
-    country = widget.user.country!;
-  }
-
-  Widget navigateToDocumentForm() {
+  Widget _getFormForCountry(String country) {
     switch (country) {
       case 'India':
-        return  IndiaDocumentForm();
+        return IndiaDocumentForm();
       case 'United States':
-        return  USDocumentForm();
+        return USDocumentForm();
       case 'United Kingdom':
-        return  UKDocumentForm();
+        return UKDocumentForm();
       case 'Australia':
-      case 'New Zealand': 
-        return  AustraliaDocumentForm();
+      case 'New Zealand':
+        return AustraliaDocumentForm();
       case 'United Arab Emirates':
-        return  UAEDocumentForm();
+        return UAEDocumentForm();
       case 'China':
-        return  ChinaDocumentForm();
+        return ChinaDocumentForm();
       default:
-        return const Scaffold(
-          body: Center(child: Text('Document form is not available for this country.')),
+        return Center(
+          child: Text(
+            'Document form is not available for this country.',
+            style: TextStyle(fontSize: 16, color: Colors.red),
+          ),
         );
     }
   }
@@ -51,7 +42,26 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: navigateToDocumentForm(),
+      appBar: AppBar(
+        title: const Text('Document Upload'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+           onPressed: () {
+      GoRouter.of(context).go(Routes.home);
+    },
+        ),
+        backgroundColor: Colors.blueAccent,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 16),
+            Expanded(child: _getFormForCountry(user.country!)), // Embed the form here
+          ],
+        ),
+      ),
     );
   }
 }

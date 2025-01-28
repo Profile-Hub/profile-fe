@@ -684,7 +684,7 @@ Future<void> _selectImage() async {
         leading: IconButton(
     icon: const Icon(Icons.arrow_back),
     onPressed: () {
-      GoRouter.of(context).pop();
+       GoRouter.of(context).go(Routes.home);
     },
   ),
         title: const Text('Edit Profile'),

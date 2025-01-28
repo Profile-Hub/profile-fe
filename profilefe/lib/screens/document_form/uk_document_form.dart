@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
-import 'package:http_parser/http_parser.dart'; // Add this import
+import 'package:http_parser/http_parser.dart';
 import 'package:flutter/foundation.dart';
 import '../../server_config.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -10,7 +10,8 @@ import 'package:go_router/go_router.dart';
 import '../../routes.dart';
 
 class UKDocumentForm extends StatefulWidget {
-    UKDocumentForm({Key? key}) : super(key: key);
+  final Function(bool)? onValidationChanged;
+  UKDocumentForm({Key? key, this.onValidationChanged}) : super(key: key);
 
   @override
   _UKDocumentFormState createState() => _UKDocumentFormState();
@@ -22,16 +23,15 @@ class _UKDocumentFormState extends State<UKDocumentForm> {
     'Passport': null,
     'Drivers License': null,
     'Birth Certificate': null,
-    'Biometric Residence Permit':null,
+    'Biometric Residence Permit': null,
   };
-
 
   Map<String, bool> isUploading = {
     'National Insurance Number': false,
     'Passport': false,
     'Drivers License': false,
     'Birth Certificate': false,
-    'Biometric Residence Permit':false,
+    'Biometric Residence Permit': false,
   };
 
   Map<String, bool> isUploaded = {
@@ -39,13 +39,21 @@ class _UKDocumentFormState extends State<UKDocumentForm> {
     'Passport': false,
     'Drivers License': false,
     'Birth Certificate': false,
-    'Biometric Residence Permit':false,
+    'Biometric Residence Permit': false,
+  };
+
+  // Map to track which documents are required
+  Map<String, bool> isRequired = {
+    'National Insurance Number': true,  // Making this document required
+    'Passport': false,
+    'Drivers License': false,
+    'Birth Certificate': false,
+    'Biometric Residence Permit': false,
   };
 
   String? _token;
   static final _storage = FlutterSecureStorage();
 
-  // Load token
   Future<void> _loadToken() async {
     _token = await _storage.read(key: 'auth_token');
   }
@@ -53,15 +61,14 @@ class _UKDocumentFormState extends State<UKDocumentForm> {
   @override
   void initState() {
     super.initState();
-    _loadToken(); 
+    _loadToken();
   }
 
-  
   Future<void> _selectFile(String documentType) async {
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['jpg', 'png', 'pdf'], 
+        allowedExtensions: ['jpg', 'png', 'pdf'],
       );
 
       if (result != null) {
@@ -84,7 +91,6 @@ class _UKDocumentFormState extends State<UKDocumentForm> {
     }
   }
 
-  
   Future<void> _uploadFile(String documentType, String endpoint) async {
     final fileData = selectedFiles[documentType];
     if (fileData == null) {
@@ -101,40 +107,36 @@ class _UKDocumentFormState extends State<UKDocumentForm> {
     try {
       var request = http.MultipartRequest('POST', Uri.parse(endpoint));
 
-      // Add the token to the headers
       request.headers['Authorization'] = 'Bearer $_token';
       request.headers['Content-Type'] = 'multipart/form-data';
-      MediaType mediaType; 
+      
+      MediaType mediaType;
       final extension = fileData.extension;
       if (extension == 'jpg' || extension == 'jpeg') {
-         mediaType = MediaType('image', 'jpeg');
-          } 
-          else if (extension == 'png') {
-             mediaType = MediaType('image', 'png'); 
-             }
-              else if (extension == 'pdf') {
-                 mediaType = MediaType('application', 'pdf'); 
-                 } 
-                 else {
-                   throw UnsupportedError('File type not supported. Only JPG, PNG, and PDF are allowed.'); 
-                   }
+        mediaType = MediaType('image', 'jpeg');
+      } else if (extension == 'png') {
+        mediaType = MediaType('image', 'png');
+      } else if (extension == 'pdf') {
+        mediaType = MediaType('application', 'pdf');
+      } else {
+        throw UnsupportedError('File type not supported. Only JPG, PNG, and PDF are allowed.');
+      }
+
       if (kIsWeb) {
-       
         request.files.add(
           http.MultipartFile.fromBytes(
             'file',
             fileData.bytes!,
             filename: fileData.name,
-            contentType: mediaType, 
+            contentType: mediaType,
           ),
         );
       } else {
-        // Android/iOS specific handling: use file path for file upload
         request.files.add(
           await http.MultipartFile.fromPath(
             'file',
             fileData.path!,
-            contentType: mediaType, 
+            contentType: mediaType,
           ),
         );
       }
@@ -164,63 +166,31 @@ class _UKDocumentFormState extends State<UKDocumentForm> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-    icon: const Icon(Icons.arrow_back),
-    onPressed: () {
-      GoRouter.of(context).go(Routes.home);
-    },
-  ),
-        title: const Text('UK Document Form'),
-        backgroundColor: Colors.blueAccent,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildFileInputSection(
-              'National Insurance Number',
-              '${ServerConfig.baseUrl}uk/national-insurance-number',
-            ),
-            _buildFileInputSection(
-              'Passport',
-              '${ServerConfig.baseUrl}uk/passport',
-            ),
-            _buildFileInputSection(
-              'Drivers License',
-              '${ServerConfig.baseUrl}uk/drivers-license',
-            ),
-            _buildFileInputSection(
-              'Birth Certificate',
-              '${ServerConfig.baseUrl}uk/birth-certificate',
-            ),
-            _buildFileInputSection(
-              'Biometric Residence Permit',
-              '${ServerConfig.baseUrl}uk/biometric-residence-permit',
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-
   Widget _buildFileInputSection(String docType, String endpoint) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            docType,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
+          Row(
+            children: [
+              Text(
+                docType,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              if (isRequired[docType] == true)
+                const Text(
+                  ' *',
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+            ],
           ),
           const SizedBox(height: 8),
           Row(
@@ -229,7 +199,7 @@ class _UKDocumentFormState extends State<UKDocumentForm> {
                 child: TextFormField(
                   readOnly: true,
                   onTap: isUploaded[docType]! ? null : () async {
-                    await _selectFile(docType);  
+                    await _selectFile(docType);
                   },
                   decoration: InputDecoration(
                     hintText: selectedFiles[docType] != null
@@ -242,13 +212,18 @@ class _UKDocumentFormState extends State<UKDocumentForm> {
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
+                    errorText: isRequired[docType] == true && 
+                             !isUploaded[docType]! && 
+                             selectedFiles[docType] == null
+                        ? 'This document is required'
+                        : null,
                   ),
                 ),
               ),
               const SizedBox(width: 8),
               ElevatedButton(
                 onPressed: isUploaded[docType]! ? null : () async {
-                  await _selectFile(docType);  
+                  await _selectFile(docType);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: isUploaded[docType]! ? Colors.grey : Colors.blue,
@@ -285,6 +260,40 @@ class _UKDocumentFormState extends State<UKDocumentForm> {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildFileInputSection(
+              'National Insurance Number',
+              '${ServerConfig.baseUrl}uk/national-insurance-number',
+            ),
+            _buildFileInputSection(
+              'Passport',
+              '${ServerConfig.baseUrl}uk/passport',
+            ),
+            _buildFileInputSection(
+              'Drivers License',
+              '${ServerConfig.baseUrl}uk/drivers-license',
+            ),
+            _buildFileInputSection(
+              'Birth Certificate',
+              '${ServerConfig.baseUrl}uk/birth-certificate',
+            ),
+            _buildFileInputSection(
+              'Biometric Residence Permit',
+              '${ServerConfig.baseUrl}uk/biometric-residence-permit',
+            ),
+          ],
+        ),
       ),
     );
   }

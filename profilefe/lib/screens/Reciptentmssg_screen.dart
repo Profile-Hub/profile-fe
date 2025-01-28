@@ -211,7 +211,7 @@ void openChat(BuildContext context, Map<String, dynamic> donor) {
               controller: _searchController,
               onChanged: _filterConversations,
               decoration: InputDecoration(
-                hintText: "Search senders...",
+                hintText: "Search Donors",
                 prefixIcon: Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -228,8 +228,8 @@ void openChat(BuildContext context, Map<String, dynamic> donor) {
                         ? Center(
                             child: Text(
                               _searchController.text.isEmpty
-                                  ? 'No senders found'
-                                  : 'No matching senders',
+                                  ? 'No donors found'
+                                  : 'No matching donors',
                               style: TextStyle(color: Colors.grey[600]),
                             ),
                           )

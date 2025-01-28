@@ -80,7 +80,8 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Please complete the following fields in your profile:'),
+              const Text('To become a verified user, please:'),
+              const Text('Complete the following profile fields and Upload required verification documents'),
               const SizedBox(height: 16),
               ...missingFields.map((field) => Padding(
                 padding: const EdgeInsets.only(left: 16, bottom: 8),
@@ -98,17 +99,39 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           actions: [
-            TextButton(
-             onPressed: () => GoRouter.of(context).pop(),  
-             child: const Text('Cancel'), 
+           Column(
+            mainAxisAlignment: MainAxisAlignment.start, // Adjust alignment (spaceEvenly, spaceAround, start, end, etc.)
+            children: [
+              TextButton(
+                onPressed: () => GoRouter.of(context).pop(),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  GoRouter.of(context).pop(); 
+                  GoRouter.of(context).go(Routes.documentUpload, extra: currentUser);
+                },
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.upload_file),
+                    SizedBox(width: 8),
+                    Text('Upload Documents'),
+                  ],
                 ),
-           ElevatedButton(
-            onPressed: () {
-            GoRouter.of(context).pop();  
-                   _navigateToEditProfile();    
-                   },
-                  child: const Text('Complete Profile'),  
-                   ),
+              ),
+              TextButton(
+                onPressed: () {
+                  GoRouter.of(context).pop();
+                 GoRouter.of(context).go(
+    Routes.editProfile,
+    extra: currentUser);
+                },
+                child: const Text('Complete Profile'),
+              ),
+            ],
+          ),
+
           ],
         );
       },
@@ -228,91 +251,64 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         title: const Text(''),
         centerTitle: true,
-      actions: [
-        if (currentUser.usertype == 'donor')
-          Row(
-            children: [
-              Text(
-                'Chat',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              IconButton(
-                icon: Stack(
-                  children: [
-                    const Icon(Icons.message),
-                    if (unreadMessagesCount > 0)
-                      Positioned(
-                        right: 0,
-                        top: 0,
-                        child: CircleAvatar(
-                          radius: 8,
-                          backgroundColor: Colors.red,
-                          child: Text(
-                            '$unreadMessagesCount',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+        actions: [
+          if (currentUser.usertype == 'donor' || currentUser.usertype == 'recipient')
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'Chat',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(width: 4), // Space between text and icon
+                  IconButton(
+                    icon: Stack(
+                      children: [
+                        const Icon(Icons.message),
+                        if (unreadMessagesCount > 0)
+                          Positioned(
+                            right: 0,
+                            top: 0,
+                            child: CircleAvatar(
+                              radius: 8,
+                              backgroundColor: Colors.red,
+                              child: Text(
+                                '$unreadMessagesCount',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                      ),
-                  ],
-                ),
-                onPressed: () {
-                  GoRouter.of(context).go(Routes.senderscreen);
-                },
+                      ],
+                    ),
+                    onPressed: () {
+                      GoRouter.of(context).go(
+                        currentUser.usertype == 'donor' 
+                          ? Routes.senderscreen 
+                          : Routes.recipientMssgscreen
+                      );
+                    },
+                  ),
+                ],
               ),
-            ],
+            ),
+            
+          Padding(
+            padding: const EdgeInsets.only(right: 20.0),
+            child: IconButton(
+              icon: const Icon(Icons.person),
+              onPressed: _navigateToEditProfile,
+            ),
           ),
-        if (currentUser.usertype == 'recipient')
-          Row(
-            children: [
-              Text(
-                'Chat',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              IconButton(
-                icon: Stack(
-                  children: [
-                    const Icon(Icons.message),
-                    if (unreadMessagesCount > 0)
-                      Positioned(
-                        right: 0,
-                        top: 0,
-                        child: CircleAvatar(
-                          radius: 8,
-                          backgroundColor: Colors.red,
-                          child: Text(
-                            '$unreadMessagesCount',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-                onPressed: () {
-                  GoRouter.of(context).go(Routes.recipientMssgscreen);
-                },
-              ),
-            ],
-          ),
-        // Profile Icon
-        IconButton(
-          icon: const Icon(Icons.person),
-          onPressed: _navigateToEditProfile,
-        ),
-      ],
+        ],
       ),
       drawer: Drawer(
         child: Column(
