@@ -77,6 +77,7 @@ class DonorCard extends StatelessWidget {
                 _buildInfoRow('Country', donor.country ?? 'N/A'),
               ],
             ),
+             _buildInfoRow('BloodGroup', donor.bloodGroup ?? 'N/A'),
             _buildOrganDonationsRow(donor.organDonations),
           ],
         ),
