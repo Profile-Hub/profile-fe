@@ -12,6 +12,7 @@ class Doner {
   final String? state;
   final String? country;
   final String? usertype;
+  final String? bloodGroup;
   final String id;
   final List<String>? organDonations;
 
@@ -27,6 +28,7 @@ class Doner {
     this.state,
     this.country,
     this.usertype,
+    this.bloodGroup,
     required this.id,
     this.organDonations,
   });
@@ -43,6 +45,7 @@ class Doner {
       city: json['city'],
       state: json['state'],
       country: json['country'],
+      bloodGroup: json['bloodGroup'],
       usertype: json['usertype'],
       id: json['id'] ?? 'default_id',
       organDonations: (json['organDonations'] as List<dynamic>?)

@@ -77,33 +77,39 @@ class _ProfileAvatarState extends State<ProfileAvatar> {
     }
   }
 
-  Widget _getProfileImage() {
-    if (isLoadingNetworkImage) {
-      return Center(
-        child: CircularProgressIndicator(
-          strokeWidth: 3,
-          color: Theme.of(context).primaryColor,
-        ),
-      );
-    }
-    
-    if (_cachedNetworkImage != null) {
-      return ClipOval(
-        child: Image.memory(
-          _cachedNetworkImage!,
-          fit: BoxFit.cover,
-          width: widget.radius * 2,
-          height: widget.radius * 2,
-        ),
-      );
-    }
-    
-    return Icon(
-      Icons.person,
-      size: widget.radius,
-      color: Colors.white,
+Widget _getProfileImage() {
+  if (isLoadingNetworkImage) {
+    return Center(
+      child: CircularProgressIndicator(
+        strokeWidth: 3,
+        color: Theme.of(context).primaryColor,
+      ),
     );
   }
+  if (_cachedNetworkImage != null && _cachedNetworkImage!.isNotEmpty) {
+    return ClipOval(
+      child: Image.memory(
+        _cachedNetworkImage!,
+        fit: BoxFit.cover,
+        width: widget.radius * 2,
+        height: widget.radius * 2,
+        errorBuilder: (context, error, stackTrace) {
+          return Icon(
+            Icons.person,  
+            size: widget.radius,  
+            color: Colors.white, 
+          );
+        },
+      ),
+    );
+  }
+  return Icon(
+    Icons.person,  
+    size: widget.radius,  
+    color: Colors.white, 
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {

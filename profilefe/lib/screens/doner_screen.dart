@@ -145,7 +145,7 @@ Widget build(BuildContext context) {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               SizedBox(
-                width: MediaQuery.of(context).size.width * 0.7, // Reduced width to 70% of screen
+                width: MediaQuery.of(context).size.width * 0.55, // Reduced width to 70% of screen
                 child: TextField(
                   onChanged: _handleSearch,
                   decoration: InputDecoration(

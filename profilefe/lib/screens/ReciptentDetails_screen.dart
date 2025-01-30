@@ -62,11 +62,16 @@ class RecipitentDetailPage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Center(
-                        child: CircleAvatar(
-                          backgroundImage: NetworkImage("${recipient.avatar!.url}"),
-                          radius: 50,
-                        ),
-                      ),
+  child: CircleAvatar(
+    backgroundImage: (recipient.avatar?.url != null && recipient.avatar!.url.isNotEmpty)
+        ? NetworkImage(recipient.avatar!.url)
+        : null,
+    radius: 50,
+    child: (recipient.avatar?.url == null || recipient.avatar!.url.isEmpty)
+        ? Icon(Icons.account_circle, size: 50)
+        : null,
+  ),
+),
                       const SizedBox(height: 20),
                       Text(
                         'Name: ${recipient.firstname} ${recipient.lastname}',
@@ -82,134 +87,7 @@ class RecipitentDetailPage extends StatelessWidget {
                       Text('Country: ${recipient.country ?? 'N/A'}'),
                       Text('Blood Group: ${recipient.bloodGroup ?? 'N/A'}'),
                       const SizedBox(height: 20),
-                      FutureBuilder<List<Document>>(
-                        future: fetchDonorDocuments(recipientId, recipient.country ?? ''),
-                        builder: (context, docSnapshot) {
-                          if (docSnapshot.connectionState == ConnectionState.waiting) {
-                            return const Center(child: CircularProgressIndicator());
-                          } else if (docSnapshot.hasError) {
-                            return Center(
-              child: Card(
-                margin: const EdgeInsets.symmetric(horizontal: 20),
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.insert_drive_file,
-                        size: 48,
-                        color: Colors.red,
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'No document are available.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.blue, fontSize: 16),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-                          } else if (!docSnapshot.hasData || docSnapshot.data!.isEmpty) {
-                            return Center(
-              child: Card(
-                margin: const EdgeInsets.symmetric(horizontal: 20),
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.insert_drive_file,
-                        size: 48,
-                        color: Colors.grey,
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'No document are available.',
-                        style: TextStyle(fontSize: 16, color: Colors.blue),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-                          } else {
-                            final documents = docSnapshot.data!;
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Donor Documents',
-                                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                                ),
-                                ListView.builder(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemCount: documents.length,
-                                  itemBuilder: (context, index) {
-                                    final document = documents[index];
-                                    final documentFiles = document.files?.entries
-                                            .where((entry) => entry.value.isNotEmpty)
-                                            .toList() ??
-                                        [];
-
-                                    return documentFiles.isNotEmpty
-                                        ? Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              const SizedBox(height: 10),
-                                              ...documentFiles.map((fileEntry) {
-                                                final fileName = fileEntry.key.split('/').last;
-                                                final fileValue = fileEntry.value.split('/').last;
-                                                return GestureDetector(
-                                                  onTap: () {
-                                                    _openDocument(fileEntry.value);
-                                                  },
-                                                  child: Row(
-                                                    mainAxisAlignment: MainAxisAlignment.start,
-                                                    children: [
-                                                      Expanded(
-                                                        child: RichText(
-                                                          text: TextSpan(
-                                                            children: [
-                                                              TextSpan(
-                                                                text: '$fileName: ',
-                                                                style: const TextStyle(fontSize: 16, color: Colors.black),
-                                                              ),
-                                                              TextSpan(
-                                                                text: fileValue,
-                                                                style: const TextStyle(fontSize: 16, color: Colors.black),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                      ),
-                                                      const SizedBox(width: 10),
-                                                      const Icon(Icons.image, color: Colors.blue),
-                                                    ],
-                                                  ),
-                                                );
-                                              }).toList(),
-                                              const SizedBox(height: 20),
-                                            ],
-                                          )
-                                        : const SizedBox.shrink();
-                                  },
-                                  
-                                ),
-                                const SizedBox(height: 20),
-Center(
+                     Center(
   child: Container(
     width: double.infinity, 
     padding: const EdgeInsets.symmetric(horizontal: 20), 
@@ -249,11 +127,6 @@ Center(
     ),
   ),
 ),
-                              ],
-                            );
-                          }
-                        },
-                      ),
                     ],
                   ),
                 ),
