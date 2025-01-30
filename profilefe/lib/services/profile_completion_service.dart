@@ -3,15 +3,16 @@ import 'package:http/http.dart' as http;
 import '../server_config.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class ProfileCompletionResponse {
-  
   final bool success;
   final bool notify;
   final List<String> missingFields;
+  final List<String> missingDocuments; 
 
   ProfileCompletionResponse({
     required this.success,
     required this.notify,
     required this.missingFields,
+    required this.missingDocuments, 
   });
 
   factory ProfileCompletionResponse.fromJson(Map<String, dynamic> json) {
@@ -19,9 +20,12 @@ class ProfileCompletionResponse {
       success: json['success'] ?? false,
       notify: json['notify'] ?? false,
       missingFields: List<String>.from(json['missingFields'] ?? []),
+      missingDocuments: List<String>.from(json['missingDocuments'] ?? []), 
     );
   }
 }
+
+
 
 class ProfileCompletionService {
   final String baseUrl = ServerConfig.baseUrl;

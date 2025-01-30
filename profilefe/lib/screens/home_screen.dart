@@ -48,95 +48,112 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _checkProfileCompletion() async {
+Future<void> _checkProfileCompletion() async {
     try {
-      final response = await _profileCompletionService.checkProfileCompletion();
-      
-      if( currentUser.usertype != 'Admin'){
-      if (response.success && response.notify && context.mounted) {
-        _showProfileCompletionDialog(response.missingFields);
-      }
-      }
+        final response = await _profileCompletionService.checkProfileCompletion();
+
+        if (currentUser.usertype != 'Admin') {
+            if (response.success && response.notify && context.mounted) {
+                _showProfileCompletionDialog(response.missingFields, response.missingDocuments);
+            }
+        }
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error checking profile completion: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+        if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                    content: Text('Error checking profile completion: $e'),
+                    backgroundColor: Colors.red,
+                ),
+            );
+        }
     }
-  }
+}
 
-  void _showProfileCompletionDialog(List<String> missingFields) {
+void _showProfileCompletionDialog(List<String> missingFields, List<String> missingDocuments) {
+   
+
     showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Complete Your Profile'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('To become a verified user, please:'),
-              const Text('Complete the following profile fields and Upload required verification documents'),
-              const SizedBox(height: 16),
-              ...missingFields.map((field) => Padding(
-                padding: const EdgeInsets.only(left: 16, bottom: 8),
-                child: Row(
-                  children: [
-                    const Icon(Icons.arrow_right, size: 20),
-                    const SizedBox(width: 8),
-                    Text(
-                      field,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+            return AlertDialog(
+                title: const Text('Complete Your Profile'),
+                content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                        if (missingFields.isNotEmpty || missingDocuments.isNotEmpty)
+                            const Text('To become a verified user, please:'),
+                        if (missingFields.isNotEmpty)
+                            const Text('Complete the following profile fields:'),
+                        ...missingFields.map((field) => Padding(
+                            padding: const EdgeInsets.only(left: 16, bottom: 8),
+                            child: Row(
+                                children: [
+                                    const Icon(Icons.arrow_right, size: 20),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                        (field),
+                                        style: const TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                ],
+                            ),
+                        )),
+                        if (missingDocuments.isNotEmpty)
+                            const Text('Upload the following required documents:'),
+                        ...missingDocuments.map((doc) => Padding(
+                            padding: const EdgeInsets.only(left: 16, bottom: 8),
+                            child: Row(
+                                children: [
+                                    const Icon(Icons.arrow_right, size: 20),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                        (doc),
+                                        style: const TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                ],
+                            ),
+                        )),
+                    ],
+                ),
+                actions: [
+                    Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                            TextButton(
+                                onPressed: () => GoRouter.of(context).pop(),
+                                child: const Text('Cancel'),
+                            ),
+                            if (missingDocuments.isNotEmpty)
+                                TextButton(
+                                    onPressed: () {
+                                        GoRouter.of(context).pop();
+                                        GoRouter.of(context).go(Routes.documentUpload, extra: currentUser);
+                                    },
+                                    child: const Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                            Icon(Icons.upload_file),
+                                            SizedBox(width: 8),
+                                            Text('Upload Documents'),
+                                        ],
+                                    ),
+                                ),
+                            if (missingFields.isNotEmpty)
+                                TextButton(
+                                    onPressed: () {
+                                        GoRouter.of(context).pop();
+                                        GoRouter.of(context).go(Routes.editProfile, extra: currentUser);
+                                    },
+                                    child: const Text('Complete Profile'),
+                                ),
+                        ],
                     ),
-                  ],
-                ),
-              )),
-            ],
-          ),
-          actions: [
-           Column(
-            mainAxisAlignment: MainAxisAlignment.start, // Adjust alignment (spaceEvenly, spaceAround, start, end, etc.)
-            children: [
-              TextButton(
-                onPressed: () => GoRouter.of(context).pop(),
-                child: const Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () {
-                  GoRouter.of(context).pop(); 
-                  GoRouter.of(context).go(Routes.documentUpload, extra: currentUser);
-                },
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.upload_file),
-                    SizedBox(width: 8),
-                    Text('Upload Documents'),
-                  ],
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  GoRouter.of(context).pop();
-                 GoRouter.of(context).go(
-    Routes.editProfile,
-    extra: currentUser);
-                },
-                child: const Text('Complete Profile'),
-              ),
-            ],
-          ),
-
-          ],
-        );
-      },
+                ],
+            );
+        },
     );
-  }
+}
 
   Future<void> _navigateToEditProfile() async {
   final result = await GoRouter.of(context).push<User>(
