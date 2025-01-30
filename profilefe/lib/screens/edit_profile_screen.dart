@@ -407,13 +407,15 @@ Future<void> _selectImage() async {
   Widget _buildProfileImage() {
     return Stack(
       children: [
-        CircleAvatar(
-          radius: 60,
-          backgroundColor: Colors.grey[300],
-          child: isImageUploading
-              ? const CircularProgressIndicator()
-              : _getProfileImage(),
-        ),
+       CircleAvatar(
+  radius: 60,
+  backgroundColor: Colors.grey[300],
+  child: isImageUploading
+      ? const CircularProgressIndicator()
+      : (widget.user.avatar?.url.isEmpty ?? true
+          ? const Icon(Icons.account_circle, size: 60, color: Colors.grey)
+          : _getProfileImage()),
+),
         Positioned(
           bottom: 0,
           right: 0,

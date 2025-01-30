@@ -61,12 +61,17 @@ class DonorDetailPage extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Center(
-                        child: CircleAvatar(
-                          backgroundImage: NetworkImage("${donor.avatar!.url}"),
-                          radius: 50,
-                        ),
-                      ),
+                     Center(
+  child: CircleAvatar(
+    backgroundImage: (donor.avatar?.url != null && donor.avatar!.url.isNotEmpty)
+        ? NetworkImage(donor.avatar!.url)
+        : null,
+    radius: 50,
+    child: (donor.avatar?.url == null || donor.avatar!.url.isEmpty)
+        ? Icon(Icons.account_circle, size: 50)
+        : null,
+  ),
+),
                       const SizedBox(height: 20),
                       Text(
                         'Name: ${donor.firstname} ${donor.lastname}',
@@ -158,62 +163,57 @@ class DonorDetailPage extends StatelessWidget {
                                   'Donor Documents',
                                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                                 ),
-                                ListView.builder(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemCount: documents.length,
-                                  itemBuilder: (context, index) {
-                                    final document = documents[index];
-                                    final documentFiles = document.files?.entries
-                                            .where((entry) => entry.value.isNotEmpty)
-                                            .toList() ??
-                                        [];
+                               ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: documents.length,
+            itemBuilder: (context, index) {
+              final document = documents[index];
+              final documentFiles = document.files?.entries
+                      .where((entry) => entry.value.isNotEmpty)
+                      .toList() ??
+                  [];
 
-                                    return documentFiles.isNotEmpty
-                                        ? Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              const SizedBox(height: 10),
-                                              ...documentFiles.map((fileEntry) {
-                                                final fileName = fileEntry.key.split('/').last;
-                                                final fileValue = fileEntry.value.split('/').last;
-                                                return GestureDetector(
-                                                  onTap: () {
-                                                    _openDocument(fileEntry.value);
-                                                  },
-                                                  child: Row(
-                                                    mainAxisAlignment: MainAxisAlignment.start,
-                                                    children: [
-                                                      Expanded(
-                                                        child: RichText(
-                                                          text: TextSpan(
-                                                            children: [
-                                                              TextSpan(
-                                                                text: '$fileName: ',
-                                                                style: const TextStyle(fontSize: 16, color: Colors.black),
-                                                              ),
-                                                              TextSpan(
-                                                                text: fileValue,
-                                                                style: const TextStyle(fontSize: 16, color: Colors.black),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                      ),
-                                                      const SizedBox(width: 10),
-                                                      const Icon(Icons.image, color: Colors.blue),
-                                                    ],
-                                                  ),
-                                                );
-                                              }).toList(),
-                                              const SizedBox(height: 20),
-                                            ],
-                                          )
-                                        : const SizedBox.shrink();
-                                  },
-                                  
-                                ),
-                                const SizedBox(height: 20),
+              return documentFiles.isNotEmpty
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 10),
+                        ...documentFiles.map((fileEntry) {
+                          final fileName = fileEntry.key.split('/').last;
+                         return Row(
+  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  children: [
+    Expanded(
+      child: Text(
+        fileName,
+        style: const TextStyle(fontSize: 16, color: Colors.black),
+        overflow: TextOverflow.ellipsis,
+      ),
+    ),
+    const SizedBox(width: 10), 
+    Padding(
+      padding: const EdgeInsets.only(top: 9.0), // Add space above the button
+      child: ElevatedButton(
+        onPressed: () => _openDocument(fileEntry.value),
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 4), 
+          textStyle: const TextStyle(fontSize: 14), 
+        ),
+        child: const Text('Preview'),
+      ),
+    ),
+  ],
+);
+
+                        }).toList(),
+                        const SizedBox(height: 10),
+                      ],
+                    )
+                  : const SizedBox.shrink();
+            },
+          ),
+                                const SizedBox(height: 10),
 Center(
   child: Container(
     width: double.infinity, 

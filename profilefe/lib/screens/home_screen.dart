@@ -104,14 +104,19 @@ void _showProfileCompletionDialog(List<String> missingFields, List<String> missi
                         ...missingDocuments.map((doc) => Padding(
                             padding: const EdgeInsets.only(left: 16, bottom: 8),
                             child: Row(
-                                children: [
-                                    const Icon(Icons.arrow_right, size: 20),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                        (doc),
-                                        style: const TextStyle(fontWeight: FontWeight.bold),
-                                    ),
-                                ],
+                               children: [
+  const Icon(Icons.arrow_right, size: 20),
+  const SizedBox(width: 8),
+  Expanded(
+    child: Text(
+      doc,
+      style: const TextStyle(fontWeight: FontWeight.bold),
+      overflow: TextOverflow.ellipsis, 
+      maxLines: 1, 
+    ),
+  ),
+],
+
                             ),
                         )),
                     ],
