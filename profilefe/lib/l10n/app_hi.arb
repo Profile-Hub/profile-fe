@@ -1,0 +1,47 @@
+{
+    "appTitle": "नीड ए डोनर",
+    "@appTitle": {
+        "description": "The title of the application"
+    },
+    "welcomeBack": "वापसी पर स्वागत है",
+    "@welcomeBack": {
+        "description": "Welcome message shown on the login screen"
+    },
+    "email": "ईमेल",
+    "@email": {
+        "description": "Label for email input field"
+    },
+    "enterEmail": "कृपया अपना ईमेल दर्ज करें",
+    "@enterEmail": {
+        "description": "Hint text for email input field"
+    },
+    "password": "पासवर्ड",
+    "@password": {
+        "description": "Label for password input field"
+    },
+    "enterPassword": "कृपया अपना पासवर्ड दर्ज करें",
+    "@enterPassword": {
+        "description": "Hint text for password input field"
+    },
+    "login": "लॉग इन करें",
+    "@login": {
+        "description": "Text for login button"
+    },
+    "forgotPassword": "पासवर्ड भूल गए?",
+    "@forgotPassword": {
+        "description": "Text for forgot password link"
+    },
+    "noAccount": "खाता नहीं है? ",
+    "@noAccount": {
+        "description": "Text asking if user doesn't have an account"
+    },
+    "signUp": "साइन अप करें",
+    "@signUp": {
+        "description": "Text for sign up link/button"
+    },
+    "errorMessage": "एक त्रुटि हुई। कृपया पुनः प्रयास करें।",
+    "@errorMessage": {
+        "description": "Generic error message shown when an operation fails"
+    },
+    "orContinueWith":"या जारी रखें"
+}

@@ -1,0 +1,17 @@
+{
+     "appTitle": "Need a Donor",
+    "@appTitle": {
+        "description": "The title of the application"
+    },
+  "welcomeBack": "Welcome Back",
+  "email": "Email",
+  "enterEmail": "Please enter your email",
+  "password": "Password",
+  "enterPassword": "Please enter your password",
+  "login": "Login",
+  "forgotPassword": "Forgot Password?",
+  "noAccount": "Don't have an account? ",
+  "signUp": "Sign Up",
+  "errorMessage": "An error occurred. Please try again.",
+  "orContinueWith":"or continue with"
+}

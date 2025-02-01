@@ -10,6 +10,8 @@ import '../routes.dart';
 import 'package:go_router/go_router.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:universal_html/html.dart' as html;
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../providers/language_provider.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -20,7 +22,16 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   late AnimationController _animationController;
   final _storage = const FlutterSecureStorage();
   bool _isLoading = true;
+  bool _isLanguageSelected = false;
   String? _errorMessage;
+
+  String _getLanguageName(String languageCode) {
+    switch (languageCode) {
+      case 'en': return 'English';
+      case 'hi': return 'हिंदी';
+      default: return languageCode;
+    }
+  }
 
   @override
   void initState() {
@@ -29,7 +40,21 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       vsync: this,
       duration: const Duration(seconds: 2),
     );
-    _initializeApp();
+    _checkLanguageAndInitialize();
+  }
+
+  void _checkLanguageAndInitialize() {
+    final languageProvider = Provider.of<LanguageProvider>(context, listen: false);
+    if (languageProvider.currentLocale != null) {
+      setState(() {
+        _isLanguageSelected = true;
+      });
+      _initializeApp();
+    } else {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -47,7 +72,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     LocationPermission permission;
 
     try {
-      // Check if location services are enabled
       serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         setState(() {
@@ -56,9 +80,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         return false;
       }
 
-      // Platform specific checks
       if (UniversalPlatform.isIOS) {
-        // iOS specific location check
         permission = await Geolocator.checkPermission();
         if (permission == LocationPermission.denied) {
           permission = await Geolocator.requestPermission();
@@ -70,7 +92,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           }
         }
       } else if (UniversalPlatform.isAndroid) {
-        // Android specific location check
         permission = await Geolocator.checkPermission();
         if (permission == LocationPermission.denied) {
           permission = await Geolocator.requestPermission();
@@ -130,28 +151,22 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       Position position;
       
       if (kIsWeb) {
-        // Web specific implementation
         position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.medium,
         );
       } else if (UniversalPlatform.isIOS) {
-        // iOS specific implementation
         position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.best,
           timeLimit: const Duration(seconds: 5),
         );
       } else {
-        // Android implementation
         position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high,
         );
       }
 
-      // Store location in secure storage
       await _storage.write(key: 'user_latitude', value: position.latitude.toString());
       await _storage.write(key: 'user_longitude', value: position.longitude.toString());
-      
-      // Store platform information
       await _storage.write(key: 'platform', value: _getPlatformName());
     } catch (e) {
       setState(() {
@@ -169,19 +184,21 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   }
 
   Future<void> _initializeApp() async {
+    if (!_isLanguageSelected) {
+      return;
+    }
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
 
     try {
-      // Start the animation
       _animationController.forward();
 
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final userProvider = Provider.of<UserProvider>(context, listen: false);
 
-      // Initialize location and auth in parallel
       await Future.wait([
         _getCurrentLocation(),
         authProvider.initialize(),
@@ -206,7 +223,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     }
   }
 
-   Widget _buildLoadingIndicator() {
+  Widget _buildLoadingIndicator() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -270,23 +287,103 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     );
   }
 
+  Widget _buildLanguageSelector() {
+    return Consumer<LanguageProvider>(
+      builder: (context, languageProvider, child) {
+        return DropdownButton<Locale>(
+          value: languageProvider.currentLocale,
+          dropdownColor: Colors.white,
+          items: LanguageProvider.supportedLocales.map((Locale locale) {
+            return DropdownMenuItem(
+              value: locale,
+              child: Text(
+                _getLanguageName(locale.languageCode),
+                style: TextStyle(
+                  color: languageProvider.currentLocale == locale 
+                    ? Colors.blue 
+                    : Colors.black,
+                ),
+              ),
+            );
+          }).toList(),
+          onChanged: (Locale? newLocale) {
+            if (newLocale != null) {
+              languageProvider.setLanguage(newLocale);
+              setState(() {
+                _isLanguageSelected = true;
+              });
+              _initializeApp();
+            }
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              const Color.fromARGB(255, 58, 151, 250), // Bright doctor-blue theme
-              const Color.fromARGB(255, 36, 144, 245), // Deeper blue
+              Color.fromARGB(255, 58, 151, 250),
+              Color.fromARGB(255, 36, 144, 245),
             ],
           ),
         ),
         child: SafeArea(
-          child: Center(
-            child: _buildLoadingIndicator(),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Align(
+                  alignment: Alignment.topRight,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.9),
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (!_isLanguageSelected)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8.0),
+                            child: Text(
+                              'Select Language / भाषा चुनें',
+                              style: TextStyle(
+                                color: Colors.black87,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        _buildLanguageSelector(),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              
+              Expanded(
+                child: Center(
+                  child: !_isLanguageSelected
+                    ? Container()
+                    : _buildLoadingIndicator(),
+                ),
+              ),
+            ],
           ),
         ),
       ),

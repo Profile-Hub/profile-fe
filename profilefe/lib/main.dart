@@ -29,6 +29,8 @@ import  'screens/sendermssg_screen.dart';
 import  'screens/Reciptentmssg_screen.dart';
 import   'screens/ReciptentDetails_screen.dart';
 import   'screens/DocumentVerify_screen.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'providers/language_provider.dart';
 
 final secureStorage = FlutterSecureStorage();
 
@@ -39,6 +41,9 @@ void main() async {
   
   final userProvider = UserProvider();
   await userProvider.initializeFromSecureStorage();
+  final languageProvider = LanguageProvider();
+  await languageProvider.initializeLanguage();
+
 
   final router = GoRouter(
     debugLogDiagnostics: true, 
@@ -268,6 +273,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => userProvider),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+         ChangeNotifierProvider(create: (_) => languageProvider),
       ],
       child: MainApp(router: router),
     ),
@@ -282,14 +288,23 @@ class MainApp extends StatelessWidget {
     required this.router,
   }) : super(key: key);
 
-  @override
+ @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: 'Need a Donor',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      routerConfig: router,
+    return Consumer<LanguageProvider>(
+      builder: (context, languageProvider, child) {
+        return MaterialApp.router(
+          title: 'Need a Donor',
+          theme: ThemeData(
+            primarySwatch: Colors.blue,
+          ),
+          routerConfig: router,
+          
+          // Localization support
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: LanguageProvider.supportedLocales,
+          locale: languageProvider.currentLocale,
+        );
+      },
     );
   }
 }
