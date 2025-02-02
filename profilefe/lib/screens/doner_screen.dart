@@ -7,6 +7,7 @@ import '../routes.dart';
 import 'package:go_router/go_router.dart';
 import '../models/doner_filter_model.dart';
 import './widgets/dono_filter_widjet.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class DonorListPage extends StatefulWidget {
   @override
@@ -83,20 +84,22 @@ void _resetFilters() {
 }
 
   Future<void> _handleDonorTap(BuildContext context, Doner donor) async {
-    final confirm = await showDialog<bool>(
+    final localization = AppLocalizations.of(context)!;
+ final confirm = await showDialog<bool>(
       context: context,
       builder: (context) {
+       
         return AlertDialog(
-          title: Text('Confirm Unlock'),
-          content: Text('Are you sure you want to unlock this donor?'),
+          title: Text(localization.confirmUnlock),
+          content: Text(localization.unlockDonorMessage),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: Text('Cancel'),
+              child: Text(localization.cancel),
             ),
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: Text('Confirm'),
+              child: Text(localization.confirm),
             ),
           ],
         );
@@ -123,19 +126,20 @@ void _resetFilters() {
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('You have successfully unlocked this donor.')),
+        SnackBar(content: Text('${localization.unlockSuccess}')),
       );
 
       GoRouter.of(context).go('${Routes.donorDetails}/${donor.id}');
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
+        SnackBar(content: Text('${localization.error} ${e.toString()}')),
       );
     }
   }
 
  @override
 Widget build(BuildContext context) {
+        final localizations = AppLocalizations.of(context)!;
   return Scaffold(
     body: Column(
       children: [
@@ -149,7 +153,7 @@ Widget build(BuildContext context) {
                 child: TextField(
                   onChanged: _handleSearch,
                   decoration: InputDecoration(
-                    hintText: 'Search',
+                    hintText: localizations.searchHint,
                     prefixIcon: const Icon(Icons.search, color: Colors.grey),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -183,7 +187,7 @@ Widget build(BuildContext context) {
                   color: _areFiltersApplied() ? Colors.green : Theme.of(context).colorScheme.primary,
                   size: 20,
                 ),
-                label: const Text('Filter'),
+                label:  Text(localizations.filter),
                 onPressed: () {
                   showModalBottomSheet(
                     context: context,
@@ -220,7 +224,7 @@ Widget build(BuildContext context) {
                     color: Colors.red,
                     size: 20,
                   ),
-                  label: const Text('Reset Filters'),
+                  label:  Text(localizations.resetFilters),
                   onPressed: () {
                     _resetFilters();
                   },

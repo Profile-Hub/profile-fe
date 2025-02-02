@@ -6,6 +6,7 @@ import 'package:http_parser/http_parser.dart';
 import 'package:flutter/foundation.dart';
 import '../../server_config.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class IndiaDocumentForm extends StatefulWidget {
   final Function(bool)? onValidationChanged;
@@ -74,6 +75,7 @@ Map<String, bool> isValid = {
 
   // Method to select a file for a given document type with file type filter
   Future<void> _selectFile(String documentType) async {
+     final localizations = AppLocalizations.of(context)!;
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
@@ -91,23 +93,24 @@ Map<String, bool> isValid = {
           });
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('File size must be less than 5MB')),
+             SnackBar(content: Text('${localizations.fileSize} 5MB')),
           );
         }
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error selecting file: $e')),
+        SnackBar(content: Text('${localizations.errorFile}: $e')),
       );
     }
   }
 
   // Method to upload a file to the server
   Future<void> _uploadFile(String documentType, String endpoint) async {
+    final localizations = AppLocalizations.of(context)!;
     final fileData = selectedFiles[documentType];
     if (fileData == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please select a file for $documentType before uploading.')),
+        SnackBar(content: Text('${localizations.pleaseSelect} $documentType before uploading.')),
       );
       return;
     }
@@ -131,7 +134,7 @@ Map<String, bool> isValid = {
       } else if (extension == 'pdf') {
         mediaType = MediaType('application', 'pdf');
       } else {
-        throw UnsupportedError('File type not supported. Only JPG, PNG, and PDF are allowed.');
+        throw UnsupportedError('${localizations.unsupportedFile}');
       }
       if (kIsWeb) {
         request.files.add(
@@ -159,16 +162,16 @@ Map<String, bool> isValid = {
           isUploaded[documentType] = true;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$documentType uploaded successfully')),
+          SnackBar(content: Text('$documentType ${localizations.uploadedsuccessfully}')),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to upload $documentType')),
+          SnackBar(content: Text('${localizations.uploadfail}$documentType')),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error uploading $documentType: $e')),
+        SnackBar(content: Text('${localizations.errorFile} $documentType: $e')),
       );
     } finally {
       setState(() {
@@ -223,6 +226,8 @@ Map<String, bool> isValid = {
 
   // Method to build UI for each file input section
   Widget _buildFileInputSection(String docType, String endpoint, {bool isRequired = false}) {
+    final localizations = AppLocalizations.of(context)!;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       child: Column(
@@ -260,8 +265,8 @@ Map<String, bool> isValid = {
                     hintText: selectedFiles[docType] != null
                         ? selectedFiles[docType]!.name
                         : isRequired
-                            ? 'Required'
-                            : 'No file selected',
+                            ? localizations.requiredfile
+                            : localizations.noFileSelected,
                     hintStyle: TextStyle(
                       color: selectedFiles[docType] != null ? Colors.black : Colors.grey,
                     ),
@@ -284,7 +289,7 @@ Map<String, bool> isValid = {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: const Text('Choose File'),
+                child:Text(localizations.chooseFile),
               ),
               const SizedBox(width: 8),
               ElevatedButton(
@@ -309,7 +314,7 @@ Map<String, bool> isValid = {
                           color: Colors.white,
                         ),
                       )
-                    : const Text('Upload'),
+                    :  Text(localizations.upload),
               ),
             ],
           ),

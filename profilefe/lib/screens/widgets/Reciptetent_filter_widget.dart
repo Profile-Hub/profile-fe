@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/Recipitent_filter_modal.dart';
 import '../../services/location_api_service.dart';
 import '../../models/location_models.dart' as LocationModels;
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class RecipientFilterWidget extends StatefulWidget {
   final Function(RecipientFilter) onFilterChanged;
@@ -43,6 +44,8 @@ class _RecipientFilterWidgetState extends State<RecipientFilterWidget> {
 
   Future<void> _loadCountries() async {
     setState(() => _isLoadingLocations = true);
+     final localizations = AppLocalizations.of(context)!;
+
     try {
       final countries = await _locationService.getCountries();
       setState(() {
@@ -52,7 +55,7 @@ class _RecipientFilterWidgetState extends State<RecipientFilterWidget> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load countries: $e')),
+          SnackBar(content: Text('${localizations.counryFail}: $e')),
         );
         setState(() => _isLoadingLocations = false);
       }
@@ -61,6 +64,8 @@ class _RecipientFilterWidgetState extends State<RecipientFilterWidget> {
 
   Future<void> _loadStates(String countryName) async {
     setState(() => _isLoadingLocations = true);
+     final localizations = AppLocalizations.of(context)!;
+
     try {
       final states = await _locationService.getStates(countryName);
       setState(() {
@@ -73,7 +78,7 @@ class _RecipientFilterWidgetState extends State<RecipientFilterWidget> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load states: $e')),
+          SnackBar(content: Text('${localizations.stateFail}: $e')),
         );
         setState(() => _isLoadingLocations = false);
       }
@@ -82,6 +87,8 @@ class _RecipientFilterWidgetState extends State<RecipientFilterWidget> {
 
   Future<void> _loadCities(String stateName) async {
     setState(() => _isLoadingLocations = true);
+     final localizations = AppLocalizations.of(context)!;
+
     try {
       final cities = await _locationService.getCities(stateName);
       setState(() {
@@ -92,7 +99,7 @@ class _RecipientFilterWidgetState extends State<RecipientFilterWidget> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load cities: $e')),
+          SnackBar(content: Text('${localizations.cityFail}: $e')),
         );
         setState(() => _isLoadingLocations = false);
       }
@@ -124,6 +131,7 @@ class _RecipientFilterWidgetState extends State<RecipientFilterWidget> {
 }
 
   Widget _buildLocationDropdowns() {
+     final localizations = AppLocalizations.of(context)!;
     return Column(
       children: [
         // Country Dropdown
@@ -185,6 +193,7 @@ class _RecipientFilterWidgetState extends State<RecipientFilterWidget> {
 
   @override
   Widget build(BuildContext context) {
+     final localizations = AppLocalizations.of(context)!;
     return Container(
       padding: EdgeInsets.all(16),
       child: Form(
@@ -193,14 +202,14 @@ class _RecipientFilterWidgetState extends State<RecipientFilterWidget> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Filter Recipients', style: Theme.of(context).textTheme.titleLarge),
+              Text('${localizations.filterRecipients}', style: Theme.of(context).textTheme.titleLarge),
               SizedBox(height: 16),
 
               _buildLocationDropdowns(),
               SizedBox(height: 16),
 
               // Radius Selection
-              Text('Radius (km)'),
+              Text('${localizations.radius}(km)'),
               Wrap(
                 spacing: 8,
                 children: radiusOptions.map((radius) => ChoiceChip(
@@ -218,7 +227,7 @@ class _RecipientFilterWidgetState extends State<RecipientFilterWidget> {
               // Gender Selection
               DropdownButtonFormField<String>(
                 value: _selectedGender,
-                decoration: InputDecoration(labelText: 'Gender'),
+                decoration: InputDecoration(labelText:localizations.gender_label),
                 items: ['Male', 'Female', 'Other'].map((gender) => DropdownMenuItem(
                   value: gender,
                   child: Text(gender),
@@ -234,7 +243,7 @@ class _RecipientFilterWidgetState extends State<RecipientFilterWidget> {
                     child: ElevatedButton.icon(
                       onPressed: _isLoadingLocations ? null : _applyFilters,
                       icon: const Icon(Icons.check_circle),
-                      label: const Text('Apply Filters'),
+                      label: Text(localizations.applyFilters),
                     ),
                   ),
                   const SizedBox(width: 8), // Add spacing between the buttons
@@ -244,7 +253,7 @@ class _RecipientFilterWidgetState extends State<RecipientFilterWidget> {
                         _resetFilters();
                       },
                       icon: const Icon(Icons.refresh),
-                      label: const Text('Reset Filters'),
+                      label: Text(localizations.resetFilters),
                     ),
                   ),
                 ],

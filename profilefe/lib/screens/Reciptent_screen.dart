@@ -7,6 +7,7 @@ import '../routes.dart';
 import 'package:go_router/go_router.dart';
 import '../models/Recipitent_filter_modal.dart';
 import './widgets/Reciptetent_filter_widget.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class RecipientListPage extends StatefulWidget {
   @override
@@ -74,17 +75,19 @@ class _RecipientListPageState extends State<RecipientListPage> {
     ;
 }
 void _resetFilters() {
+      final localization = AppLocalizations.of(context)!;
   setState(() {
     _currentFilter = null;
      _recipients = fetchRecipients(); 
   });
 
   ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(content: Text('Filters have been reset.')),
+     SnackBar(content: Text(localization.filtersReset)),
   );
 }
   @override
   Widget build(BuildContext context) {
+      final localization = AppLocalizations.of(context)!;
     return Scaffold(
       body: Column(
         children: [
@@ -98,7 +101,7 @@ void _resetFilters() {
                   child: TextField(
                     onChanged: _handleSearch,
                     decoration: InputDecoration(
-                      hintText: 'Search',
+                      hintText: localization.searchHint,
                     prefixIcon: const Icon(Icons.search, color: Colors.grey),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -132,7 +135,7 @@ void _resetFilters() {
                   color: _areFiltersApplied() ? Colors.green : Theme.of(context).colorScheme.primary,
                   size: 20,
                 ),
-                label: const Text('Filter'),
+                label:  Text(localization.filter),
                 onPressed: () {
                   showModalBottomSheet(
                     context: context,
@@ -170,7 +173,7 @@ void _resetFilters() {
                     color: Colors.red,
                     size: 20,
                   ),
-                  label: const Text('Reset Filters'),
+                  label:  Text(localization.resetFilters),
                   onPressed: () {
                     _resetFilters();
                   },

@@ -5,6 +5,7 @@ import '../models/user.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/user_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ChatScreen extends StatefulWidget {
   final String conversationSid;
@@ -114,6 +115,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+     final localizations = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(
@@ -223,8 +225,8 @@ class _ChatScreenState extends State<ChatScreen> {
                     Expanded(
                       child: TextField(
                         controller: _messageController,
-                        decoration: const InputDecoration(
-                          hintText: "Type a message...",
+                        decoration:  InputDecoration(
+                          hintText: localizations.chatMessageType,
                           border: InputBorder.none,
                           contentPadding: EdgeInsets.symmetric(
                             horizontal: 16,

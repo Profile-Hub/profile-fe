@@ -26,6 +26,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isPasswordVisible = false;
 
   Future<void> _handleLogin() async {
+        final localization = AppLocalizations.of(context)!;
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
@@ -55,9 +56,9 @@ class _LoginScreenState extends State<LoginScreen> {
           );
         }
       } catch (e) {
-        print('Error during login: $e');
+        print('${localization.logoinError}: $e');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('An error occurred. Please try again.')),
+          SnackBar(content: Text("${localization.errorMessage}")),
         );
       } finally {
         setState(() {
@@ -68,6 +69,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleGoogleSignIn() async {
+        final localization = AppLocalizations.of(context)!;
     setState(() {
       _isLoading = true;
     });
@@ -79,13 +81,13 @@ class _LoginScreenState extends State<LoginScreen> {
         GoRouter.of(context).go(Routes.home);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Google sign in failed')),
+          SnackBar(content: Text(localization.googleLogin)),
         );
       }
     } catch (e) {
       print('Error during Google sign in: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An error occurred during Google sign in')),
+        SnackBar(content: Text("${localization.errorMessage}")),
       );
     } finally {
       setState(() {

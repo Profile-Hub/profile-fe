@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import 'package:go_router/go_router.dart';
 import '../routes.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   // Removed the 'const' constructor
@@ -66,6 +67,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+     final localizations = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -74,7 +76,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       GoRouter.of(context).pop();
     },
   ),
-        title: const Text('Change Password'),
+        title:  Text(localizations.changePassword),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -87,10 +89,10 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 // Old Password Field
                 _buildPasswordField(
                   controller: _oldPasswordController,
-                  label: 'Old Password',
+                  label: localizations.oldPassword,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your old password';
+                      return localizations.enterOldPassword;
                     }
                     return null;
                   },
@@ -99,25 +101,25 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 // New Password Field
                 _buildPasswordField(
                   controller: _newPasswordController,
-                  label: 'New Password',
+                  label: localizations.newPassword,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter a new password';
+                      return localizations.enterNewPasssword;
                     }
                     if (value.length < 8) {
-                      return 'Password must be at least 8 characters long';
+                      return localizations.passwordMinLength;
                     }
                     if (!RegExp(r'[A-Z]').hasMatch(value)) {
-                      return 'Password must contain at least one uppercase letter';
+                      return localizations.passwordUppercase;
                     }
                     if (!RegExp(r'[a-z]').hasMatch(value)) {
-                      return 'Password must contain at least one lowercase letter';
+                      return localizations.passwordLowercase;
                     }
                     if (!RegExp(r'[0-9]').hasMatch(value)) {
-                      return 'Password must contain at least one digit';
+                      return localizations.passwordDigit;
                     }
                     if (!RegExp(r'[!@#\$&*~]').hasMatch(value)) {
-                      return 'Password must contain at least one special character (!@#\$&*~)';
+                      return localizations.passwordSpecialChar;
                     }
                     return null;
                   },
@@ -126,13 +128,13 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 // Confirm Password Field
                 _buildPasswordField(
                   controller: _confirmPasswordController,
-                  label: 'Confirm Password',
+                  label: localizations.confirm_password,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please confirm your password';
+                      return localizations.confirmPassword;
                     }
                     if (value != _newPasswordController.text) {
-                      return 'Passwords do not match';
+                      return localizations.passwordMismatch;
                     }
                     return null;
                   },
@@ -146,7 +148,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     onPressed: isLoading ? null : _changePassword,
                     child: isLoading
                         ? const CircularProgressIndicator()
-                        : const Text('Change Password'),
+                        : Text(localizations.changePassword),
                   ),
                 ),
               ],

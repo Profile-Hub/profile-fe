@@ -10,6 +10,7 @@ import  './Chat_screen.dart';
 import '../routes.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 
 class DonorDetailPage extends StatelessWidget {
@@ -29,6 +30,7 @@ class DonorDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+     final localizations = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -37,16 +39,16 @@ class DonorDetailPage extends StatelessWidget {
        GoRouter.of(context).go(Routes.home);
     },
   ),
-        title: const Text('All Details')),
+        title:  Text(localizations.allDetails)),
       body: FutureBuilder<DonerDetails>(
         future: fetchDonorDetails(donorId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+            return Center(child: Text('${localizations.error}: ${snapshot.error}'));
           } else if (!snapshot.hasData) {
-            return const Center(child: Text('No donor found.'));
+            return  Center(child: Text(localizations.noDonorFound));
           } else {
             final donor = snapshot.data!;
             return Padding(
@@ -74,23 +76,23 @@ class DonorDetailPage extends StatelessWidget {
 ),
                       const SizedBox(height: 20),
                       Text(
-                        'Name: ${donor.firstname} ${donor.lastname}',
+                        '${localizations.name}: ${donor.firstname} ${donor.lastname}',
                         style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 10),
                       Text(
-                        'Date of Birth: ${donor.dateofbirth != null ? DateFormat.yMMMd().format(donor.dateofbirth!) : 'N/A'}',
+                        '${localizations.date_of_birth_label}: ${donor.dateofbirth != null ? DateFormat.yMMMd().format(donor.dateofbirth!) : 'N/A'}',
                       ),
-                      Text('Gender: ${donor.gender ?? 'N/A'}'),
-                      Text('Email: ${donor.email}'),
+                      Text('${localizations.gender_label}: ${donor.gender ?? 'N/A'}'),
+                      Text('${localizations.email}: ${donor.email}'),
                       Text(
-                        'Phone: ${donor.phoneCode != null && donor.phoneNumber != null ? '${donor.phoneCode} ${donor.phoneNumber}' : 'N/A'}',
+                        '${localizations.phoneNumber}: ${donor.phoneCode != null && donor.phoneNumber != null ? '${donor.phoneCode} ${donor.phoneNumber}' : 'N/A'}',
                       ),
-                      Text('City: ${donor.city ?? 'N/A'}'),
-                      Text('State: ${donor.state ?? 'N/A'}'),
-                      Text('Country: ${donor.country ?? 'N/A'}'),
-                      Text('Usertype: ${donor.usertype ?? 'N/A'}'),
-                      Text('Blood Group: ${donor.bloodGroup ?? 'N/A'}'),
+                      Text('${localizations.city_label}: ${donor.city ?? 'N/A'}'),
+                      Text('${localizations.state_label}: ${donor.state ?? 'N/A'}'),
+                      Text('${localizations.country_label}: ${donor.country ?? 'N/A'}'),
+                      Text('${localizations.user_type_label}: ${donor.usertype ?? 'N/A'}'),
+                      Text('${localizations.bloodGroup}: ${donor.bloodGroup ?? 'N/A'}'),
                       const SizedBox(height: 20),
                       FutureBuilder<List<Document>>(
                         future: fetchDonorDocuments(donorId, donor.country ?? ''),
@@ -116,8 +118,8 @@ class DonorDetailPage extends StatelessWidget {
                         color: Colors.red,
                       ),
                       const SizedBox(height: 16),
-                      const Text(
-                        'No document are available.',
+                       Text(
+                        localizations.noDocumentsFound,
                         textAlign: TextAlign.center,
                         style: TextStyle(color: Colors.blue, fontSize: 16),
                       ),
@@ -145,8 +147,8 @@ class DonorDetailPage extends StatelessWidget {
                         color: Colors.grey,
                       ),
                       const SizedBox(height: 16),
-                      const Text(
-                        'No document are available.',
+                       Text(
+                        localizations.noDocumentsFound,
                         style: TextStyle(fontSize: 16, color: Colors.blue),
                       ),
                     ],
@@ -159,8 +161,8 @@ class DonorDetailPage extends StatelessWidget {
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
-                                  'Donor Documents',
+                                 Text(
+                                 localizations.donorDocuments,
                                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                                 ),
                                ListView.builder(
@@ -195,12 +197,12 @@ class DonorDetailPage extends StatelessWidget {
     Padding(
       padding: const EdgeInsets.only(top: 9.0), // Add space above the button
       child: ElevatedButton(
-        onPressed: () => _openDocument(fileEntry.value),
+        onPressed: () => _openDocument(context,fileEntry.value),
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 4), 
           textStyle: const TextStyle(fontSize: 14), 
         ),
-        child: const Text('Preview'),
+        child:  Text(localizations.preview),
       ),
     ),
   ],
@@ -243,12 +245,12 @@ Center(
         } catch (e) {
           print("Error fetching conversation SID: $e");
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Failed to initiate chat")),
+             SnackBar(content: Text(localizations.failedInititeChat)),
           );
         }
       },
-      child: const Text(
-        'Let\'s Chat',
+      child:  Text(
+        localizations.letChat,
         style: TextStyle(color: Colors.white, fontSize: 16), // Ensure text color is white
       ),
     ),
@@ -270,12 +272,12 @@ Center(
     );
   }
 
-  void _openDocument(String url) async {
+  void _openDocument(BuildContext context,String url) async {
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     } else {
-      throw 'Could not open the document';
+      throw '${AppLocalizations.of(context)!.notopenDocument}';;
     }
   }
 }

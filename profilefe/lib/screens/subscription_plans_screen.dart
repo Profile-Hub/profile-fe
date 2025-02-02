@@ -10,6 +10,7 @@ import '../server_config.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../routes.dart';
 import 'razorpay_web.dart' if (dart.library.io) 'razorpay_mobile.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 // Model class to represent a subscription plan
 class SubscriptionPlan {
@@ -182,6 +183,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
   }
 
   Future<void> _handleSubscription(SubscriptionPlan plan) async {
+     final localizations = AppLocalizations.of(context)!;
     try {
       setState(() => _isLoading = true);
       final orderData = await _razorpayService.createOrder(plan.id, plan.price.toInt());
@@ -196,13 +198,14 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
         onError: _showError,
       );
     } catch (e) {
-      _showError('Failed to initialize payment: $e');
+      _showError('${localizations.paymentFailed}: $e');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
   Future<void> _verifyAndCompletePayment(String paymentId, String orderId, String signature) async {
+     final localizations = AppLocalizations.of(context)!;
     try {
       setState(() => _isLoading = true);
       await _razorpayService.verifyPayment(orderId, paymentId, signature);
@@ -212,8 +215,8 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Payment successful! Your subscription is now active.'),
+           SnackBar(
+            content: Text(localizations.paymentSuccess),
             backgroundColor: Colors.green,
           ),
         );
@@ -225,7 +228,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
         }
       }
     } catch (e) {
-      _showError('Payment verification failed: ${e.toString()}');
+      _showError('${localizations.paymentVerificationFailed}: ${e.toString()}');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -243,11 +246,12 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
 
  @override
   Widget build(BuildContext context) {
+     final localizations = AppLocalizations.of(context)!;
     return Stack(
       children: [
         Scaffold(
           appBar: AppBar(
-            title: const Text('Choose a Plan'),
+            title:  Text(localizations.choosePlan),
             leading: IconButton(
               icon: const Icon(Icons.arrow_back),
               onPressed: () => _handleBack(context),
@@ -259,7 +263,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  'Select Your Subscription Plan',
+                  localizations.selectSubscriptionPlan,
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: Theme.of(context).primaryColor,
@@ -268,7 +272,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Choose a plan that best suits your needs',
+                  localizations.chooseBestPlan,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: Colors.grey[600],
                   ),
@@ -292,6 +296,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
   }
 
   Widget _buildPlanCard(SubscriptionPlan plan) {
+     final localizations = AppLocalizations.of(context)!;
     final bool isPremium = plan.id == 'premium';
     final theme = Theme.of(context);
     
@@ -355,7 +360,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'per quarter',
+                localizations.perQuarter,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: Colors.grey[600],
                 ),
@@ -370,7 +375,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
                 ),
                 child: Text(
                   plan.contacts == -1
-                      ? 'Unlimited Contacts'
+                      ? '${localizations.unlimitedContacts}'
                       : '${plan.contacts} Contacts',
                   style: const TextStyle(
                     fontSize: 16,
@@ -397,7 +402,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Subscribe Now',
+                      localizations.subscribeNow,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -418,6 +423,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
   }
 
   Widget _buildPremiumBadge() {
+     final localizations = AppLocalizations.of(context)!;
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -435,11 +441,11 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
+        children:  [
           Icon(Icons.star, color: Colors.white, size: 16),
           SizedBox(width: 4),
           Text(
-            'MOST POPULAR',
+            localizations.mostPopular,
             style: TextStyle(
               color: Colors.white,
               fontSize: 12,
@@ -453,6 +459,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
   }
 
   Widget _buildFeatureRow(String feature, bool isPremium) {
+     final localizations = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(

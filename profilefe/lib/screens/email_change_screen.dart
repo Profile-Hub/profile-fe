@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/user.dart';
 import '../services/email_service.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ChangeEmailScreen extends StatefulWidget {
   final User user;
@@ -85,6 +86,8 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
 
   @override
   Widget build(BuildContext context) {
+      final localization = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -93,7 +96,7 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
       GoRouter.of(context).pop();
     },
   ),
-        title: const Text('Change Email'),
+        title:  Text(localization.changeEmail),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -103,36 +106,36 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
            TextFormField(
                 initialValue: widget.user.email,
                 readOnly: true, 
-                decoration: const InputDecoration(
-                  labelText: 'Current Email',
+                decoration:  InputDecoration(
+                  labelText: localization.currentEmail,
                   border: OutlineInputBorder(),
                 ),
                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             const SizedBox(height: 16),
-            ElevatedButton(onPressed: _sendOtp, child: const Text('Send OTP')),
+            ElevatedButton(onPressed: _sendOtp, child:  Text(localization.sendOtp)),
             if (_isOtpSent) ...[
               TextField(
                 controller: _otpController,
-                decoration: const InputDecoration(labelText: 'Enter OTP'),
+                decoration: InputDecoration(labelText: localization.enterOtp),
               ),
-              ElevatedButton(onPressed: _verifyOtp, child: const Text('Verify OTP')),
+              ElevatedButton(onPressed: _verifyOtp, child:  Text(localization.verifyOtp)),
             ],
             if (_isOtpVerified) ...[
               TextField(
                 controller: _newEmailController,
-                decoration: const InputDecoration(labelText: 'Enter New Email'),
+                decoration: InputDecoration(labelText: localization.enterNewEmail),
               ),
-              ElevatedButton(onPressed: _sendNewOtp, child: const Text('Send OTP for New Email')),
+              ElevatedButton(onPressed: _sendNewOtp, child:  Text(localization.sendNewEmailOtp)),
               if (_isNewOtpSent) ...[
                 TextField(
                   controller: _newOtpController,
-                  decoration: const InputDecoration(labelText: 'Enter OTP for New Email'),
+                  decoration:  InputDecoration(labelText: localization.enterNewEmailOtp),
                 ),
-                ElevatedButton(onPressed: _verifyNewOtp, child: const Text('Verify New Email OTP')),
+                ElevatedButton(onPressed: _verifyNewOtp, child:  Text(localization.verifyNewEmailOtp)),
               ],
               if (_isNewOtpVerified) ...[
-                ElevatedButton(onPressed: _updateEmail, child: const Text('Update Email')),
+                ElevatedButton(onPressed: _updateEmail, child:  Text(localization.updateEmail)),
               ],
             ],
           ],
