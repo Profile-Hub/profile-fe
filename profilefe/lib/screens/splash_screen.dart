@@ -23,6 +23,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   final _storage = const FlutterSecureStorage();
   bool _isLoading = true;
   bool _isLanguageSelected = false;
+  bool _hasLocationPermission = false;
   String? _errorMessage;
 
   String _getLanguageName(String languageCode) {
@@ -40,21 +41,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       vsync: this,
       duration: const Duration(seconds: 2),
     );
-    _checkLanguageAndInitialize();
-  }
-
-  void _checkLanguageAndInitialize() {
-    final languageProvider = Provider.of<LanguageProvider>(context, listen: false);
-    if (languageProvider.currentLocale != null) {
-      setState(() {
-        _isLanguageSelected = true;
-      });
-      _initializeApp();
-    } else {
-      setState(() {
-        _isLoading = false;
-      });
-    }
   }
 
   @override
@@ -80,37 +66,27 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         return false;
       }
 
-      if (UniversalPlatform.isIOS) {
-        permission = await Geolocator.checkPermission();
+      permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          permission = await Geolocator.requestPermission();
-          if (permission == LocationPermission.denied) {
-            setState(() {
-              _errorMessage = 'Location permissions are required for this app.';
-            });
-            return false;
-          }
-        }
-      } else if (UniversalPlatform.isAndroid) {
-        permission = await Geolocator.checkPermission();
-        if (permission == LocationPermission.denied) {
-          permission = await Geolocator.requestPermission();
-          if (permission == LocationPermission.denied) {
-            setState(() {
-              _errorMessage = 'Location permissions are required for this app.';
-            });
-            return false;
-          }
-        }
-
-        if (permission == LocationPermission.deniedForever) {
           setState(() {
-            _errorMessage = 'Location permissions are permanently denied. Please enable them in settings.';
+            _errorMessage = 'Location permissions are required for this app.';
           });
           return false;
         }
       }
 
+      if (permission == LocationPermission.deniedForever) {
+        setState(() {
+          _errorMessage = 'Location permissions are permanently denied. Please enable them in settings.';
+        });
+        return false;
+      }
+
+      setState(() {
+        _hasLocationPermission = true;
+      });
       return true;
     } catch (e) {
       setState(() {
@@ -133,6 +109,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         return false;
       }
 
+      setState(() {
+        _hasLocationPermission = true;
+      });
       return true;
     } catch (e) {
       setState(() {
@@ -143,9 +122,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   }
 
   Future<void> _getCurrentLocation() async {
-    final hasPermission = await _handleLocationPermission();
-    
-    if (!hasPermission) return;
+    if (!_hasLocationPermission) {
+      final hasPermission = await _handleLocationPermission();
+      if (!hasPermission) return;
+    }
 
     try {
       Position position;
@@ -168,6 +148,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       await _storage.write(key: 'user_latitude', value: position.latitude.toString());
       await _storage.write(key: 'user_longitude', value: position.longitude.toString());
       await _storage.write(key: 'platform', value: _getPlatformName());
+      
+      if (_isLanguageSelected && mounted) {
+        _proceedToNextScreen();
+      }
     } catch (e) {
       setState(() {
         _errorMessage = 'Error getting location: $e';
@@ -183,138 +167,104 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     return 'unknown';
   }
 
-  Future<void> _initializeApp() async {
-    if (!_isLanguageSelected) {
-      return;
-    }
+  void _proceedToNextScreen() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    await authProvider.initialize();
 
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    try {
-      _animationController.forward();
-
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
-
-      await Future.wait([
-        _getCurrentLocation(),
-        authProvider.initialize(),
-      ]);
-
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-
-        if (authProvider.isAuthenticated) {
-          GoRouter.of(context).go(Routes.home);
-        } else {
-          GoRouter.of(context).go(Routes.login);
-        }
+    if (mounted) {
+      if (authProvider.isAuthenticated) {
+        GoRouter.of(context).go(Routes.home);
+      } else {
+        GoRouter.of(context).go(Routes.login);
       }
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-        _errorMessage = 'Error initializing app: $e';
-      });
     }
   }
 
-  Widget _buildLoadingIndicator() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        if (_errorMessage == null) 
-          Column(
-            children: [
-              Image.asset(
-                'assets/icon.png',
-                width: 120,
-                height: 120,
-              ),
-              const SizedBox(height: 16),
-              const CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+ Widget _buildLanguageSelector() {
+    return Consumer<LanguageProvider>(
+      builder: (context, languageProvider, child) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
-        if (_errorMessage != null)
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                const Icon(
-                  Icons.error_outline,
-                  color: Colors.red,
-                  size: 48,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  _errorMessage!,
-                  style: const TextStyle(
-                    color: Colors.red,
-                    fontSize: 16,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-        const SizedBox(height: 24),
-        if (_errorMessage == null || !_errorMessage!.contains('permanently denied'))
-          TextButton(
-            onPressed: _isLoading ? null : _initializeApp,
-            style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              backgroundColor: Colors.white.withOpacity(0.2),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: Text(
-              _errorMessage != null ? 'Retry' : 'Loading...',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildLanguageSelector() {
-    return Consumer<LanguageProvider>(
-      builder: (context, languageProvider, child) {
-        return DropdownButton<Locale>(
-          value: languageProvider.currentLocale,
-          dropdownColor: Colors.white,
-          items: LanguageProvider.supportedLocales.map((Locale locale) {
-            return DropdownMenuItem(
-              value: locale,
-              child: Text(
-                _getLanguageName(locale.languageCode),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Select Language',
                 style: TextStyle(
-                  color: languageProvider.currentLocale == locale 
-                    ? Colors.blue 
-                    : Colors.black,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
                 ),
               ),
-            );
-          }).toList(),
-          onChanged: (Locale? newLocale) {
-            if (newLocale != null) {
-              languageProvider.setLanguage(newLocale);
-              setState(() {
-                _isLanguageSelected = true;
-              });
-              _initializeApp();
-            }
-          },
+              const Text(
+                'भाषा चुनें',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: DropdownButton<Locale>(
+                  value: languageProvider.currentLocale,
+                  hint: const Text('Select / चुनें'),
+                  isExpanded: true,
+                  underline: Container(),
+                  items: LanguageProvider.supportedLocales.map((Locale locale) {
+                    return DropdownMenuItem(
+                      value: locale,
+                      child: Text(
+                        _getLanguageName(locale.languageCode),
+                        style: TextStyle(
+                          color: languageProvider.currentLocale == locale 
+                            ? Colors.blue 
+                            : Colors.black,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (Locale? newLocale) {
+                    if (newLocale != null) {
+                      languageProvider.setLanguage(newLocale);
+                      setState(() {
+                        _isLanguageSelected = true;
+                      });
+                      _getCurrentLocation();
+                    }
+                  },
+                ),
+              ),
+              if (_errorMessage != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: Text(
+                    _errorMessage!,
+                    style: const TextStyle(
+                      color: Colors.red,
+                      fontSize: 14,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+            ],
+          ),
         );
       },
     );
@@ -335,55 +285,22 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           ),
         ),
         child: SafeArea(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Align(
-                  alignment: Alignment.topRight,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
-                      borderRadius: BorderRadius.circular(8),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (!_isLanguageSelected)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 8.0),
-                            child: Text(
-                              'Select Language / भाषा चुनें',
-                              style: TextStyle(
-                                color: Colors.black87,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        _buildLanguageSelector(),
-                      ],
-                    ),
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(
+                    'assets/icon.png',
+                    width: 120,
+                    height: 120,
                   ),
-                ),
+                  const SizedBox(height: 32),
+                  _buildLanguageSelector(),
+                ],
               ),
-              
-              Expanded(
-                child: Center(
-                  child: !_isLanguageSelected
-                    ? Container()
-                    : _buildLoadingIndicator(),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
