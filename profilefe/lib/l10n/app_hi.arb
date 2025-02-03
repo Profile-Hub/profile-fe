@@ -344,5 +344,27 @@
   "applyFilters": "फ़िल्टर लागू करें",
   "filterRecipients":"फ़िल्टर प्राप्तकर्ता",
   "subscribeTitle": "विवरण देखने के लिए सदस्यता लें",
-  "subscribeContent": "दाताओं के विवरण को देखने के लिए आपको सदस्यता लेनी होगी।"
+  "subscribeContent": "दाताओं के विवरण को देखने के लिए आपको सदस्यता लेनी होगी।",
+
+  "basicPlan": "बेसिक प्लान",
+  "standardPlan": "स्टैंडर्ड प्लान",
+  "premiumPlan": "प्रीमियम प्लान",
+  "contacts": "संपर्क",
+  "monthsValidity": "महीने की वैधता",
+  "unlimited": "असीमित",
+  "unlockForever": "हमेशा के लिए अनलॉक",
+  "basicSupport": "बेसिक सहायता",
+  "prioritySupport": "प्राथमिकता सहायता",
+  "premiumSupport": "प्रीमियम सहायता",
+  "advancedSearch": "एडवांस खोज",
+  "exportFeatures": "निर्यात सुविधाएं",
+  "choosePlan": "प्लान चुनें",
+  "selectSubscriptionPlan": "अपना सदस्यता प्लान चुनें",
+  "chooseBestPlan": "अपने लिए सबसे अच्छा प्लान चुनें",
+  "mostPopular": "सबसे लोकप्रिय",
+  "perQuarter": "प्रति तिमाही",
+  "subscribeNow": "अभी सब्सक्राइब करें",
+  "paymentSuccess": "भुगतान सफल",
+  "paymentFailed": "भुगतान विफल",
+  "paymentVerificationFailed": "भुगतान सत्यापन विफल"
 }

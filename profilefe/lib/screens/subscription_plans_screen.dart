@@ -123,44 +123,44 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
   late RazorpayService _razorpayService;
   bool _isLoading = false;
 
-  final List<SubscriptionPlan> plans = [
+  List<SubscriptionPlan> getPlans(AppLocalizations localizations) => [
     SubscriptionPlan(
       id: 'basic',
-      name: 'Basic Plan',
+      name: localizations.basicPlan,
       price: 1,
       contacts: 3,
       features: [
-        '3 Contact Views',
-        '3 Months Validity',
-        'Unlock Forever',
-        'Basic Support'
+        '3 ${localizations.contacts}',
+        '3 ${localizations.monthsValidity}',
+        localizations.unlockForever,
+        localizations.basicSupport
       ],
     ),
     SubscriptionPlan(
       id: 'standard',
-      name: 'Standard Plan',
+      name: localizations.standardPlan,
       price: 2,
       contacts: 6,
       features: [
-        '6 Contact Views',
-        '3 Months Validity',
-        'Unlock Forever',
-        'Priority Support',
-        'Advanced Search'
+        '6 ${localizations.contacts}',
+        '3 ${localizations.monthsValidity}',
+        localizations.unlockForever,
+        localizations.prioritySupport,
+        localizations.advancedSearch
       ],
     ),
     SubscriptionPlan(
       id: 'premium',
-      name: 'Premium Plan',
+      name: localizations.premiumPlan,
       price: 5,
       contacts: -1,
       features: [
-        'Unlimited Contact Views',
-        '3 Months Validity',
-        'Unlock Forever',
-        'Premium Support',
-        'Advanced Search',
-        'Export Features'
+        localizations.unlimited + ' ' + localizations.contacts,
+        '3 ${localizations.monthsValidity}',
+        localizations.unlockForever,
+        localizations.premiumSupport,
+        localizations.advancedSearch,
+        localizations.exportFeatures
       ],
     ),
   ];
@@ -246,12 +246,14 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
 
  @override
   Widget build(BuildContext context) {
-     final localizations = AppLocalizations.of(context)!;
+    final localizations = AppLocalizations.of(context)!;
+    final plans = getPlans(localizations);
+    
     return Stack(
       children: [
         Scaffold(
           appBar: AppBar(
-            title:  Text(localizations.choosePlan),
+            title: Text(localizations.choosePlan),
             leading: IconButton(
               icon: const Icon(Icons.arrow_back),
               onPressed: () => _handleBack(context),
@@ -279,7 +281,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),
-                ...plans.map((plan) => _buildPlanCard(plan)).toList(),
+                ...plans.map((plan) => _buildPlanCard(plan, localizations)).toList(),
               ],
             ),
           ),
@@ -294,9 +296,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
       ],
     );
   }
-
-  Widget _buildPlanCard(SubscriptionPlan plan) {
-     final localizations = AppLocalizations.of(context)!;
+   Widget _buildPlanCard(SubscriptionPlan plan, AppLocalizations localizations) {
     final bool isPremium = plan.id == 'premium';
     final theme = Theme.of(context);
     
@@ -328,7 +328,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (isPremium) _buildPremiumBadge(),
+              if (isPremium) _buildPremiumBadge(localizations),
               Text(
                 plan.name,
                 style: theme.textTheme.headlineSmall?.copyWith(
@@ -375,8 +375,8 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
                 ),
                 child: Text(
                   plan.contacts == -1
-                      ? '${localizations.unlimitedContacts}'
-                      : '${plan.contacts} Contacts',
+                      ? '${localizations.unlimited} ${localizations.contacts}'
+                      : '${plan.contacts} ${localizations.contacts}',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -385,7 +385,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              ...plan.features.map((feature) => _buildFeatureRow(feature, true)),
+              ...plan.features.map((feature) => _buildFeatureRow(feature, isPremium)),
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _isLoading ? null : () => _handleSubscription(plan),
@@ -403,14 +403,14 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
                   children: [
                     Text(
                       localizations.subscribeNow,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     if (isPremium) ...[
                       const SizedBox(width: 8),
-                      Icon(Icons.star, size: 20),
+                      const Icon(Icons.star, size: 20),
                     ],
                   ],
                 ),
@@ -422,8 +422,9 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
     );
   }
 
-  Widget _buildPremiumBadge() {
-     final localizations = AppLocalizations.of(context)!;
+
+
+  Widget _buildPremiumBadge(AppLocalizations localizations) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -441,12 +442,12 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
-        children:  [
-          Icon(Icons.star, color: Colors.white, size: 16),
-          SizedBox(width: 4),
+        children: [
+          const Icon(Icons.star, color: Colors.white, size: 16),
+          const SizedBox(width: 4),
           Text(
             localizations.mostPopular,
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 12,
               fontWeight: FontWeight.bold,
@@ -459,7 +460,6 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
   }
 
   Widget _buildFeatureRow(String feature, bool isPremium) {
-     final localizations = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
@@ -473,7 +473,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
           Expanded(
             child: Text(
               feature,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w500,
               ),

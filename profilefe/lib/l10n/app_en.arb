@@ -352,5 +352,21 @@
   "selectedOrgans":"Select Organs for Donation",
   "applyFilters":"Apply Filters",
    "subscribeTitle": "Subscribe to View Details",
-  "subscribeContent": "You need to subscribe to view donor details."
+  "subscribeContent": "You need to subscribe to view donor details.",
+
+
+ 
+  "basicPlan": "Basic Plan",
+  "standardPlan": "Standard Plan",
+  "premiumPlan": "Premium Plan",
+  "contacts": "Contacts",
+  "monthsValidity": "Months Validity",
+  "unlimited": "Unlimited",
+  "unlockForever": "Unlock Forever",
+  "basicSupport": "Basic Support",
+  "prioritySupport": "Priority Support",
+  "premiumSupport": "Premium Support",
+  "advancedSearch": "Advanced Search",
+  "exportFeatures": "Export Features"
 }
+
