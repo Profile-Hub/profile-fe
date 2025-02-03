@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
 import '../subscription_plans_screen.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class SubscriptionDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+     final localizations = AppLocalizations.of(context)!;
+
     return AlertDialog(
-      title: Text('Subscribe to View Details'),
-      content: Text('You need to subscribe to view donor details.'),
+      title: Text(localizations.subscribeTitle),
+      content: Text(localizations.subscribeContent),
       actions: [
         TextButton(
-          child: Text('Cancel'),
+          child: Text(localizations.cancel),
           onPressed: () => Navigator.of(context).pop(),
         ),
         ElevatedButton(
-          child: Text('View Plans'),
+          child: Text(localizations.viewsplans),
           onPressed: () {
             Navigator.of(context).pop();
             Navigator.push(

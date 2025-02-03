@@ -6,6 +6,7 @@ import '../services/email_service.dart';
 import 'dart:async';
 import '../routes.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 extension StringExtension on String {
   String capitalize() {
@@ -180,6 +181,7 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
 Widget _buildEmailVerificationSection() {
+  final localizations = AppLocalizations.of(context)!;
   return Column(
     children: [
       // Email Input Field
@@ -187,7 +189,7 @@ Widget _buildEmailVerificationSection() {
   controller: _emailController,
   enabled: !_isEmailVerified,
   decoration: InputDecoration(
-    labelText: 'Email',
+  labelText: localizations.email,
     prefixIcon: Icon(Icons.email_outlined),
     suffixIcon: !_isEmailVerified && !_isOtpSent
         ? IconButton(
@@ -206,10 +208,10 @@ Widget _buildEmailVerificationSection() {
       return null;
     }
     if (value == null || value.isEmpty) {
-      return 'Please enter your email';
+      return localizations.enter_valid_email;
     }
     if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-      return 'Please enter a valid email';
+      return localizations.enter_valid_email;
     }
     return null;
   },
@@ -251,7 +253,7 @@ Widget _buildEmailVerificationSection() {
         // Submit OTP Button
         ElevatedButton(
           onPressed: _isLoading ? null : _verifyOtp,
-          child: Text('Verify OTP'),
+          child: Text(localizations.verify_OTP),
         ),
 
         SizedBox(height: 16),
@@ -261,7 +263,7 @@ Widget _buildEmailVerificationSection() {
         if (_resendTimer == 0)
           TextButton(
             onPressed: _isLoading ? null : _resendOtp,
-            child: Text('Resend OTP'),
+            child: Text(localizations.resend_otp),
           ),
       ],
 
@@ -297,6 +299,7 @@ void _resendOtp() {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -305,7 +308,7 @@ void _resendOtp() {
       GoRouter.of(context).go(Routes.login);
     },
   ),
-        title: Text('Sign Up'),
+        title: Text(localizations.signup_title),
         elevation: 0,
       ),
       body: SafeArea(
@@ -323,12 +326,12 @@ void _resendOtp() {
                     TextFormField(
                       controller: _firstNameController,
                       decoration: InputDecoration(
-                        labelText: 'First Name',
+                        labelText: localizations.first_name_label,
                         prefixIcon: Icon(Icons.person_outline),
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter your first name';
+                          return localizations.validName;
                         }
                         return null;
                       },
@@ -337,7 +340,7 @@ void _resendOtp() {
                     TextFormField(
                       controller: _middleNameController,
                       decoration: InputDecoration(
-                        labelText: 'Middle Name (Optional)',
+                        labelText: localizations.middleName,
                         prefixIcon: Icon(Icons.person_outline),
                       ),
                     ),
@@ -345,12 +348,12 @@ void _resendOtp() {
                     TextFormField(
                       controller: _lastNameController,
                       decoration: InputDecoration(
-                        labelText: 'Last Name',
+                        labelText: localizations.last_name_label,
                         prefixIcon: Icon(Icons.person_outline),
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter your last name';
+                          return localizations.valideLastname;
                         }
                         return null;
                       },
@@ -360,7 +363,7 @@ void _resendOtp() {
                       controller: _passwordController,
                       obscureText: _obscurePassword,
                       decoration: InputDecoration(
-                        labelText: 'Password',
+                        labelText: localizations.password,
                         prefixIcon: Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
                           icon: Icon(
@@ -375,7 +378,7 @@ void _resendOtp() {
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter a password';
+                          return localizations.enterPassword;
                         }
                         if (value.length < 8) {
                           return 'Password must be at least 8 characters';
@@ -400,7 +403,7 @@ void _resendOtp() {
                       controller: _confirmPasswordController,
                       obscureText: _obscureConfirmPassword,
                       decoration: InputDecoration(
-                        labelText: 'Confirm Password',
+                        labelText: localizations.confirm_password,
                         prefixIcon: Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
                           icon: Icon(
@@ -440,7 +443,7 @@ void _resendOtp() {
                       },
                       child: InputDecorator(
                         decoration: InputDecoration(
-                          labelText: 'Date of Birth',
+                          labelText: localizations.date_of_birth_label,
                           prefixIcon: Icon(Icons.calendar_today),
                         ),
                         child: Text(
@@ -453,12 +456,12 @@ void _resendOtp() {
                     SizedBox(height: 16),
                     DropdownButtonFormField<String>(
                       decoration: InputDecoration(
-                        labelText: 'Gender',
+                        labelText: localizations.gender_label,
                         prefixIcon: Icon(Icons.person_outline),
                       ),
                       value: selectedGender,
-                      hint: Text('Select Gender'),
-                      items: ['Male', 'Female', 'Other']
+                      hint: Text(localizations.gender_label),
+                      items: ['${localizations.male}', '${localizations.female}', '${localizations.other}']
                           .map((String value) {
                             return DropdownMenuItem<String>(
                               value: value,
@@ -475,11 +478,11 @@ void _resendOtp() {
                     SizedBox(height: 16),
                     DropdownButtonFormField<location_models.Country>(
                       decoration: InputDecoration(
-                        labelText: 'Country',
+                        labelText: localizations.country_label,
                         prefixIcon: Icon(Icons.public),
                       ),
                       value: selectedCountry,
-                      hint: Text('Select Country'),
+                      hint: Text(localizations.country_label),
                       items: _countries.map((location_models.Country country) {
                         return DropdownMenuItem<location_models.Country>(
                           value: country,
@@ -504,7 +507,7 @@ void _resendOtp() {
                     SizedBox(height: 16),
                     DropdownButtonFormField<location_models.State>(
                       decoration: InputDecoration(
-                        labelText: 'State',
+                        labelText: localizations.state_label,
                         prefixIcon: Icon(Icons.map),
                       ),
                       value: selectedState,
@@ -533,7 +536,7 @@ void _resendOtp() {
                     SizedBox(height: 16),
                     DropdownButtonFormField<location_models.City>(
                       decoration: InputDecoration(
-                        labelText: 'City',
+                        labelText: localizations.city_label,
                         prefixIcon: Icon(Icons.location_city),
                       ),
                       value: selectedCity,
@@ -557,11 +560,11 @@ void _resendOtp() {
                     SizedBox(height: 16),
                     DropdownButtonFormField<String>(
                       decoration: InputDecoration(
-                        labelText: 'User Type',
+                        labelText: localizations.user_type_label,
                         prefixIcon: Icon(Icons.person_outline),
                       ),
                       value: selectedUserType,
-                      hint: Text('Select User Type'),
+                      hint: Text(localizations.user_type_label),
                       items: ['donor', 'recipient']
                           .map((String value) {
                             return DropdownMenuItem<String>(
@@ -599,12 +602,12 @@ void _resendOtp() {
                                 setState(() => _isLoading = false);
                                 if (success) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('Signup successful!')),
+                                    SnackBar(content: Text(localizations.signup_successful)),
                                   );
                                    GoRouter.of(context).go(Routes.login);
                                 } else {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('Signup failed. Please try again.')),
+                                    SnackBar(content: Text(localizations.signup_failed)),
                                   );
                                 }
                               }
@@ -620,7 +623,7 @@ void _resendOtp() {
                                 ),
                               )
                             : Text(
-                                'Sign Up',
+                                localizations.signup_title,
                                 style: TextStyle(fontSize: 16),
                               ),
                       ),

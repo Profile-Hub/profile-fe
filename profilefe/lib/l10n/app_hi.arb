@@ -1,0 +1,374 @@
+{
+    "appTitle": "नीड ए डोनर",
+    "@appTitle": {
+        "description": "The title of the application"
+    },
+    "welcomeBack": "वापसी पर स्वागत है",
+    "@welcomeBack": {
+        "description": "Welcome message shown on the login screen"
+    },
+    "email": "ईमेल",
+    "@email": {
+        "description": "Label for email input field"
+    },
+    "enterEmail": "कृपया अपना ईमेल दर्ज करें",
+    "@enterEmail": {
+        "description": "Hint text for email input field"
+    },
+    "password": "पासवर्ड",
+    "@password": {
+        "description": "Label for password input field"
+    },
+    "enterPassword": "कृपया अपना पासवर्ड दर्ज करें",
+    "@enterPassword": {
+        "description": "Hint text for password input field"
+    },
+    "enterDigitPassword": "पासवर्ड कम से कम 8 वर्णों का होना चाहिए",
+    "@enterDigitPassword": {
+        "description": "Password must be at least 8 characters"
+    },
+    "enterAZPassword": "कृपया अपना पासवर्ड दर्ज करें",
+    "@enterPassword": {
+        "description": "Password must contain at least one uppercase letter"
+    },
+    "login": "लॉग इन करें",
+    "@login": {
+        "description": "Text for login button"
+    },
+    "forgotPassword": "पासवर्ड भूल गए?",
+    "@forgotPassword": {
+        "description": "Text for forgot password link"
+    },
+    "noAccount": "खाता नहीं है? ",
+    "@noAccount": {
+        "description": "Text asking if user doesn't have an account"
+    },
+    "signUp": "साइन अप करें",
+    "@signUp": {
+        "description": "Text for sign up link/button"
+    },
+    "errorMessage": "एक त्रुटि हुई। कृपया पुनः प्रयास करें।",
+    "@errorMessage": {
+        "description": "Generic error message shown when an operation fails"
+    },
+    "orContinueWith":"या जारी रखें",
+    "signup_title": "साइन अप करें",
+  "confirm_password": "पासवर्ड की पुष्टि करें",
+  "first_name_label": "पहला नाम",
+  "last_name_label": "अंतिम नाम",
+  "date_of_birth_label": "जन्म तिथि",
+  "gender_label": "लिंग",
+  "country_label": "देश",
+  "state_label": "राज्य",
+  "city_label": "शहर",
+   "age": "उम्र",
+   "verified":"सत्यापित",
+  "user_type_label": "उपयोगकर्ता प्रकार",
+  "loading": "लोड हो रहा है...",
+  "enter_valid_email": "कृपया एक मान्य ईमेल दर्ज करें",
+  "email_verified": "ईमेल सत्यापित",
+  "otp_sent_success": "OTP सफलतापूर्वक भेजा गया",
+  "otp_verification_failed": "OTP सत्यापन विफल",
+  "resend_otp": "OTP पुनः भेजें",
+  "verify_OTP":"सत्यापित OTP",
+  "validName":"कृपया अपना पहला नाम दें",
+  "middleName":"मध्य नाम (वैकल्पिक)",
+  "validLastname":"कृपया अपना अंतिम नाम दर्ज करें",
+  "validconfirmpassword":"कृपया अपने पासवर्ड की पुष्टि करें",
+  "notmatchPassword":"वापसी 'पासवर्ड मेल नहीं खाते",
+  "signup_successful!":"सफल पंजीकरण!",
+  "signup_failed.":"साइनअप_असफल। साइनअप विफल। कृपया पुनः प्रयास करें।",
+  "userDetails": "उपयोगकर्ता विवरण",
+  "name": "नाम",
+  "email": "ईमेल",
+  "phoneNumber": "फोन नंबर",
+  "bloodGroup": "रक्त समूह",
+"currentEmail":"वर्तमान ईमेल",
+  "organDonations": "अंग दान",
+  "noOrganhave": "कोई अंग दान निर्दिष्ट नहीं",
+  "changeEmail":"ईमेल बदलें",
+  "noDocumentsFound": "कोई दस्तावेज़ नहीं मिला।",
+  "document": "दस्तावेज़",
+  "close": "बंद करें",
+  "userRequest": "उपयोगकर्ता अनुरोध",
+  "notVerified": "सत्यापित नहीं",
+  "searchRecipitent":"प्राप्तकर्ता खोजें...",
+  "searchDonor":"दाता खोजें...",
+  "noDonorsFound": "कोई दाता नहीं मिला",
+  "noRecipientFound": "कोई प्राप्तकर्ता नहीं मिला",
+  "noMatchingRecipient": "कोई मेल खाता प्राप्तकर्ता नहीं मिला",
+  "noMatchingDonors": "कोई मेल खाता दाता नहीं मिला",
+  "failedReciptentDetails":"प्राप्तकर्ता विवरण लोड करने में विफल",
+  "error":"गलती",
+  "notopenDocument":"दस्तावेज़ नहीं खुल सका",
+  "changePassword":"पासवर्ड बदलें",
+  "oldPassword":"पुराना पासवर्ड",
+  "enterOldPassword":"कृपया अपना पुराना पासवर्ड दर्ज करें",
+  "newPassword":"नया पासवर्ड",
+  "enterNewPasssword":"कृपया एक नया पासवर्ड दर्ज करें",
+   "passwordMinLength": "पासवर्ड कम से कम 8 अक्षरों का होना चाहिए",
+  "passwordUppercase": "पासवर्ड में कम से कम एक बड़ा अक्षर होना चाहिए",
+  "passwordLowercase": "पासवर्ड में कम से कम एक छोटा अक्षर होना चाहिए",
+  "passwordDigit": "पासवर्ड में कम से कम एक अंक होना चाहिए",
+  "passwordSpecialChar": "पासवर्ड में कम से कम एक विशेष अक्षर होना चाहिए",
+  "confirmPassword": "कृपया अपना पासवर्ड पुष्टि करें",
+  "passwordMismatch": "पासवर्ड मेल नहीं खाते",
+  "chatMessageType":"एक संदेश टाइप करें...",
+"documentFormNotAvailibale":"इस देश के लिए दस्तावेज़ प्रपत्र उपलब्ध नहीं है।",
+"documentUpload":"दस्तावेज़ अपलोड करें",
+"searchHint": "खोजें",
+  "filter": "फ़िल्टर",
+  "resetFilters": "फ़िल्टर रीसेट करें",
+  "confirmUnlock": "अनलॉक की पुष्टि करें",
+  "unlockDonorMessage": "क्या आप वाकई इस दाता को अनलॉक करना चाहते हैं?",
+ "needActiveSubcribe":"इस डोनर को अनलॉक करने के लिए आपको एक सक्रिय सदस्यता की आवश्यकता है। क्या आप सदस्यता योजनाएं देखना चाहेंगे?",
+  "cancel": "रद्द करें",
+  "confirm": "पुष्टि करें",
+  "viewsplans":"योजनाएँ देखें",
+  "retry":"पुन: प्रयास करें",
+  "noSubscription": "उपयोगकर्ता के लिए कोई सदस्यता नहीं मिली",
+  "subscriptionExpired": "आपकी सदस्यता समाप्त हो गई है या रद्द कर दी गई है।",
+  "unlockSuccess": "आपने इस दाता को सफलतापूर्वक अनलॉक कर लिया है।",
+  "errorMessage": "त्रुटि",
+  "filtersReset": "फ़िल्टर रीसेट कर दिए गए हैं।",
+  "allDetails":"सभी विवरण",
+  "noDonorFound": "कोई दाता नहीं मिला।",
+  "donorDocuments":"दाता दस्तावेज़",
+  "missingDonorId":"दाता आईडी गुम है",
+   "preview":"पूर्व दर्शन",
+   "letChat":"आओ बात करें",
+    "failedInititeChat":"चैट आरंभ करने में विफल",
+    "option":"(विकल्प)",
+    "phoneCode":"फ़ोनकोड", 
+  "editProfile": "प्रोफ़ाइल संपादित करें",
+  "@editProfile": {
+    "description": "Title for edit profile screen"
+  },
+  
+  "loadingProfile": "प्रोफ़ाइल लोड हो रहा है...",
+  "@loadingProfile": {
+    "description": "Message shown while profile is loading"
+  },
+  "organDonationPreferences": "अंग दान प्राथमिकताएं",
+  "@organDonationPreferences": {
+    "description": "Title for organ donation section"
+  },
+  
+  "updateProfile": "प्रोफ़ाइल अपडेट करें",
+  "@updateProfile": {
+    "description": "Text for update profile button"
+  }, 
+  "changePhoneNumber": "फ़ोन नंबर बदलें",
+  "@changePhoneNumber": {
+    "description": "Text for change phone number button"
+  },
+  
+  "selectImageSource": "छवि स्रोत चुनें",
+  "@selectImageSource": {
+    "description": "Title for image source dialog"
+  },
+  
+  "gallery": "गैलरी",
+  "@gallery": {
+    "description": "Option for selecting image from gallery"
+  },
+  
+  "camera": "कैमरा",
+  "@camera": {
+    "description": "Option for capturing image from camera"
+  },
+  
+  "profileUpdateSuccess": "प्रोफ़ाइल सफलतापूर्वक अपडेट की गई!",
+  "@profileUpdateSuccess": {
+    "description": "Message shown when profile is updated successfully"
+  },
+  
+  "profileUpdateError": "प्रोफ़ाइल अपडेट करने में विफल: {error}",
+  "@profileUpdateError": {
+    "description": "Error message when profile update fails",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "नेटवर्क त्रुटि"
+      }
+    }
+  },
+    "pleaseEnterEmail": "कृपया अपना ईमेल दर्ज करें",
+  "@pleaseEnterEmail": {
+    "description": "Validation message for empty email input"
+  },
+  
+  "otp": "ओटीपी",
+  "@otp": {
+    "description": "Label for the OTP input field"
+  },
+  
+  "pleaseEnterOtp": "कृपया ओटीपी दर्ज करें",
+  "@pleaseEnterOtp": {
+    "description": "Validation message for empty OTP input"
+  },
+  
+  "newPassword": "नया पासवर्ड",
+  "@newPassword": {
+    "description": "Label for the new password input field"
+  },
+  
+  "pleaseEnterNewPassword": "कृपया नया पासवर्ड दर्ज करें",
+  "@pleaseEnterNewPassword": {
+    "description": "Validation message for empty new password input"
+  },
+   
+  "pleaseConfirmPassword": "कृपया अपना पासवर्ड पुष्टि करें",
+  "@pleaseConfirmPassword": {
+    "description": "Validation message for empty confirm password input"
+  },
+    
+  "sendOtp": "ओटीपी भेजें",
+  "@sendOtp": {
+    "description": "Button text for sending OTP"
+  },
+  
+  "verifyOtp": "ओटीपी सत्यापित करें",
+  "@verifyOtp": {
+    "description": "Button text for verifying OTP"
+  },
+  
+  "resetPassword": "पासवर्ड रीसेट करें",
+  "@resetPassword": {
+    "description": "Button text for resetting password"
+  },
+  
+  "emailSentSuccess": "ओटीपी सफलतापूर्वक भेजा गया",
+  "@emailSentSuccess": {
+    "description": "Message shown when OTP is sent successfully"
+  },
+  
+  "otpVerifiedSuccess": "ओटीपी सफलतापूर्वक सत्यापित",
+  "@otpVerifiedSuccess": {
+    "description": "Message shown when OTP is verified successfully"
+  },
+  
+  "passwordResetSuccess": "पासवर्ड सफलतापूर्वक रीसेट किया गया",
+  "@passwordResetSuccess": {
+    "description": "Message shown when password is reset successfully"
+  },
+  
+  "errorMessage": "त्रुटि: {error}",
+  "@errorMessage": {
+    "description": "Error message when something goes wrong",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "अमान्य ओटीपी"
+      }
+    }
+  },
+
+  "home": "होम",
+  "profile": "प्रोफ़ाइल",
+  "viewProfile": "प्रोफ़ाइल देखें",
+  "editProfile": "प्रोफ़ाइल संपादित करें",
+  "Personalinfo":"व्यक्तिगत जानकारी",
+  "contactinfo":"संपर्क जानकारी",
+  "accountInfo": "खाता जानकारी",
+  "logout": "लॉगआउट",
+  "confirmLogout": "लॉगआउट की पुष्टि करें",
+  "logoutMessage": "क्या आप वाकई लॉगआउट करना चाहते हैं?",
+  "uploadDocuments": "दस्तावेज़ अपलोड करें",
+  "chat": "चैट",
+  "chatMessages": "संदेश",
+  "welcomeAdmin": "एडमिन डैशबोर्ड में आपका स्वागत है",
+  "adminRequests": "उपयोगकर्ता अनुरोध",
+  "allDonors": "सभी दाता",
+  "donors":"दाता",
+  "allRecipients": "सभी प्राप्तकर्ता",
+  "unlockedDonors": "अनलॉक किए गए दाता",
+  "cancel": "रद्द करें",
+  "locationUpdated": "स्थान सफलतापूर्वक अपडेट किया गया।",
+  "locationUpdateFailed": "स्थान अपडेट करने में विफल।",
+  "profileCompletion": "अपनी प्रोफ़ाइल पूरी करें",
+  "profileCompletionMessage": "सत्यापित उपयोगकर्ता बनने के लिए कृपया:",
+  "completeFields": "निम्नलिखित प्रोफ़ाइल फ़ील्ड भरें:",
+  "uploadRequiredDocuments": "निम्नलिखित आवश्यक दस्तावेज़ अपलोड करें:",
+  "completeProfile": "प्रोफ़ाइल पूरी करें",
+  "uploadDocumentsButton": "दस्तावेज़ अपलोड करें",
+  "checkingProfileError": "प्रोफ़ाइल सत्यापन में त्रुटि",
+  "loggingOut": "लॉगआउट हो रहा है...",
+  "logoutFailed": "लॉगआउट विफल। कृपया पुनः प्रयास करें।",
+  "logoutError": "लॉगआउट के दौरान त्रुटि",
+  "logoinError": "लॉग इन के दौरान त्रुटि",
+  "loginFailed": "लॉगिन विफल",
+  "googleLogin": "Google साइन इन विफल",
+  "choosePlan": "योजना चुनें",
+  "selectSubscriptionPlan": "अपनी सदस्यता योजना चुनें",
+  "chooseBestPlan": "अपनी आवश्यकताओं के अनुसार सर्वश्रेष्ठ योजना चुनें",
+  "subscribeNow": "अभी सदस्यता लें",
+  "mostPopular": "सबसे लोकप्रिय",
+  
+  "basicPlan": "बेसिक योजना",
+  "standardPlan": "स्टैंडर्ड योजना",
+  "premiumPlan": "प्रीमियम योजना",
+  
+  "contactViews": "{contacts} संपर्क दृश्य",
+  "unlimitedContacts": "असीमित संपर्क दृश्य",
+  "monthsValidity": "{months} महीने की वैधता",
+  "unlockForever": "हमेशा के लिए अनलॉक करें",
+  "basicSupport": "बेसिक समर्थन",
+  "prioritySupport": "प्राथमिकता समर्थन",
+  "premiumSupport": "प्रीमियम समर्थन",
+  "advancedSearch": "उन्नत खोज",
+  "exportFeatures": "निर्यात सुविधाएँ",
+  "perQuarter": "प्रति तिमाही",
+  "planPrice": "₹{price}",
+  "paymentSuccess": "भुगतान सफल! आपकी सदस्यता अब सक्रिय है।",
+  "paymentFailed": "भुगतान प्रारंभ करने में विफल",
+  "paymentVerificationFailed": "भुगतान सत्यापन विफल",
+  "loggingOut": "लॉगआउट हो रहा है...",
+  "backToHome": "मुख्य पृष्ठ पर वापस जाएँ",
+  "fileSize":"फ़ाइल का आकार इससे कम होना चाहिए",
+  "errorFile": "फ़ाइल का चयन करने में त्रुटि",
+  "pleaseSelect":"कृपया इसके लिए एक फ़ाइल चुनें",
+  "unsupportedFile":"फ़ाइल प्रकार समर्थित नहीं है। केवल JPG, PNG और PDF की अनुमति है।",
+  "uploadedsuccessfully":"सफलतापूर्वक अपलोड किया गया",
+  "uploadfail":"अपलोड करने में विफल",
+  "chooseFile": "फ़ाइल चुनें",
+  "requiredfile": "आवश्यक",
+  "noFileSelected": "कोई फ़ाइल चयनित नहीं",
+  "upload":"अपलोड करें",
+  "counryFail":"देशों को लोड करने में विफल",
+  "stateFail":"राज्य लोड करने में विफल",
+  "cityFail":"शहर लोड करने में विफल",
+  "radius": "त्रिज्या",
+  "filterDonor": "फ़िल्टर डोनर",
+  "ageRange":"आयु सीमा",
+  "selectedOrgans": "दान के लिए अंगों का चयन करें",
+  "applyFilters": "फ़िल्टर लागू करें",
+  "filterRecipients":"फ़िल्टर प्राप्तकर्ता",
+  "subscribeTitle": "विवरण देखने के लिए सदस्यता लें",
+  "subscribeContent": "दाताओं के विवरण को देखने के लिए आपको सदस्यता लेनी होगी।",
+
+  "basicPlan": "बेसिक प्लान",
+  "standardPlan": "स्टैंडर्ड प्लान",
+  "premiumPlan": "प्रीमियम प्लान",
+  "contacts": "संपर्क",
+  "monthsValidity": "महीने की वैधता",
+  "unlimited": "असीमित",
+  "unlockForever": "हमेशा के लिए अनलॉक",
+  "basicSupport": "बेसिक सहायता",
+  "prioritySupport": "प्राथमिकता सहायता",
+  "premiumSupport": "प्रीमियम सहायता",
+  "advancedSearch": "एडवांस खोज",
+  "exportFeatures": "निर्यात सुविधाएं",
+  "choosePlan": "प्लान चुनें",
+  "selectSubscriptionPlan": "अपना सदस्यता प्लान चुनें",
+  "chooseBestPlan": "अपने लिए सबसे अच्छा प्लान चुनें",
+  "mostPopular": "सबसे लोकप्रिय",
+  "perQuarter": "प्रति तिमाही",
+  "subscribeNow": "अभी सब्सक्राइब करें",
+  "paymentSuccess": "भुगतान सफल",
+  "paymentFailed": "भुगतान विफल",
+  "paymentVerificationFailed": "भुगतान सत्यापन विफल",
+   "male": "पुरुष",
+  "female": "महिला",
+  "other": "अन्य"
+}

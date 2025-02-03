@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/doner_filter_model.dart';
 import '../../services/location_api_service.dart';
 import '../../models/location_models.dart' as LocationModels;
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class DonorFilterWidget extends StatefulWidget {
   final Function(DonorFilter) onFilterChanged;
@@ -86,7 +87,7 @@ class _DonorFilterWidgetState extends State<DonorFilterWidget> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load countries: $e')),
+          SnackBar(content: Text('${AppLocalizations.of(context)!.counryFail} $e')),
         );
         setState(() => _isLoadingLocations = false);
       }
@@ -107,7 +108,7 @@ class _DonorFilterWidgetState extends State<DonorFilterWidget> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load states: $e')),
+          SnackBar(content: Text('${AppLocalizations.of(context)!.stateFail}: $e')),
         );
         setState(() => _isLoadingLocations = false);
       }
@@ -116,6 +117,7 @@ class _DonorFilterWidgetState extends State<DonorFilterWidget> {
 
   Future<void> _loadCities(String stateName) async {
     setState(() => _isLoadingLocations = true);
+    
     try {
       final cities = await _locationService.getCities(stateName);
       setState(() {
@@ -126,7 +128,7 @@ class _DonorFilterWidgetState extends State<DonorFilterWidget> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load cities: $e')),
+          SnackBar(content: Text('${AppLocalizations.of(context)!.cityFail}: $e')),
         );
         setState(() => _isLoadingLocations = false);
       }
@@ -156,13 +158,14 @@ class _DonorFilterWidgetState extends State<DonorFilterWidget> {
   }
 
   Widget _buildLocationDropdowns() {
+     final localizations = AppLocalizations.of(context)!;
     return Column(
       children: [
         // Country Dropdown
         DropdownButtonFormField<String>(
           value: _selectedCountry,
           decoration: InputDecoration(
-            labelText: 'Country',
+            labelText: localizations.country_label,
             enabled: !_isLoadingLocations,
           ),
           items: _countries.map((country) => DropdownMenuItem(
@@ -182,7 +185,7 @@ class _DonorFilterWidgetState extends State<DonorFilterWidget> {
         DropdownButtonFormField<String>(
           value: _selectedState,
           decoration: InputDecoration(
-            labelText: 'State',
+            labelText: localizations.state_label,
             enabled: !_isLoadingLocations && _selectedCountry != null,
           ),
           items: _states.map((state) => DropdownMenuItem(
@@ -202,7 +205,7 @@ class _DonorFilterWidgetState extends State<DonorFilterWidget> {
         DropdownButtonFormField<String>(
           value: _selectedCity,
           decoration: InputDecoration(
-            labelText: 'City',
+            labelText: localizations.city_label,
             enabled: !_isLoadingLocations && _selectedState != null,
           ),
           items: _cities.map((city) => DropdownMenuItem(
@@ -269,6 +272,7 @@ void _resetFilters() {
 
   @override
   Widget build(BuildContext context) {
+     final localizations = AppLocalizations.of(context)!;
     return Container(
       padding: EdgeInsets.all(16),
       child: Form(
@@ -277,14 +281,14 @@ void _resetFilters() {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Filter Donors', style: Theme.of(context).textTheme.titleLarge),
+              Text(localizations.filterDonor, style: Theme.of(context).textTheme.titleLarge),
               SizedBox(height: 16),
               
               _buildLocationDropdowns(),
               SizedBox(height: 16),
 
               // Radius Selection
-              Text('Radius (km)'),
+              Text('${localizations.radius}(km)'),
               Wrap(
                 spacing: 8,
                 children: radiusOptions.map((radius) => ChoiceChip(
@@ -300,7 +304,7 @@ void _resetFilters() {
               SizedBox(height: 16),
 
               // Age Range Slider
-              Text('Age Range: ${_ageRange.start.round()} - ${_ageRange.end.round()}'),
+              Text('${localizations.ageRange}: ${_ageRange.start.round()} - ${_ageRange.end.round()}'),
               RangeSlider(
                 values: _ageRange,
                 min: 18,
@@ -317,8 +321,8 @@ void _resetFilters() {
               // Gender Selection
               DropdownButtonFormField<String>(
                 value: _selectedGender,
-                decoration: InputDecoration(labelText: 'Gender'),
-                items: ['Male', 'Female', 'Other'].map((gender) => DropdownMenuItem(
+                decoration: InputDecoration(labelText: localizations.gender_label),
+                items: ['${localizations.male}', '${localizations.female}', '${localizations.other}'].map((gender) => DropdownMenuItem(
                   value: gender,
                   child: Text(gender),
                 )).toList(),
@@ -327,7 +331,7 @@ void _resetFilters() {
               SizedBox(height: 16),
 
               // Organ Selection
-              Text('Select Organs for Donation', 
+              Text(localizations.selectedOrgans, 
                 style: Theme.of(context).textTheme.titleMedium),
               SizedBox(height: 8),
               _buildOrganSelection(),
@@ -340,7 +344,7 @@ void _resetFilters() {
       child: ElevatedButton.icon(
         onPressed: _isLoadingLocations ? null : _applyFilters,
         icon: const Icon(Icons.check_circle),
-        label: const Text('Apply Filters'),
+        label:  Text(localizations.applyFilters),
       ),
     ),
     const SizedBox(width: 8), // Add spacing between the buttons
@@ -350,7 +354,7 @@ void _resetFilters() {
           _resetFilters();
         },
         icon: const Icon(Icons.refresh),
-        label: const Text('Reset Filters'),
+        label:  Text(localizations.resetFilters),
       ),
     ),
   ],

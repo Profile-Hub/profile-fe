@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/chat_services.dart';
 import '../routes.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class SenderScreen extends StatefulWidget {
   @override
@@ -75,6 +76,7 @@ class _SenderScreenState extends State<SenderScreen> {
   }
 
   Widget _buildErrorWidget() {
+     final localization = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -87,7 +89,7 @@ class _SenderScreenState extends State<SenderScreen> {
           SizedBox(height: 16),
           ElevatedButton(
             onPressed: _fetchUserdetails,
-            child: Text('Retry'),
+            child: Text(localization.retry),
           ),
         ],
       ),
@@ -96,6 +98,7 @@ class _SenderScreenState extends State<SenderScreen> {
 
   @override
   Widget build(BuildContext context) {
+     final localization = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -104,7 +107,7 @@ class _SenderScreenState extends State<SenderScreen> {
       GoRouter.of(context).go(Routes.home);
     },
   ),
-        title: Text("All Recipient"),
+        title: Text(localization.allRecipients),
         backgroundColor: Colors.lightBlueAccent,
       ),
       body: Column(
@@ -115,7 +118,7 @@ class _SenderScreenState extends State<SenderScreen> {
               controller: _searchController,
               onChanged: _filterConversations,
               decoration: InputDecoration(
-                hintText: "Search Recipient",
+                hintText: localization.searchRecipitent,
                 prefixIcon: Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -132,8 +135,8 @@ class _SenderScreenState extends State<SenderScreen> {
                         ? Center(
                             child: Text(
                               _searchController.text.isEmpty
-                                  ? 'No Recipient found'
-                                  : 'No matching Recipient',
+                                  ? localization.noRecipientFound
+                                  : localization.noMatchingRecipient,
                               style: TextStyle(color: Colors.grey[600]),
                             ),
                           )

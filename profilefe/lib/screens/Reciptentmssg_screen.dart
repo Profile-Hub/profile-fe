@@ -5,6 +5,7 @@ import '../services/getdoner_service.dart';
 import '../services/subscription_service.dart';
 import '../routes.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class RecipientScreen extends StatefulWidget {
     final User user;
@@ -32,6 +33,7 @@ class _RecipientScreenState extends State<RecipientScreen> {
   }
 
   Future<void> _fetchUserdetails() async {
+     final localizations = AppLocalizations.of(context)!;
     try {
       setState(() {
         _isLoading = true;
@@ -67,6 +69,7 @@ class _RecipientScreenState extends State<RecipientScreen> {
 }
 
  Future<void> _handleDonorTap(BuildContext context, Map<String, dynamic> donor) async {
+     final localizations = AppLocalizations.of(context)!;
   try {
     final status = await _subscriptionService.checkSubscriptionStatus();
 
@@ -74,7 +77,7 @@ class _RecipientScreenState extends State<RecipientScreen> {
     final donorId = donor['id'] ?? '';
     if (donorId.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Donor ID is missing")),
+        SnackBar(content: Text(localizations.missingDonorId)),
       );
       return;
     }
@@ -96,17 +99,17 @@ class _RecipientScreenState extends State<RecipientScreen> {
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: Text('Confirm Unlock'),
+            title: Text(localizations.confirmUnlock),
             content: Text(
-                'You need an active subscription to unlock this donor. Would you like to view subscription plans?'),
+                localizations.needActiveSubcribe),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
-                child: Text('Cancel'),
+                child: Text(localizations.cancel),
               ),
               ElevatedButton(
                 onPressed: () => Navigator.of(context).pop(true),
-                child: Text('View Plans'),
+                child: Text(localizations.viewsplans),
               ),
             ],
           );
@@ -147,7 +150,7 @@ class _RecipientScreenState extends State<RecipientScreen> {
     );
   } catch (e) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Error: ${e.toString()}")),
+      SnackBar(content: Text("${localizations.error}: ${e.toString()}")),
     );
   }
 }
@@ -171,6 +174,7 @@ void openChat(BuildContext context, Map<String, dynamic> donor) {
 
 
   Widget _buildErrorWidget() {
+     final localizations = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -183,7 +187,7 @@ void openChat(BuildContext context, Map<String, dynamic> donor) {
           SizedBox(height: 16),
           ElevatedButton(
             onPressed: _fetchUserdetails,
-            child: Text('Retry'),
+            child: Text(localizations.retry),
           ),
         ],
       ),
@@ -192,6 +196,7 @@ void openChat(BuildContext context, Map<String, dynamic> donor) {
 
   @override
   Widget build(BuildContext context) {
+     final localizations = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -200,7 +205,7 @@ void openChat(BuildContext context, Map<String, dynamic> donor) {
             GoRouter.of(context).go(Routes.home);
           },
         ),
-        title: Text("All Donor"),
+        title: Text(localizations.allDonors),
         backgroundColor: Colors.lightBlueAccent,
       ),
       body: Column(
@@ -211,7 +216,7 @@ void openChat(BuildContext context, Map<String, dynamic> donor) {
               controller: _searchController,
               onChanged: _filterConversations,
               decoration: InputDecoration(
-                hintText: "Search Donors",
+                hintText: localizations.searchDonor,
                 prefixIcon: Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -228,8 +233,8 @@ void openChat(BuildContext context, Map<String, dynamic> donor) {
                         ? Center(
                             child: Text(
                               _searchController.text.isEmpty
-                                  ? 'No donors found'
-                                  : 'No matching donors',
+                                  ? localizations.noDonorsFound
+                                  : localizations.noMatchingDonors,
                               style: TextStyle(color: Colors.grey[600]),
                             ),
                           )

@@ -10,6 +10,7 @@ import '../routes.dart';
 import 'package:go_router/go_router.dart';
 import '../routes.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -25,6 +26,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isPasswordVisible = false;
 
   Future<void> _handleLogin() async {
+        final localization = AppLocalizations.of(context)!;
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
@@ -50,13 +52,13 @@ class _LoginScreenState extends State<LoginScreen> {
           }
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(loginResponse?.message ?? 'Login failed')),
+            SnackBar(content: Text(loginResponse?.message ?? localization.loginFailed)),
           );
         }
       } catch (e) {
-        print('Error during login: $e');
+        print('${localization.logoinError}: $e');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('An error occurred. Please try again.')),
+          SnackBar(content: Text("${localization.errorMessage}")),
         );
       } finally {
         setState(() {
@@ -67,6 +69,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleGoogleSignIn() async {
+        final localization = AppLocalizations.of(context)!;
     setState(() {
       _isLoading = true;
     });
@@ -78,13 +81,13 @@ class _LoginScreenState extends State<LoginScreen> {
         GoRouter.of(context).go(Routes.home);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Google sign in failed')),
+          SnackBar(content: Text(localization.googleLogin)),
         );
       }
     } catch (e) {
       print('Error during Google sign in: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An error occurred during Google sign in')),
+        SnackBar(content: Text("${localization.errorMessage}")),
       );
     } finally {
       setState(() {
@@ -93,8 +96,9 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  @override
+   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
     return Scaffold(
       body: Stack(
         children: [
@@ -109,7 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       SizedBox(height: 50),
                       Text(
-                        'Welcome Back',
+                        localizations.welcomeBack,
                         style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
@@ -121,14 +125,13 @@ class _LoginScreenState extends State<LoginScreen> {
                       TextFormField(
                         controller: _emailController,
                         decoration: InputDecoration(
-                          
-                          labelText: 'Email',
+                          labelText: localizations.email,
                           prefixIcon: Icon(Icons.email_outlined),
                         ),
                         keyboardType: TextInputType.emailAddress,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please enter your email';
+                            return localizations.enterEmail;
                           }
                           return null;
                         },
@@ -137,7 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       TextFormField(
                         controller: _passwordController,
                         decoration: InputDecoration(
-                          labelText: 'Password',
+                          labelText: localizations.password,
                           prefixIcon: Icon(Icons.lock_outlined),
                           suffixIcon: IconButton(
                             icon: Icon(
@@ -155,7 +158,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         obscureText: !_isPasswordVisible,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please enter your password';
+                            return localizations.enterPassword;
                           }
                           return null;
                         },
@@ -168,7 +171,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                               )
                             : Text(
-                                'Login',
+                                localizations.login,
                                 style: TextStyle(fontSize: 16),
                               ),
                         style: ElevatedButton.styleFrom(
@@ -184,7 +187,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           onPressed: () {
                             GoRouter.of(context).go(Routes.forgotPassword);
                           },
-                          child: Text('Forgot Password?'),
+                          child: Text(localizations.forgotPassword),
                         ),
                       ),
                       SizedBox(height: 24),
@@ -193,7 +196,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           Expanded(child: Divider()),
                           Padding(
                             padding: EdgeInsets.symmetric(horizontal: 16),
-                            child: Text('Or continue with'),
+                            child: Text(localizations.orContinueWith),
                           ),
                           Expanded(child: Divider()),
                         ],
@@ -213,12 +216,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text("Don't have an account? "),
+                          Text(localizations.noAccount),
                           TextButton(
                             onPressed: () {
                               GoRouter.of(context).go(Routes.signup);
                             },
-                            child: Text('Sign Up'),
+                            child: Text(localizations.signUp),
                           ),
                         ],
                       ),

@@ -10,6 +10,8 @@ import '../routes.dart';
 import 'package:go_router/go_router.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:universal_html/html.dart' as html;
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../providers/language_provider.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -20,7 +22,17 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   late AnimationController _animationController;
   final _storage = const FlutterSecureStorage();
   bool _isLoading = true;
+  bool _isLanguageSelected = false;
+  bool _hasLocationPermission = false;
   String? _errorMessage;
+
+  String _getLanguageName(String languageCode) {
+    switch (languageCode) {
+      case 'en': return 'English';
+      case 'hi': return 'हिंदी';
+      default: return languageCode;
+    }
+  }
 
   @override
   void initState() {
@@ -29,7 +41,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       vsync: this,
       duration: const Duration(seconds: 2),
     );
-    _initializeApp();
   }
 
   @override
@@ -47,7 +58,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     LocationPermission permission;
 
     try {
-      // Check if location services are enabled
       serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         setState(() {
@@ -56,40 +66,27 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         return false;
       }
 
-      // Platform specific checks
-      if (UniversalPlatform.isIOS) {
-        // iOS specific location check
-        permission = await Geolocator.checkPermission();
+      permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          permission = await Geolocator.requestPermission();
-          if (permission == LocationPermission.denied) {
-            setState(() {
-              _errorMessage = 'Location permissions are required for this app.';
-            });
-            return false;
-          }
-        }
-      } else if (UniversalPlatform.isAndroid) {
-        // Android specific location check
-        permission = await Geolocator.checkPermission();
-        if (permission == LocationPermission.denied) {
-          permission = await Geolocator.requestPermission();
-          if (permission == LocationPermission.denied) {
-            setState(() {
-              _errorMessage = 'Location permissions are required for this app.';
-            });
-            return false;
-          }
-        }
-
-        if (permission == LocationPermission.deniedForever) {
           setState(() {
-            _errorMessage = 'Location permissions are permanently denied. Please enable them in settings.';
+            _errorMessage = 'Location permissions are required for this app.';
           });
           return false;
         }
       }
 
+      if (permission == LocationPermission.deniedForever) {
+        setState(() {
+          _errorMessage = 'Location permissions are permanently denied. Please enable them in settings.';
+        });
+        return false;
+      }
+
+      setState(() {
+        _hasLocationPermission = true;
+      });
       return true;
     } catch (e) {
       setState(() {
@@ -112,6 +109,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         return false;
       }
 
+      setState(() {
+        _hasLocationPermission = true;
+      });
       return true;
     } catch (e) {
       setState(() {
@@ -122,37 +122,36 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   }
 
   Future<void> _getCurrentLocation() async {
-    final hasPermission = await _handleLocationPermission();
-    
-    if (!hasPermission) return;
+    if (!_hasLocationPermission) {
+      final hasPermission = await _handleLocationPermission();
+      if (!hasPermission) return;
+    }
 
     try {
       Position position;
       
       if (kIsWeb) {
-        // Web specific implementation
         position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.medium,
         );
       } else if (UniversalPlatform.isIOS) {
-        // iOS specific implementation
         position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.best,
           timeLimit: const Duration(seconds: 5),
         );
       } else {
-        // Android implementation
         position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high,
         );
       }
 
-      // Store location in secure storage
       await _storage.write(key: 'user_latitude', value: position.latitude.toString());
       await _storage.write(key: 'user_longitude', value: position.longitude.toString());
-      
-      // Store platform information
       await _storage.write(key: 'platform', value: _getPlatformName());
+      
+      if (_isLanguageSelected && mounted) {
+        _proceedToNextScreen();
+      }
     } catch (e) {
       setState(() {
         _errorMessage = 'Error getting location: $e';
@@ -168,105 +167,106 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     return 'unknown';
   }
 
-  Future<void> _initializeApp() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+  void _proceedToNextScreen() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    await authProvider.initialize();
 
-    try {
-      // Start the animation
-      _animationController.forward();
-
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
-
-      // Initialize location and auth in parallel
-      await Future.wait([
-        _getCurrentLocation(),
-        authProvider.initialize(),
-      ]);
-
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-
-        if (authProvider.isAuthenticated) {
-          GoRouter.of(context).go(Routes.home);
-        } else {
-          GoRouter.of(context).go(Routes.login);
-        }
+    if (mounted) {
+      if (authProvider.isAuthenticated) {
+        GoRouter.of(context).go(Routes.home);
+      } else {
+        GoRouter.of(context).go(Routes.login);
       }
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-        _errorMessage = 'Error initializing app: $e';
-      });
     }
   }
 
-   Widget _buildLoadingIndicator() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        if (_errorMessage == null) 
-          Column(
-            children: [
-              Image.asset(
-                'assets/icon.png',
-                width: 120,
-                height: 120,
-              ),
-              const SizedBox(height: 16),
-              const CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+ Widget _buildLanguageSelector() {
+    return Consumer<LanguageProvider>(
+      builder: (context, languageProvider, child) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
-        if (_errorMessage != null)
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                const Icon(
-                  Icons.error_outline,
-                  color: Colors.red,
-                  size: 48,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Select Language',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  _errorMessage!,
-                  style: const TextStyle(
-                    color: Colors.red,
-                    fontSize: 16,
+              ),
+              const Text(
+                'भाषा चुनें',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: DropdownButton<Locale>(
+                  value: languageProvider.currentLocale,
+                  hint: const Text('Select / चुनें'),
+                  isExpanded: true,
+                  underline: Container(),
+                  items: LanguageProvider.supportedLocales.map((Locale locale) {
+                    return DropdownMenuItem(
+                      value: locale,
+                      child: Text(
+                        _getLanguageName(locale.languageCode),
+                        style: TextStyle(
+                          color: languageProvider.currentLocale == locale 
+                            ? Colors.blue 
+                            : Colors.black,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (Locale? newLocale) {
+                    if (newLocale != null) {
+                      languageProvider.setLanguage(newLocale);
+                      setState(() {
+                        _isLanguageSelected = true;
+                      });
+                      _getCurrentLocation();
+                    }
+                  },
+                ),
+              ),
+              if (_errorMessage != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: Text(
+                    _errorMessage!,
+                    style: const TextStyle(
+                      color: Colors.red,
+                      fontSize: 14,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                  textAlign: TextAlign.center,
                 ),
-              ],
-            ),
+            ],
           ),
-        const SizedBox(height: 24),
-        if (_errorMessage == null || !_errorMessage!.contains('permanently denied'))
-          TextButton(
-            onPressed: _isLoading ? null : _initializeApp,
-            style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              backgroundColor: Colors.white.withOpacity(0.2),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: Text(
-              _errorMessage != null ? 'Retry' : 'Loading...',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-      ],
+        );
+      },
     );
   }
 
@@ -274,19 +274,33 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              const Color.fromARGB(255, 58, 151, 250), // Bright doctor-blue theme
-              const Color.fromARGB(255, 36, 144, 245), // Deeper blue
+              Color.fromARGB(255, 58, 151, 250),
+              Color.fromARGB(255, 36, 144, 245),
             ],
           ),
         ),
         child: SafeArea(
           child: Center(
-            child: _buildLoadingIndicator(),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(
+                    'assets/icon.png',
+                    width: 120,
+                    height: 120,
+                  ),
+                  const SizedBox(height: 32),
+                  _buildLanguageSelector(),
+                ],
+              ),
+            ),
           ),
         ),
       ),

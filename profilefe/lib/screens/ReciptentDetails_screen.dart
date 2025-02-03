@@ -10,6 +10,7 @@ import  './Chat_screen.dart';
 import '../routes.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 
 class RecipitentDetailPage extends StatelessWidget {
@@ -29,6 +30,7 @@ class RecipitentDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+     final localizations = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -37,16 +39,16 @@ class RecipitentDetailPage extends StatelessWidget {
        GoRouter.of(context).go(Routes.home);
     },
   ),
-        title: const Text('All Details')),
+        title:  Text(localizations.allDetails)),
       body: FutureBuilder<RecipitentDetails>(
         future: fetchRecipitentDetails(recipientId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+            return Center(child: Text('${localizations.error}: ${snapshot.error}'));
           } else if (!snapshot.hasData) {
-            return const Center(child: Text('No donor found.'));
+            return  Center(child: Text(localizations.noDonorFound));
           } else {
             final recipient = snapshot.data!;
             return Padding(
@@ -74,18 +76,18 @@ class RecipitentDetailPage extends StatelessWidget {
 ),
                       const SizedBox(height: 20),
                       Text(
-                        'Name: ${recipient.firstname} ${recipient.lastname}',
+                        '${localizations.name}: ${recipient.firstname} ${recipient.lastname}',
                         style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 10),
                       Text(
-                        'Date of Birth: ${recipient.dateofbirth != null ? DateFormat.yMMMd().format(recipient.dateofbirth!) : 'N/A'}',
+                        '${localizations.date_of_birth_label} ${recipient.dateofbirth != null ? DateFormat.yMMMd().format(recipient.dateofbirth!) : 'N/A'}',
                       ),
-                      Text('Gender: ${recipient.gender ?? 'N/A'}'),
-                      Text('City: ${recipient.city ?? 'N/A'}'),
-                      Text('State: ${recipient.state ?? 'N/A'}'),
-                      Text('Country: ${recipient.country ?? 'N/A'}'),
-                      Text('Blood Group: ${recipient.bloodGroup ?? 'N/A'}'),
+                      Text('${localizations.gender_label}: ${recipient.gender ?? 'N/A'}'),
+                      Text('${localizations.city_label}: ${recipient.city ?? 'N/A'}'),
+                      Text('${localizations.state_label}: ${recipient.state ?? 'N/A'}'),
+                      Text('${localizations.country_label}: ${recipient.country ?? 'N/A'}'),
+                      Text('${localizations.bloodGroup}: ${recipient.bloodGroup ?? 'N/A'}'),
                       const SizedBox(height: 20),
                      Center(
   child: Container(
@@ -116,12 +118,12 @@ class RecipitentDetailPage extends StatelessWidget {
         } catch (e) {
           print("Error fetching conversation SID: $e");
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Failed to initiate chat")),
+            SnackBar(content: Text(localizations.failedInititeChat)),
           );
         }
       },
-      child: const Text(
-        'Let\'s Chat',
+      child:  Text(
+        localizations.letChat,
         style: TextStyle(color: Colors.white, fontSize: 16), // Ensure text color is white
       ),
     ),
@@ -138,12 +140,12 @@ class RecipitentDetailPage extends StatelessWidget {
     );
   }
 
-  void _openDocument(String url) async {
+  void _openDocument(BuildContext context,String url) async {
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     } else {
-      throw 'Could not open the document';
+     throw '${AppLocalizations.of(context)!.notopenDocument}';
     }
   }
 }
