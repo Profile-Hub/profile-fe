@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:go_router/go_router.dart';
 import '../routes.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class AllRecipientPage extends StatefulWidget {
   @override
@@ -30,6 +31,7 @@ class _AllRecipientPageState extends State<AllRecipientPage> {
 
   @override
   Widget build(BuildContext context) {
+     final localizations = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
        leading: IconButton(
@@ -40,7 +42,7 @@ class _AllRecipientPageState extends State<AllRecipientPage> {
   ),
         title: TextField(
          decoration: InputDecoration(
-  hintText: 'Search Recipient...',
+  hintText:localizations.searchRecipitent,
   border: OutlineInputBorder(
     borderRadius: BorderRadius.circular(12), 
     borderSide: BorderSide(
@@ -78,9 +80,9 @@ class _AllRecipientPageState extends State<AllRecipientPage> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+            return Center(child: Text('${localizations.error}: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('No recipients found.'));
+            return Center(child: Text(localizations.noDocumentsFound));
           } else {
             final recipients = snapshot.data!;
   final searchParts = searchQuery.split(' ');
@@ -117,6 +119,7 @@ class _AllRecipientPageState extends State<AllRecipientPage> {
   }
 
  void _navigateToRecipientDetails(BuildContext context, Alluser recipient) async {
+     final localization = AppLocalizations.of(context)!;
   try {
     Alluser recipientDetails = await AlluserData().getUserById(recipient.id);
     GoRouter.of(context).push(
@@ -124,23 +127,24 @@ class _AllRecipientPageState extends State<AllRecipientPage> {
       extra: {'recipient': recipient, 'recipientDetails': recipientDetails},  // Pass data using 'extra'
     );
   } catch (e) {
-    _showErrorDialog(context, 'Failed to load recipient details: $e');
+    _showErrorDialog(context, '${localization.failedReciptentDetails}: $e');
   }
 }
 
   void _showErrorDialog(BuildContext context, String message) {
+     final localizations = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Error'),
+          title: Text(localizations.error),
           content: Text(message),
           actions: <Widget>[
             TextButton(
               onPressed: () {
                GoRouter.of(context).pop();
               },
-              child: Text('Close'),
+              child: Text(localizations.close),
             ),
           ],
         );
@@ -163,6 +167,7 @@ class RecipientDetailsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+     final localizations = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         title: Text('${recipient.firstname} ${recipient.lastname}'),
@@ -177,11 +182,11 @@ class RecipientDetailsPage extends StatelessWidget {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 10),
-            Text('Phone: ${recipient.phoneNumber ?? "N/A"}'),
-            Text('Country: ${recipient.country ?? "N/A"}'),
-            Text('Email: ${recipient.email}'),
-            Text('Date of Birth: ${recipient.dateofbirth != null ? recipient.dateofbirth!.toLocal().toString().split(' ')[0] : 'N/A'}'),
-            Text('Blood Group: ${recipient.bloodGroup ?? 'N/A'}'),
+            Text('${localizations.phoneNumber}: ${recipient.phoneNumber ?? "N/A"}'),
+            Text('${localizations.country_label}: ${recipient.country ?? "N/A"}'),
+            Text('${localizations.email}: ${recipient.email}'),
+            Text('${localizations.date_of_birth_label}: ${recipient.dateofbirth != null ? recipient.dateofbirth!.toLocal().toString().split(' ')[0] : 'N/A'}'),
+            Text('${localizations.bloodGroup}: ${recipient.bloodGroup ?? 'N/A'}'),
             Expanded(
               child: FutureBuilder<List<Document>>(
                 future: fetchRecipientDocuments(recipient.id, recipient.country ?? ''),
@@ -189,9 +194,9 @@ class RecipientDetailsPage extends StatelessWidget {
                   if (docSnapshot.connectionState == ConnectionState.waiting) {
                     return Center(child: CircularProgressIndicator());
                   } else if (docSnapshot.hasError) {
-                    return Center(child: Text('Error: ${docSnapshot.error}'));
+                    return Center(child: Text('${localizations.error}: ${docSnapshot.error}'));
                   } else if (!docSnapshot.hasData || docSnapshot.data!.isEmpty) {
-                    return Center(child: Text('No documents found.'));
+                    return Center(child: Text(localizations.noDocumentsFound));
                   } else {
                     final documents = docSnapshot.data!;
                     return ListView.builder(
@@ -207,7 +212,7 @@ class RecipientDetailsPage extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Document ${index + 1}',
+                                    '${localizations.document} ${index + 1}',
                                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                   ),
                                   const SizedBox(height: 10),
@@ -280,11 +285,12 @@ class RecipientDetailsPage extends StatelessWidget {
   }
 
   void _openDocument(BuildContext context, String url) async {
+     final localizations = AppLocalizations.of(context)!;
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     } else {
-      throw 'Could not open the document';
+      throw localizations.notopenDocument;
     }
   }
 }

@@ -8,6 +8,7 @@ import 'document_form/uk_document_form.dart';
 import 'document_form/australia_document_form.dart';
 import 'document_form/uae_document_form.dart';
 import 'document_form/china_document_form.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class DocumentUploadScreen extends StatelessWidget {
   final User user;
@@ -41,16 +42,17 @@ class DocumentUploadScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+     final localizations = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Document Upload'),
+        title: Text(localizations.documentUpload),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
            onPressed: () {
       GoRouter.of(context).go(Routes.home);
     },
         ),
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: Colors.white,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

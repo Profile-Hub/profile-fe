@@ -1,0 +1,376 @@
+{
+     "appTitle": "Need a Donor",
+    "@appTitle": {
+        "description": "The title of the application"
+    },
+  "welcomeBack": "Welcome Back",
+  "email": "Email",
+  "enterEmail": "Please enter your email",
+  "password": "Password",
+  "enterPassword": "Please enter your password",
+  "enterDigitPassword":"Password must be at least 8 characters",
+  "enterAZPassword":"Password must contain at least one uppercase letter",
+  "login": "Login",
+  "forgotPassword": "Forgot Password?",
+  "noAccount": "Don't have an account? ",
+  "signUp": "Sign Up",
+  "age":"Age",
+  "verified":"Verified",
+  "errorMessage": "An error occurred. Please try again.",
+  "orContinueWith":"or continue with",
+  "verify_OTP":"Verify OTP",
+  "signup_title": "Sign Up",
+  "confirm_password": "Confirm Password",
+  "first_name_label": "First Name",
+  "last_name_label": "Last Name",
+  "date_of_birth_label": "Date of Birth",
+  "gender_label": "Gender",
+  "country_label": "Country",
+  "state_label": "State",
+  "city_label": "City",
+  "user_type_label": "User Type",
+  "loading": "Loading...",
+  "enter_valid_email": "Please enter a valid email",
+  "email_verified": "Email Verified",
+  "otp_sent_success": "OTP Sent Successfully",
+  "otp_verification_failed": "OTP Verification Failed",
+  "resend_otp": "Resend OTP",
+  "validName":"Please enter your first name",
+  "middleName":"Middle Name (Optional)",
+  "valideLastname":"Please enter your last name",
+   "validconfirmpassword":"Please confirm your password",
+  "notmatchPassword":"Passwords do not match",
+  "signup_successful":"Signup successful!",
+  "signup_failed":"Signup failed. Please try again.",
+  "phoneCode":"phoneCode",
+  "userDetails": "User Details",
+  "name": "Name",
+  "phoneNumber": "Phone Number",
+  "bloodGroup": "Blood Group",
+  "organDonations": "Organ Donations",
+  "noOrganhave":"No organ donations specified",
+  "noDocumentsFound": "No documents found.",
+  "document": "Document",
+  "close": "Close",
+  "donors":"Donors",
+  "userRequest": "User Request",
+  "notVerified": "Not Verified",
+  "searchRecipitent":"Search Recipient...",
+    "noRecipientFound": "No Recipient found",
+  "noMatchingRecipient": "No matching Recipient",
+   "searchDonor":"Search Donor...",
+   "noDonorsFound": "No donors found",
+  "noMatchingDonors": "No matching donors",
+  "failedReciptentDetails":"Failed to load recipient details",
+  "error":"Error",
+  "notopenDocument":"Could not open the document",
+  "changePassword":"Change Password",
+  "changeEmail":"Change Email",
+  "currentEmail":"Current Email",
+  "oldPassword":"old Password",
+   "enterOldPassword":"Please enter your old password",
+   "newPassword":"New Password",
+   "enterNewPasssword":"Please enter a new password",
+   "passwordMinLength": "Password must be at least 8 characters long",
+  "passwordUppercase": "Password must contain at least one uppercase letter",
+  "passwordLowercase": "Password must contain at least one lowercase letter",
+  "passwordDigit": "Password must contain at least one digit",
+  "passwordSpecialChar": "Password must contain at least one special character",
+  "confirmPassword": "Please confirm your password",
+  "passwordMismatch": "Passwords do not match",
+  "chatMessageType":"Type a message...",
+  "documentFormNotAvailibale":"Document form is not available for this country.",
+  "documentUpload":"Document Upload",
+  "searchHint": "Search",
+  "filter": "Filter",
+  "viewsplans":"View Plans",
+  "retry":"Retry",
+  "missingDonorId":"Donor ID is missing",
+  "needActiveSubcribe":"You need an active subscription to unlock this donor. Would you like to view subscription plans?",
+  "resetFilters": "Reset Filters",
+  "confirmUnlock": "Confirm Unlock",
+  "unlockDonorMessage": "Are you sure you want to unlock this donor?",
+  "cancel": "Cancel",
+  "confirm": "Confirm",
+  "noSubscription": "No subscription found for the user",
+  "subscriptionExpired": "Your subscription has expired or is canceled.",
+  "unlockSuccess": "You have successfully unlocked this donor.",
+  "errorMessage": "Error: {error}",
+  "filtersReset": "Filters have been reset.",
+  "allDetails":"All Details",
+  "noDonorFound":"No donor found.",
+  "donorDocuments":"Donor Documents",
+  "preview":"Preview",
+  "letChat":"Let's Chat",
+  "failedInititeChat":"Failed to initiate chat",
+  "option":"(Option)",
+  "editProfile": "Edit Profile",
+  "@editProfile": {
+    "description": "Title for edit profile screen"
+  },
+  
+  "loadingProfile": "Loading profile...",
+  "@loadingProfile": {
+    "description": "Message shown while profile is loading"
+  },
+  "organDonationPreferences": "Organ Donation Preferences",
+  "@organDonationPreferences": {
+    "description": "Title for organ donation section"
+  },
+  
+  "updateProfile": "Update Profile",
+  "@updateProfile": {
+    "description": "Text for update profile button"
+  },
+  "changePhoneNumber": "Change Phone Number",
+  "@changePhoneNumber": {
+    "description": "Text for change phone number button"
+  },
+  
+  "selectImageSource": "Select Image Source",
+  "@selectImageSource": {
+    "description": "Title for image source dialog"
+  },
+  
+  "gallery": "Gallery",
+  "@gallery": {
+    "description": "Option for selecting image from gallery"
+  },
+  
+  "camera": "Camera",
+  "@camera": {
+    "description": "Option for capturing image from camera"
+  },
+  
+  "profileUpdateSuccess": "Profile updated successfully!",
+  "@profileUpdateSuccess": {
+    "description": "Message shown when profile is updated successfully"
+  },
+  "profileUpdateError": "Failed to update profile: {error}",
+  "@profileUpdateError": {
+    "description": "Error message when profile update fails",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Network error"
+      }
+    }
+  },
+  "sendOtp": "Send OTP",
+  "@sendOtp": {
+    "description": "Button text for sending OTP"
+  },
+  
+  "enterOtp": "Please enter the OTP",
+  "@enterOtp": {
+    "description": "Placeholder text for entering OTP"
+  },
+  
+  "verifyOtp": "Verify OTP",
+  "@verifyOtp": {
+    "description": "Button text for verifying OTP"
+  },
+  
+  "enterNewEmail": "Enter New Email",
+  "@enterNewEmail": {
+    "description": "Placeholder text for entering a new email"
+  },
+  
+  "sendNewEmailOtp": "Send OTP for New Email",
+  "@sendNewEmailOtp": {
+    "description": "Button text for sending OTP to new email"
+  },
+  
+  "enterNewEmailOtp": "Enter OTP for New Email",
+  "@enterNewEmailOtp": {
+    "description": "Placeholder text for entering OTP for new email"
+  },
+  
+  "verifyNewEmailOtp": "Verify New Email OTP",
+  "@verifyNewEmailOtp": {
+    "description": "Button text for verifying OTP for new email"
+  },
+  
+  "updateEmail": "Update Email",
+  "@updateEmail": {
+    "description": "Button text for updating email"
+  },
+  
+  "emailUpdateSuccess": "Email updated successfully",
+  "@emailUpdateSuccess": {
+    "description": "Message displayed when email is updated successfully"
+  },
+  
+  "errorMessage": "Error: {error}",
+  "@errorMessage": {
+    "description": "Error message when email update fails",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Invalid OTP"
+      }
+    }
+  },
+    
+  "pleaseEnterEmail": "Please enter your email",
+  "@pleaseEnterEmail": {
+    "description": "Validation message for empty email input"
+  },
+  
+  "otp": "OTP",
+  "@otp": {
+    "description": "Label for the OTP input field"
+  },
+  
+  "pleaseEnterOtp": "Please enter the OTP",
+  "@pleaseEnterOtp": {
+    "description": "Validation message for empty OTP input"
+  },
+  
+  "newPassword": "New Password",
+  "@newPassword": {
+    "description": "Label for the new password input field"
+  },
+  
+  "pleaseEnterNewPassword": "Please enter your new password",
+  "@pleaseEnterNewPassword": {
+    "description": "Validation message for empty new password input"
+  },
+    
+  "pleaseConfirmPassword": "Please confirm your password",
+  "@pleaseConfirmPassword": {
+    "description": "Validation message for empty confirm password input"
+  },
+
+  "resetPassword": "Reset Password",
+  "@resetPassword": {
+    "description": "Button text for resetting password"
+  },
+  
+  "emailSentSuccess": "OTP sent successfully",
+  "@emailSentSuccess": {
+    "description": "Message shown when OTP is sent successfully"
+  },
+  
+  "otpVerifiedSuccess": "OTP verified successfully",
+  "@otpVerifiedSuccess": {
+    "description": "Message shown when OTP is verified successfully"
+  },
+  
+  "passwordResetSuccess": "Password reset successfully",
+  "@passwordResetSuccess": {
+    "description": "Message shown when password is reset successfully"
+  },
+  
+  "errorMessage": "Error: {error}",
+  "@errorMessage": {
+    "description": "Error message when something goes wrong",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Invalid OTP"
+      }
+    }
+  },
+
+  "home": "Home",
+  "profile": "Profile",
+  "viewProfile": "View Profile",
+  "editProfile": "Edit Profile",
+  "personalinfo":"Personal Information",
+  "contactinfo":"Contact Information",
+  "accountInfo":"Account Information",
+  "logout": "Logout",
+  "confirmLogout": "Confirm Logout",
+  "logoutMessage": "Are you sure you want to logout?",
+  "uploadDocuments": "Upload Documents",
+  "chat": "Chat",
+  "chatMessages": "Messages",
+  "welcomeAdmin": "Welcome to Admin Dashboard",
+  "adminRequests": "User Requests",
+  "allDonors": "All Donors",
+  "allRecipients": "All Recipients",
+  "unlockedDonors": "Unlocked Donors",
+  "cancel": "Cancel",
+  "locationUpdated": "Location updated successfully.",
+  "locationUpdateFailed": "Failed to update location.",
+  "profileCompletion": "Complete Your Profile",
+  "profileCompletionMessage": "To become a verified user, please:",
+  "completeFields": "Complete the following profile fields:",
+  "uploadRequiredDocuments": "Upload the following required documents:",
+  "completeProfile": "Complete Profile",
+  "uploadDocumentsButton": "Upload Documents",
+  "checkingProfileError": "Error checking profile completion: {error}",
+  "loggingOut": "Logging out...",
+  "logoutFailed": "Logout failed. Please try again.",
+  "logoutError": "Error during logout: {error}",
+  "logoinError": "Error during login: {error}",
+  "loginFailed": "Login failed",
+  "googleLogin":"Google sign in failed",
+  "choosePlan": "Choose a Plan",
+  "selectSubscriptionPlan": "Select Your Subscription Plan",
+  "chooseBestPlan": "Choose a plan that best suits your needs",
+  "subscribeNow": "Subscribe Now",
+  "mostPopular": "MOST POPULAR",
+  
+  "basicPlan": "Basic Plan",
+  "standardPlan": "Standard Plan",
+  "premiumPlan": "Premium Plan",
+  
+  "contactViews": " Contact Views",
+  "unlimitedContacts": "Unlimited Contact Views",
+  "monthsValidity": "{months} Months Validity",
+  "unlockForever": "Unlock Forever",
+  "basicSupport": "Basic Support",
+  "prioritySupport": "Priority Support",
+  "premiumSupport": "Premium Support",
+  "advancedSearch": "Advanced Search",
+  "exportFeatures": "Export Features",
+  "perQuarter": "per quarter",
+  "planPrice": "₹{price}",
+  "paymentSuccess": "Payment successful! Your subscription is now active.",
+  "paymentFailed": "Failed to initialize payment: {error}",
+  "paymentVerificationFailed": "Payment verification failed",
+  "loggingOut": "Logging out...",
+  "backToHome": "Back to Home",
+  "fileSize":"File size must be less than",
+  "errorFile":"Error selecting file",
+  "pleaseSelect":"Please select a file for",
+  "unsupportedFile":"File type not supported. Only JPG, PNG, and PDF are allowed.",
+  "uploadedsuccessfully":"uploaded successfully",
+  "uploadfail":"Failed to upload ",
+  "chooseFile":"Choose File",
+  "requiredfile": "Required",
+  "noFileSelected": "No file selected",
+  "upload":"Upload",
+  "counryFail":"Failed to load countries",
+  "stateFail":"Failed to load states",
+  "cityFail":"Failed to load city",
+  "radius":"Radius",
+  "filterDonor":"Filter Donor",
+  "filterRecipients":"Filter Recipients",
+  "ageRange":"Age Range",
+  "selectedOrgans":"Select Organs for Donation",
+  "applyFilters":"Apply Filters",
+   "subscribeTitle": "Subscribe to View Details",
+  "subscribeContent": "You need to subscribe to view donor details.",
+
+
+ 
+  "basicPlan": "Basic Plan",
+  "standardPlan": "Standard Plan",
+  "premiumPlan": "Premium Plan",
+  "contacts": "Contacts",
+  "monthsValidity": "Months Validity",
+  "unlimited": "Unlimited",
+  "unlockForever": "Unlock Forever",
+  "basicSupport": "Basic Support",
+  "prioritySupport": "Priority Support",
+  "premiumSupport": "Premium Support",
+  "advancedSearch": "Advanced Search",
+  "exportFeatures": "Export Features",
+  "male": "Male",
+  "female": "Female",
+  "other": "Other"
+}
+

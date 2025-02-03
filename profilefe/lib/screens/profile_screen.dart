@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'widgets/profile_avatar.dart';
 import 'package:go_router/go_router.dart';
 import '../routes.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ProfileScreen extends StatefulWidget {
   final User user;
@@ -180,12 +181,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildOrganDonationsSection() {
+        final localization = AppLocalizations.of(context)!;
     if (widget.user.organDonations.isEmpty) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionTitle('Organ Donations'),
-          const Text('No organ donations specified'),
+          _buildSectionTitle(localization.organDonations),
+          Text(localization.noOrganhave),
           const Divider(),
         ],
       );
@@ -194,7 +196,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle('Organ Donations'),
+        _buildSectionTitle(localization.organDonations),
         ...organCategories.entries.map((category) {
           final organsInCategory = widget.user.organDonations
               .where((organ) => category.value.contains(organ))
@@ -234,6 +236,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+        final localization = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -242,7 +245,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       GoRouter.of(context).go(Routes.home);
     },
   ),
-        title: const Text('Profile'),
+        title:  Text(localization.profile),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -273,35 +276,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildSectionTitle('Personal Information'),
-                      _buildProfileField('First Name', widget.user.firstname, controller: firstNameController),
-                      _buildProfileField('Last Name', widget.user.lastname, controller: lastNameController),
-                      _buildProfileField('Email', widget.user.email, controller: emailController),
+                      _buildSectionTitle('${localization.personalinfo}'),
+                      _buildProfileField('${localization.first_name_label}', widget.user.firstname, controller: firstNameController),
+                      _buildProfileField('${localization.last_name_label}', widget.user.lastname, controller: lastNameController),
+                      _buildProfileField('${localization.email}', widget.user.email, controller: emailController),
                       _buildProfileField(
-                        'Date of Birth', 
+                        '${localization.date_of_birth_label}', 
                         widget.user.dateofbirth != null 
                             ? DateFormat('dd/MM/yyyy').format(widget.user.dateofbirth!)
                             : null,
                         controller: dobController,
                         isDateField: true
                       ),
-                      _buildProfileField('Gender', widget.user.gender, controller: genderController),
-                      _buildProfileField('Blood Group', widget.user.bloodGroup, controller: bloodGroupController),
+                      _buildProfileField('${localization.gender_label}', widget.user.gender, controller: genderController),
+                      _buildProfileField('${localization.bloodGroup}', widget.user.bloodGroup, controller: bloodGroupController),
                       
-                      _buildSectionTitle('Contact Information'),
+                      _buildSectionTitle(localization.contactinfo),
                       _buildProfileField(
-                        'Phone Number', 
+                        localization.phoneNumber, 
                         widget.user.phoneCode != null && widget.user.phoneNumber != null
                             ? '+${widget.user.phoneCode} ${widget.user.phoneNumber}'
                             : null, 
                         controller: phoneNumberController
                       ),
-                      _buildProfileField('City', widget.user.city, controller: cityController),
-                      _buildProfileField('State', widget.user.state, controller: stateController),
-                      _buildProfileField('Country', widget.user.country, controller: countryController),
+                      _buildProfileField(localization.city_label, widget.user.city, controller: cityController),
+                      _buildProfileField(localization.state_label, widget.user.state, controller: stateController),
+                      _buildProfileField(localization.country_label, widget.user.country, controller: countryController),
                       
-                      _buildSectionTitle('Account Information'),
-                      _buildProfileField('User Type', widget.user.usertype?.toUpperCase() ?? '', controller: userTypeController),
+                      _buildSectionTitle(localization.accountInfo),
+                      _buildProfileField(localization.user_type_label, widget.user.usertype?.toUpperCase() ?? '', controller: userTypeController),
                       
                        if (widget.user.usertype?.toLowerCase() == 'donor') 
                         _buildOrganDonationsSection(),

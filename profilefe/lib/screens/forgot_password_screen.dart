@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/forgot_password_service.dart';
 import 'package:go_router/go_router.dart';
 import '../routes.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   // Removed const constructor for GoRouter compatibility
@@ -23,8 +24,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   bool _otpVerified = false;
 
   Future<void> _sendOtp() async {
+      final localization = AppLocalizations.of(context)!;
     if (_emailController.text.trim().isEmpty) {
-      _showSnackbar('Please enter your email');
+      _showSnackbar(localization.enterEmail);
       return;
     }
 
@@ -42,8 +44,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 
   Future<void> _verifyOtp() async {
+      final localization = AppLocalizations.of(context)!;
     if (_otpController.text.trim().isEmpty) {
-      _showSnackbar('Please enter the OTP');
+      _showSnackbar(localization.enterOtp);
       return;
     }
 
@@ -64,9 +67,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 
   Future<void> _resetPassword() async {
+      final localization = AppLocalizations.of(context)!;
     if (_formKey.currentState!.validate()) {
       if (_newPasswordController.text != _confirmPasswordController.text) {
-        _showSnackbar('Passwords do not match');
+        _showSnackbar(localization.passwordMismatch);
         return;
       }
 
@@ -94,8 +98,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+      final localization = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: Text('Forgot Password')),
+      appBar: AppBar(title: Text(localization.forgotPassword)),
       body: Padding(
         padding: EdgeInsets.all(16.0),
         child: Form(
@@ -105,38 +110,38 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             children: [
               TextFormField(
                 controller: _emailController,
-                decoration: InputDecoration(labelText: 'Email'),
+                decoration: InputDecoration(labelText: localization.email),
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) =>
-                    value == null || value.isEmpty ? 'Please enter your email' : null,
+                    value == null || value.isEmpty ? localization.enter_valid_email : null,
               ),
               if (_otpSent) ...[
                 SizedBox(height: 16),
                 TextFormField(
                   controller: _otpController,
-                  decoration: InputDecoration(labelText: 'OTP'),
+                  decoration: InputDecoration(labelText: localization.otp),
                   keyboardType: TextInputType.number,
                   validator: (value) =>
-                      value == null || value.isEmpty ? 'Please enter the OTP' : null,
+                      value == null || value.isEmpty ? localization.enterOtp : null,
                 ),
               ],
               if (_otpVerified) ...[
                 SizedBox(height: 16),
                 TextFormField(
                   controller: _newPasswordController,
-                  decoration: InputDecoration(labelText: 'New Password'),
+                  decoration: InputDecoration(labelText: localization.newPassword),
                   obscureText: true,
                   validator: (value) => value == null || value.isEmpty
-                      ? 'Please enter your new password'
+                      ? localization.pleaseEnterNewPassword
                       : null,
                 ),
                 SizedBox(height: 16),
                 TextFormField(
                   controller: _confirmPasswordController,
-                  decoration: InputDecoration(labelText: 'Confirm Password'),
+                  decoration: InputDecoration(labelText: localization.confirmPassword),
                   obscureText: true,
                   validator: (value) => value == null || value.isEmpty
-                      ? 'Please confirm your password'
+                      ? localization.pleaseConfirmPassword
                       : null,
                 ),
               ],
@@ -155,10 +160,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       )
                     : Text(
                         !_otpSent
-                            ? 'Send OTP'
+                            ? localization.sendOtp
                             : !_otpVerified
-                                ? 'Verify OTP'
-                                : 'Reset Password',
+                                ? localization.verifyOtp
+                                : localization.resetPassword
                       ),
               ),
             ],

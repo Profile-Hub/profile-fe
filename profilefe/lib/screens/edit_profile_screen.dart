@@ -16,6 +16,8 @@ import '../providers/user_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../routes.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
 
 class EditProfileScreen extends StatefulWidget {
   final User user;
@@ -376,14 +378,15 @@ Future<void> _selectImage() async {
     showDialog(
       context: context,
       builder: (BuildContext context) {
+      final localization = AppLocalizations.of(context)!;
         return AlertDialog(
-          title: const Text('Select Image Source'),
+          title:  Text(localization.selectImageSource),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
                 leading: const Icon(Icons.photo_library),
-                title: const Text('Gallery'),
+                title: Text("${localization.gallery}"),
                 onTap: () {
                   GoRouter.of(context).pop();
                   _selectImage();
@@ -392,7 +395,7 @@ Future<void> _selectImage() async {
               if (!kIsWeb) // Show camera option only for mobile platforms
                 ListTile(
                   leading: const Icon(Icons.camera_alt),
-                  title: const Text('Camera'),
+                  title: Text("${localization.camera}"),
                   onTap: () {
                     GoRouter.of(context).pop();
                     _captureImage();
@@ -532,10 +535,11 @@ Future<void> _selectImage() async {
     );
   }
     Widget _buildOrganDonationSection() {
+      final localizations = AppLocalizations.of(context)!;
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8.0),
       child: ExpansionTile(
-        title: const Text('Organ Donation Preferences'),
+        title:  Text("${localizations.organDonationPreferences}"),
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
@@ -591,12 +595,13 @@ Future<void> _selectImage() async {
     bool isLoading = false,
      bool isRequired = true,
   }) {
+      final localization = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: DropdownButtonFormField<T>(
         value: value,
         decoration: InputDecoration(
-          labelText: isRequired ? label : '$label (Optional)',
+          labelText: isRequired ? label : '$label ${localization.option}',
           border: const OutlineInputBorder(),
           suffixIcon: isLoading ? 
             const SizedBox(
@@ -618,6 +623,8 @@ Future<void> _selectImage() async {
   }
 
   Future<void> _updateProfile() async {
+        final localization = AppLocalizations.of(context)!;
+    
     if (!_formKey.currentState!.validate()) return;
     
     setState(() => isLoading = true);
@@ -649,13 +656,13 @@ Future<void> _selectImage() async {
       if (mounted) {
           Provider.of<UserProvider>(context, listen: false).updateUser(updatedUser);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profile updated successfully!')),
+           SnackBar(content: Text(localization.profileUpdateSuccess)),
         );
        GoRouter.of(context).pop(updatedUser);
       }
     } catch (e) {
       if (mounted) {
-        _showError('Failed to update profile: $e');
+        _showError('${localization.profileUpdateError}: $e');
       }
     } finally {
       if (mounted) {
@@ -666,15 +673,16 @@ Future<void> _selectImage() async {
 
   @override
   Widget build(BuildContext context) {
+    final localization = AppLocalizations.of(context)!;
     if (isInitializing) {
-      return const Scaffold(
+      return  Scaffold(
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               CircularProgressIndicator(),
               SizedBox(height: 16),
-              Text('Loading profile...'),
+              Text(localization.loadingProfile),
             ],
           ),
         ),
@@ -689,7 +697,7 @@ Future<void> _selectImage() async {
        GoRouter.of(context).go(Routes.home);
     },
   ),
-        title: const Text('Edit Profile'),
+        title:  Text(localization.editProfile),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -707,7 +715,7 @@ Future<void> _selectImage() async {
                 
                 // Form fields
                 _buildTextField(
-                  label: 'First Name',
+                  label: localization.first_name_label,
                   controller: firstNameController,
                 ),
                 // _buildTextField(
@@ -716,32 +724,32 @@ Future<void> _selectImage() async {
                 //   isRequired: false,
                 // ),
                 _buildTextField(
-                  label: 'Last Name',
+                  label: localization.last_name_label,
                   controller: lastNameController,
                 ),
                 _buildDropdown<String>(
-                  label: 'Gender',
+                  label: localization.gender_label,
                   value: genderController.text.isEmpty ? null : genderController.text,
                   items: genderTypes,
                   onChanged: (value) => setState(() => genderController.text = value ?? ''),
                   displayName: (gender) => gender,
                 ),
                 _buildTextField(
-                  label: 'Date of Birth',
+                  label: localization.date_of_birth_label,
                   controller: dobController,
                   readOnly: true,
                   onTap: () => _selectDate(context),
                   suffixIcon: Icons.calendar_today,
                 ),
                 _buildDropdown<String>(
-                  label: 'User Type',
+                  label: localization.user_type_label,
                   value: selectedUserType,
                   items: userTypes,
                   onChanged: (value) => setState(() => selectedUserType = value),
                   displayName: (type) => type[0].toUpperCase() + type.substring(1),
                 ),
                 _buildDropdown<String>(
-                  label: 'Blood Group',
+                  label: localization.bloodGroup,
                   value: selectedBloodGroup,
                   items: bloodGroups,
                   onChanged: (group) => setState(() => selectedBloodGroup = group),
@@ -750,7 +758,7 @@ Future<void> _selectImage() async {
                 
                 // Location dropdowns
                 _buildDropdown<location_models.Country>(
-                  label: 'Country',
+                  label: localization.country_label,
                   value: selectedCountry,
                   items: countries,
                   onChanged: (country) async {
@@ -769,7 +777,7 @@ Future<void> _selectImage() async {
                   isLoading: isLoadingLocations,
                 ),
                 if (selectedCountry != null) _buildDropdown<location_models.State>(
-                  label: 'State',
+                  label: localization.state_label,
                   value: selectedState,
                   items: states,
                   onChanged: (state) async {
@@ -786,7 +794,7 @@ Future<void> _selectImage() async {
                   isLoading: isLoadingLocations,
                 ),
                 if (selectedState != null) _buildDropdown<location_models.City>(
-                  label: 'City',
+                  label: localization.city_label,
                   value: selectedCity,
                   items: cities,
                   onChanged: (city) => setState(() => selectedCity = city),
@@ -813,7 +821,7 @@ Future<void> _selectImage() async {
                         // Phone Number Field
                         Expanded(
                           child: _buildTextField(
-                            label: 'Phone Number',
+                            label: localization.phoneNumber,
                             controller: phoneNumberController,
                             isRequired: true,
                           ),
@@ -834,7 +842,7 @@ Future<void> _selectImage() async {
                     onPressed: isLoading ? null : _updateProfile,
                     child: isLoading
                         ? const CircularProgressIndicator()
-                        : const Text('Update Profile'),
+                        :  Text(localization.updateProfile),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -854,7 +862,7 @@ Future<void> _selectImage() async {
                           backgroundColor: Colors.blue,
                            foregroundColor: Colors.white,
                         ),
-                        child: const Text('Change Email'),
+                        child: Text(localization.changeEmail),
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -869,7 +877,7 @@ Future<void> _selectImage() async {
                           backgroundColor: Colors.blue,
                           foregroundColor: Colors.white,
                         ),
-                        child: const Text('Change Password'),
+                        child:  Text(localization.changePassword),
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -886,7 +894,7 @@ Future<void> _selectImage() async {
                           backgroundColor: Colors.blue,
                            foregroundColor: Colors.white,
                         ),
-                        child: const Text('Change Phone Number'),
+                        child: Text(localization.changePhoneNumber),
                       ),
                     ),
                   ],

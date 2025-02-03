@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../services/getdoner_service.dart';
 import '../models/selectedDonerModel.dart';
 import '../routes.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class SelectedDonersScreen extends StatefulWidget {
   const SelectedDonersScreen({super.key});
@@ -27,13 +28,14 @@ class _SelectedDonersScreenState extends State<SelectedDonersScreen> {
 
  @override
 Widget build(BuildContext context) {
+     final localization = AppLocalizations.of(context)!;
   return Scaffold(
     appBar: AppBar(
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
         onPressed: () => _handleBack(context),
       ),
-      title: const Text('Donors'),
+      title:  Text(localization.donors),
       centerTitle: true,
     ),
     body: FutureBuilder<List<SelectedDoner>>(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/AllReciptentmodel.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class RecipientCard extends StatelessWidget {
   final Recipient recipient;
@@ -8,6 +9,7 @@ class RecipientCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+     final localizations = AppLocalizations.of(context)!;
     return Card(
       margin: EdgeInsets.all(10),
       child: Padding(
@@ -20,7 +22,7 @@ class RecipientCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'Name: ${recipient.firstname} ${recipient.middleName ?? ''} ${recipient.lastname}',
+                    '${localizations.name}: ${recipient.firstname} ${recipient.middleName ?? ''} ${recipient.lastname}',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 20,
@@ -44,7 +46,7 @@ class RecipientCard extends StatelessWidget {
                         ),
                         SizedBox(width: 4),
                         Text(
-                          'Verified',
+                          localizations.verified,
                           style: TextStyle(
                             color: Colors.blue,
                             fontSize: 12,
@@ -59,25 +61,25 @@ class RecipientCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                _buildInfoRow('Age', recipient.age?.toString() ?? 'N/A'),
+                _buildInfoRow('${localizations.age}', recipient.age?.toString() ?? 'N/A'),
                 SizedBox(width: 7),
                 Text('|', style: TextStyle(fontWeight: FontWeight.bold)),
                 SizedBox(width: 7),
-                _buildInfoRow('Gender', recipient.gender ?? 'N/A'),
+                _buildInfoRow('${localizations.gender_label}', recipient.gender ?? 'N/A'),
                 SizedBox(width: 7),
                 Text('|', style: TextStyle(fontWeight: FontWeight.bold)),
                 SizedBox(width: 7),
-                _buildInfoRow('City', recipient.city ?? 'N/A'),
+                _buildInfoRow('${localizations.city_label}', recipient.city ?? 'N/A'),
               ],
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                _buildInfoRow('State', recipient.state ?? 'N/A'),
+                _buildInfoRow('${localizations.state_label}', recipient.state ?? 'N/A'),
                 SizedBox(width: 7),
                 Text('|', style: TextStyle(fontWeight: FontWeight.bold)),
                 SizedBox(width: 7),
-                _buildInfoRow('Country', recipient.country ?? 'N/A'),
+                _buildInfoRow('${localizations.country_label}', recipient.country ?? 'N/A'),
               ],
             ),
           ],

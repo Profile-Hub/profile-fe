@@ -11,6 +11,8 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../services/geolocatorservice.dart';
 import './Reciptent_screen.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
 class HomeScreen extends StatefulWidget {
   final User user;
 
@@ -49,6 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
 Future<void> _checkProfileCompletion() async {
+      final localization = AppLocalizations.of(context)!;
     try {
         final response = await _profileCompletionService.checkProfileCompletion();
 
@@ -61,7 +64,7 @@ Future<void> _checkProfileCompletion() async {
         if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                    content: Text('Error checking profile completion: $e'),
+                    content: Text('${localization.checkingProfileError}: $e'),
                     backgroundColor: Colors.red,
                 ),
             );
@@ -76,31 +79,32 @@ void _showProfileCompletionDialog(List<String> missingFields, List<String> missi
         context: context,
         barrierDismissible: false,
         builder: (BuildContext context) {
+        final localization = AppLocalizations.of(context)!;
             return AlertDialog(
-                title: const Text('Complete Your Profile'),
+                title:  Text(localization.profileCompletion),
                 content: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                         if (missingFields.isNotEmpty || missingDocuments.isNotEmpty)
-                            const Text('To become a verified user, please:'),
+                             Text(localization.profileCompletionMessage),
                         if (missingFields.isNotEmpty)
-                            const Text('Complete the following profile fields:'),
+                            Text(localization.completeFields),
                         ...missingFields.map((field) => Padding(
                             padding: const EdgeInsets.only(left: 16, bottom: 8),
                             child: Row(
                                 children: [
                                     const Icon(Icons.arrow_right, size: 20),
-                                    const SizedBox(width: 8),
+                                     SizedBox(width: 8),
                                     Text(
                                         (field),
-                                        style: const TextStyle(fontWeight: FontWeight.bold),
+                                        style:  TextStyle(fontWeight: FontWeight.bold),
                                     ),
                                 ],
                             ),
                         )),
                         if (missingDocuments.isNotEmpty)
-                            const Text('Upload the following required documents:'),
+                             Text(localization.uploadRequiredDocuments),
                         ...missingDocuments.map((doc) => Padding(
                             padding: const EdgeInsets.only(left: 16, bottom: 8),
                             child: Row(
@@ -110,7 +114,7 @@ void _showProfileCompletionDialog(List<String> missingFields, List<String> missi
   Expanded(
     child: Text(
       doc,
-      style: const TextStyle(fontWeight: FontWeight.bold),
+      style:  TextStyle(fontWeight: FontWeight.bold),
       overflow: TextOverflow.ellipsis, 
       maxLines: 1, 
     ),
@@ -127,7 +131,7 @@ void _showProfileCompletionDialog(List<String> missingFields, List<String> missi
                         children: [
                             TextButton(
                                 onPressed: () => GoRouter.of(context).pop(),
-                                child: const Text('Cancel'),
+                                child:  Text(localization.cancel),
                             ),
                             if (missingDocuments.isNotEmpty)
                                 TextButton(
@@ -135,12 +139,12 @@ void _showProfileCompletionDialog(List<String> missingFields, List<String> missi
                                         GoRouter.of(context).pop();
                                         GoRouter.of(context).go(Routes.documentUpload, extra: currentUser);
                                     },
-                                    child: const Row(
+                                    child:  Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                             Icon(Icons.upload_file),
                                             SizedBox(width: 8),
-                                            Text('Upload Documents'),
+                                            Text(localization.uploadDocumentsButton),
                                         ],
                                     ),
                                 ),
@@ -150,7 +154,7 @@ void _showProfileCompletionDialog(List<String> missingFields, List<String> missi
                                         GoRouter.of(context).pop();
                                         GoRouter.of(context).go(Routes.editProfile, extra: currentUser);
                                     },
-                                    child: const Text('Complete Profile'),
+                                    child:  Text(localization.completeProfile),
                                 ),
                         ],
                     ),
@@ -175,18 +179,19 @@ void _showProfileCompletionDialog(List<String> missingFields, List<String> missi
 }
 
    Future<void> _handleLogout() async {
+     final localization = AppLocalizations.of(context)!;
     try {
       showDialog(
         context: context,
         barrierDismissible: false,
         builder: (BuildContext context) {
-          return const AlertDialog(
+          return  AlertDialog(
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 CircularProgressIndicator(),
                 SizedBox(height: 16),
-                Text("Logging out..."),
+                Text(localization.loggingOut),
               ],
             ),
           );
@@ -211,8 +216,8 @@ void _showProfileCompletionDialog(List<String> missingFields, List<String> missi
       } else {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Logout failed. Please try again.'),
+             SnackBar(
+              content: Text("${localization.logoutFailed}"),
               backgroundColor: Colors.red,
             ),
           );
@@ -226,7 +231,7 @@ void _showProfileCompletionDialog(List<String> missingFields, List<String> missi
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error during logout: $e'),
+            content: Text('${localization.logoutError}: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -238,13 +243,14 @@ void _showProfileCompletionDialog(List<String> missingFields, List<String> missi
     showDialog(
       context: context,
       builder: (BuildContext context) {
+      final localization = AppLocalizations.of(context)!;
         return AlertDialog(
-          title: const Text('Confirm Logout'),
-          content: const Text('Are you sure you want to logout?'),
+          title:  Text(localization.confirmLogout),
+          content:  Text(localization.logoutMessage),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child:  Text(localization.cancel),
             ),
             TextButton(
               style: TextButton.styleFrom(
@@ -254,7 +260,7 @@ void _showProfileCompletionDialog(List<String> missingFields, List<String> missi
                 GoRouter.of(context).pop();
                 _handleLogout();
               },
-              child: const Text('Logout'),
+              child:  Text(localization.logout),
             ),
           ],
         );
@@ -264,6 +270,7 @@ void _showProfileCompletionDialog(List<String> missingFields, List<String> missi
 
    @override
   Widget build(BuildContext context) {
+      final localization = AppLocalizations.of(context)!;
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
@@ -280,8 +287,8 @@ void _showProfileCompletionDialog(List<String> missingFields, List<String> missi
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    'Chat',
+                   Text(
+                    localization.chat,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -301,7 +308,7 @@ void _showProfileCompletionDialog(List<String> missingFields, List<String> missi
                               backgroundColor: Colors.red,
                               child: Text(
                                 '$unreadMessagesCount',
-                                style: const TextStyle(
+                                style:  TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
@@ -346,7 +353,7 @@ void _showProfileCompletionDialog(List<String> missingFields, List<String> missi
             ),
             ListTile(
               leading: const Icon(Icons.person_outline),
-              title: const Text('View Profile'),
+              title:  Text(localization.viewProfile),
               onTap: () {
                 GoRouter.of(context).pop();
                 GoRouter.of(context).go(
@@ -357,7 +364,7 @@ void _showProfileCompletionDialog(List<String> missingFields, List<String> missi
             ),
             ListTile(
               leading: const Icon(Icons.edit),
-              title: Text(currentUser.usertype == 'Admin' ? 'User Requests' : 'Edit Profile'),
+              title: Text(currentUser.usertype == 'Admin' ? '${localization.adminRequests}' : '${localization.editProfile}'),
               onTap: () {
                 GoRouter.of(context).pop();
                 if (currentUser.usertype == 'Admin') {
@@ -369,8 +376,8 @@ void _showProfileCompletionDialog(List<String> missingFields, List<String> missi
             ),
            if (currentUser.usertype == 'recipient') ...[
             ListTile(
-              leading: const Icon(Icons.people),
-              title: const Text('Unlocked Donors'),
+              leading:  Icon(Icons.people),
+              title:  Text(localization.unlockedDonors),
               onTap: () {
                 GoRouter.of(context).go(Routes.selectedDonorsScreen); 
               },
@@ -378,7 +385,7 @@ void _showProfileCompletionDialog(List<String> missingFields, List<String> missi
           ],
             ListTile(
               leading: const Icon(Icons.upload_file),
-              title: Text(currentUser.usertype == 'Admin' ? 'All Donors' : 'Upload Documents'),
+              title: Text(currentUser.usertype == 'Admin' ? '${localization.allDonors}' : '${localization.uploadDocuments}'),
               onTap: () {
                 GoRouter.of(context).pop();
                 if (currentUser.usertype == 'Admin') {
@@ -390,8 +397,8 @@ void _showProfileCompletionDialog(List<String> missingFields, List<String> missi
             ),
             if (currentUser.usertype == 'Admin')
               ListTile(
-                leading: const Icon(Icons.people),
-                title: const Text('All Recipients'),
+                leading:  Icon(Icons.people),
+                title:  Text(localization.allRecipients),
                 onTap: () {
                   GoRouter.of(context).pop();
                   GoRouter.of(context).go(Routes.allRecipients);
@@ -400,8 +407,8 @@ void _showProfileCompletionDialog(List<String> missingFields, List<String> missi
             const Divider(),
             const Spacer(),
             ListTile(
-              leading: const Icon(Icons.logout, color: Colors.red),
-              title: const Text('Logout', style: TextStyle(color: Colors.red)),
+              leading:  Icon(Icons.logout, color: Colors.red),
+              title:  Text(localization.logout, style: TextStyle(color: Colors.red)),
               onTap: () {
                 GoRouter.of(context).pop();
                 _showLogoutConfirmation();
@@ -414,9 +421,9 @@ void _showProfileCompletionDialog(List<String> missingFields, List<String> missi
       body: currentUser.usertype == 'donor'
            ? RecipientListPage()
           : currentUser.usertype == 'Admin'
-              ? const Center(
+              ?  Center(
                   child: Text(
-                    'Welcome to Admin Dashboard',
+                    localization.welcomeAdmin,
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                 )
