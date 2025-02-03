@@ -305,6 +305,7 @@
   "logoutFailed": "Logout failed. Please try again.",
   "logoutError": "Error during logout: {error}",
   "logoinError": "Error during login: {error}",
+  "loginFailed": "Login failed",
   "googleLogin":"Google sign in failed",
   "choosePlan": "Choose a Plan",
   "selectSubscriptionPlan": "Select Your Subscription Plan",

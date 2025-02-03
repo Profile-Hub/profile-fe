@@ -297,6 +297,7 @@
   "logoutFailed": "लॉगआउट विफल। कृपया पुनः प्रयास करें।",
   "logoutError": "लॉगआउट के दौरान त्रुटि",
   "logoinError": "लॉग इन के दौरान त्रुटि",
+  "loginFailed": "लॉगिन विफल",
   "googleLogin": "Google साइन इन विफल",
   "choosePlan": "योजना चुनें",
   "selectSubscriptionPlan": "अपनी सदस्यता योजना चुनें",

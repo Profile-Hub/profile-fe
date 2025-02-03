@@ -52,7 +52,7 @@ class _LoginScreenState extends State<LoginScreen> {
           }
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(loginResponse?.message ?? 'Login failed')),
+            SnackBar(content: Text(loginResponse?.message ?? localization.loginFailed)),
           );
         }
       } catch (e) {
