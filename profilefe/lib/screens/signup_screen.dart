@@ -461,7 +461,7 @@ void _resendOtp() {
                       ),
                       value: selectedGender,
                       hint: Text(localizations.gender_label),
-                      items: ['Male', 'Female', 'Other']
+                      items: ['${localizations.male}', '${localizations.female}', '${localizations.other}']
                           .map((String value) {
                             return DropdownMenuItem<String>(
                               value: value,

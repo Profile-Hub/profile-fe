@@ -78,7 +78,6 @@ class _DonorFilterWidgetState extends State<DonorFilterWidget> {
 
   Future<void> _loadCountries() async {
     setState(() => _isLoadingLocations = true);
-     final localizations = AppLocalizations.of(context)!;
     try {
       final countries = await _locationService.getCountries();
       setState(() {
@@ -88,7 +87,7 @@ class _DonorFilterWidgetState extends State<DonorFilterWidget> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${localizations.counryFail} $e')),
+          SnackBar(content: Text('${AppLocalizations.of(context)!.counryFail} $e')),
         );
         setState(() => _isLoadingLocations = false);
       }
@@ -97,7 +96,6 @@ class _DonorFilterWidgetState extends State<DonorFilterWidget> {
 
   Future<void> _loadStates(String countryName) async {
     setState(() => _isLoadingLocations = true);
-     final localizations = AppLocalizations.of(context)!;
     try {
       final states = await _locationService.getStates(countryName);
       setState(() {
@@ -110,7 +108,7 @@ class _DonorFilterWidgetState extends State<DonorFilterWidget> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${localizations.stateFail}: $e')),
+          SnackBar(content: Text('${AppLocalizations.of(context)!.stateFail}: $e')),
         );
         setState(() => _isLoadingLocations = false);
       }
@@ -119,7 +117,6 @@ class _DonorFilterWidgetState extends State<DonorFilterWidget> {
 
   Future<void> _loadCities(String stateName) async {
     setState(() => _isLoadingLocations = true);
-     final localizations = AppLocalizations.of(context)!;
     
     try {
       final cities = await _locationService.getCities(stateName);
@@ -131,7 +128,7 @@ class _DonorFilterWidgetState extends State<DonorFilterWidget> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${localizations.cityFail}: $e')),
+          SnackBar(content: Text('${AppLocalizations.of(context)!.cityFail}: $e')),
         );
         setState(() => _isLoadingLocations = false);
       }
@@ -325,7 +322,7 @@ void _resetFilters() {
               DropdownButtonFormField<String>(
                 value: _selectedGender,
                 decoration: InputDecoration(labelText: localizations.gender_label),
-                items: ['Male', 'Female', 'Other'].map((gender) => DropdownMenuItem(
+                items: ['${localizations.male}', '${localizations.female}', '${localizations.other}'].map((gender) => DropdownMenuItem(
                   value: gender,
                   child: Text(gender),
                 )).toList(),

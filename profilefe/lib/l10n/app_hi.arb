@@ -367,5 +367,8 @@
   "subscribeNow": "अभी सब्सक्राइब करें",
   "paymentSuccess": "भुगतान सफल",
   "paymentFailed": "भुगतान विफल",
-  "paymentVerificationFailed": "भुगतान सत्यापन विफल"
+  "paymentVerificationFailed": "भुगतान सत्यापन विफल",
+   "male": "पुरुष",
+  "female": "महिला",
+  "other": "अन्य"
 }

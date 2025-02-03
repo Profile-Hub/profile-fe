@@ -44,7 +44,6 @@ class _RecipientFilterWidgetState extends State<RecipientFilterWidget> {
 
   Future<void> _loadCountries() async {
     setState(() => _isLoadingLocations = true);
-     final localizations = AppLocalizations.of(context)!;
 
     try {
       final countries = await _locationService.getCountries();
@@ -55,7 +54,7 @@ class _RecipientFilterWidgetState extends State<RecipientFilterWidget> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${localizations.counryFail}: $e')),
+          SnackBar(content: Text('${AppLocalizations.of(context)!.counryFail}: $e')),
         );
         setState(() => _isLoadingLocations = false);
       }
@@ -64,7 +63,6 @@ class _RecipientFilterWidgetState extends State<RecipientFilterWidget> {
 
   Future<void> _loadStates(String countryName) async {
     setState(() => _isLoadingLocations = true);
-     final localizations = AppLocalizations.of(context)!;
 
     try {
       final states = await _locationService.getStates(countryName);
@@ -78,7 +76,7 @@ class _RecipientFilterWidgetState extends State<RecipientFilterWidget> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${localizations.stateFail}: $e')),
+          SnackBar(content: Text('${AppLocalizations.of(context)!.stateFail}: $e')),
         );
         setState(() => _isLoadingLocations = false);
       }
@@ -87,7 +85,6 @@ class _RecipientFilterWidgetState extends State<RecipientFilterWidget> {
 
   Future<void> _loadCities(String stateName) async {
     setState(() => _isLoadingLocations = true);
-     final localizations = AppLocalizations.of(context)!;
 
     try {
       final cities = await _locationService.getCities(stateName);
@@ -99,7 +96,7 @@ class _RecipientFilterWidgetState extends State<RecipientFilterWidget> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${localizations.cityFail}: $e')),
+          SnackBar(content: Text('${AppLocalizations.of(context)!.cityFail}: $e')),
         );
         setState(() => _isLoadingLocations = false);
       }
@@ -138,7 +135,7 @@ class _RecipientFilterWidgetState extends State<RecipientFilterWidget> {
         DropdownButtonFormField<String>(
           value: _selectedCountry,
           decoration: InputDecoration(
-            labelText: 'Country',
+            labelText: localizations.country_label,
             enabled: !_isLoadingLocations,
           ),
           items: _countries.map((country) => DropdownMenuItem(
@@ -158,7 +155,7 @@ class _RecipientFilterWidgetState extends State<RecipientFilterWidget> {
         DropdownButtonFormField<String>(
           value: _selectedState,
           decoration: InputDecoration(
-            labelText: 'State',
+            labelText: localizations.state_label,
             enabled: !_isLoadingLocations && _selectedCountry != null,
           ),
           items: _states.map((state) => DropdownMenuItem(
@@ -178,7 +175,7 @@ class _RecipientFilterWidgetState extends State<RecipientFilterWidget> {
         DropdownButtonFormField<String>(
           value: _selectedCity,
           decoration: InputDecoration(
-            labelText: 'City',
+            labelText: localizations.city_label,
             enabled: !_isLoadingLocations && _selectedState != null,
           ),
           items: _cities.map((city) => DropdownMenuItem(
@@ -228,7 +225,7 @@ class _RecipientFilterWidgetState extends State<RecipientFilterWidget> {
               DropdownButtonFormField<String>(
                 value: _selectedGender,
                 decoration: InputDecoration(labelText:localizations.gender_label),
-                items: ['Male', 'Female', 'Other'].map((gender) => DropdownMenuItem(
+                items: ['${localizations.male}', '${localizations.female}', '${localizations.other}'].map((gender) => DropdownMenuItem(
                   value: gender,
                   child: Text(gender),
                 )).toList(),
