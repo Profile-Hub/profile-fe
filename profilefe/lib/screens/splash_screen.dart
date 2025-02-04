@@ -25,7 +25,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   bool _isLanguageSelected = false;
   bool _hasLocationPermission = false;
   String? _errorMessage;
-
+ Locale? _selectedLocale;
+ 
   String _getLanguageName(String languageCode) {
     switch (languageCode) {
       case 'en': return 'English';
@@ -216,40 +217,29 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 ),
               ),
               const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade300),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: DropdownButton<Locale>(
-                  value: languageProvider.currentLocale,
-                  hint: const Text('Select / चुनें'),
-                  isExpanded: true,
-                  underline: Container(),
-                  items: LanguageProvider.supportedLocales.map((Locale locale) {
-                    return DropdownMenuItem(
-                      value: locale,
-                      child: Text(
-                        _getLanguageName(locale.languageCode),
-                        style: TextStyle(
-                          color: languageProvider.currentLocale == locale 
-                            ? Colors.blue 
-                            : Colors.black,
-                        ),
+              Column(
+                children: LanguageProvider.supportedLocales.map((Locale locale) {
+                  return RadioListTile<Locale>(
+                    title: Text(
+                      _getLanguageName(locale.languageCode),
+                      style: TextStyle(
+                        color: _selectedLocale == locale ? Colors.blue : Colors.black,
                       ),
-                    );
-                  }).toList(),
-                  onChanged: (Locale? newLocale) {
-                    if (newLocale != null) {
-                      languageProvider.setLanguage(newLocale);
-                      setState(() {
-                        _isLanguageSelected = true;
-                      });
-                      _getCurrentLocation();
-                    }
-                  },
-                ),
+                    ),
+                    value: locale,
+                    groupValue: _selectedLocale,
+                    onChanged: (Locale? newLocale) {
+                      if (newLocale != null) {
+                        setState(() {
+                          _selectedLocale = newLocale;
+                          _isLanguageSelected = true;
+                        });
+                        languageProvider.setLanguage(newLocale);
+                        _getCurrentLocation();
+                      }
+                    },
+                  );
+                }).toList(),
               ),
               if (_errorMessage != null)
                 Padding(
@@ -269,6 +259,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       },
     );
   }
+
 
   @override
   Widget build(BuildContext context) {
