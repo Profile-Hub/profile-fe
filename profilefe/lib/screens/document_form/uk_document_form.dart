@@ -42,15 +42,6 @@ class _UKDocumentFormState extends State<UKDocumentForm> {
     'Biometric Residence Permit': false,
   };
 
-  // Map to track which documents are required
-  Map<String, bool> isRequired = {
-    'National Insurance Number': true,  // Making this document required
-    'Passport': false,
-    'Drivers License': false,
-    'Birth Certificate': false,
-    'Biometric Residence Permit': false,
-  };
-
   String? _token;
   static final _storage = FlutterSecureStorage();
 
@@ -78,6 +69,9 @@ class _UKDocumentFormState extends State<UKDocumentForm> {
           setState(() {
             selectedFiles[documentType] = file;
           });
+              if (widget.onValidationChanged != null) {
+    widget.onValidationChanged!(true);
+}
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('File size must be less than 5MB')),
@@ -181,15 +175,6 @@ class _UKDocumentFormState extends State<UKDocumentForm> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              if (isRequired[docType] == true)
-                const Text(
-                  ' *',
-                  style: TextStyle(
-                    color: Colors.red,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
             ],
           ),
           const SizedBox(height: 8),
@@ -212,11 +197,6 @@ class _UKDocumentFormState extends State<UKDocumentForm> {
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    errorText: isRequired[docType] == true && 
-                             !isUploaded[docType]! && 
-                             selectedFiles[docType] == null
-                        ? 'This document is required'
-                        : null,
                   ),
                 ),
               ),

@@ -34,8 +34,13 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     currentUser = widget.user;
-    _checkProfileCompletion();
     _updateUserLocation();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _checkProfileCompletion();
   }
  Future<void> _updateUserLocation() async {
     try {
@@ -51,26 +56,28 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
 Future<void> _checkProfileCompletion() async {
-      final localization = AppLocalizations.of(context)!;
+    if (!mounted) return;
+    
+    final localization = AppLocalizations.of(context)!;
     try {
-        final response = await _profileCompletionService.checkProfileCompletion();
-
-        if (currentUser.usertype != 'Admin') {
-            if (response.success && response.notify && context.mounted) {
-                _showProfileCompletionDialog(response.missingFields, response.missingDocuments);
-            }
-        }
+      final response = await _profileCompletionService.checkProfileCompletion();
+      
+      if (!mounted) return;
+      
+      if (currentUser.usertype != 'Admin' && response.success && response.notify) {
+        _showProfileCompletionDialog(response.missingFields, response.missingDocuments);
+      }
     } catch (e) {
-        if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                    content: Text('${localization.checkingProfileError}: $e'),
-                    backgroundColor: Colors.red,
-                ),
-            );
-        }
+      if (!mounted) return;
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${localization.checkingProfileError}: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
-}
+  }
 
 void _showProfileCompletionDialog(List<String> missingFields, List<String> missingDocuments) {
    
@@ -129,33 +136,39 @@ void _showProfileCompletionDialog(List<String> missingFields, List<String> missi
                     Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                            TextButton(
-                                onPressed: () => GoRouter.of(context).pop(),
-                                child:  Text(localization.cancel),
-                            ),
                             if (missingDocuments.isNotEmpty)
-                                TextButton(
-                                    onPressed: () {
-                                        GoRouter.of(context).pop();
-                                        GoRouter.of(context).go(Routes.documentUpload, extra: currentUser);
-                                    },
-                                    child:  Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                            Icon(Icons.upload_file),
-                                            SizedBox(width: 8),
-                                            Text(localization.uploadDocumentsButton),
-                                        ],
-                                    ),
+                                Center(
+                                  child: TextButton(
+                                      onPressed: () {
+                                          GoRouter.of(context).pop();
+                                          GoRouter.of(context).go(Routes.documentUpload, extra: currentUser);
+                                      },
+                                      child:  Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                              Icon(Icons.upload_file),
+                                              SizedBox(width: 8),
+                                              Text(localization.uploadDocumentsButton),
+                                          ],
+                                      ),
+                                  ),
                                 ),
                             if (missingFields.isNotEmpty)
-                                TextButton(
-                                    onPressed: () {
-                                        GoRouter.of(context).pop();
-                                        GoRouter.of(context).go(Routes.editProfile, extra: currentUser);
-                                    },
-                                    child:  Text(localization.completeProfile),
+                                Center(
+                                  child: TextButton(
+                                      onPressed: () {
+                                          GoRouter.of(context).pop();
+                                          GoRouter.of(context).go(Routes.editProfile, extra: currentUser);
+                                      },
+                                      child:  Text(localization.completeProfile),
+                                  ),
                                 ),
+                            Center(
+                              child: TextButton(
+                                  onPressed: () => GoRouter.of(context).pop(),
+                                  child:  Text(localization.cancel),
+                              ),
+                            ),
                         ],
                     ),
                 ],
