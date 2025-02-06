@@ -173,8 +173,7 @@ class _AustraliaDocumentFormState extends State<AustraliaDocumentForm> {
 
   // Form validation
   void _validateForm() {
-    final isFormValid = isValid['Medicare Card'] == true;
-    widget.onValidationChanged?.call(isFormValid);
+  widget.onValidationChanged?.call(true);
   }
 
   @override
@@ -188,7 +187,6 @@ class _AustraliaDocumentFormState extends State<AustraliaDocumentForm> {
             _buildFileInputSection(
               'Medicare Card',
               '${ServerConfig.baseUrl}aus/medicare-card',
-              isRequired: true,
             ),
             _buildFileInputSection(
               'Passport',
@@ -213,7 +211,7 @@ class _AustraliaDocumentFormState extends State<AustraliaDocumentForm> {
   }
 
   // Method to build UI for each file input section
-  Widget _buildFileInputSection(String docType, String endpoint, {bool isRequired = false}) {
+  Widget _buildFileInputSection(String docType, String endpoint) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       child: Column(
@@ -228,14 +226,6 @@ class _AustraliaDocumentFormState extends State<AustraliaDocumentForm> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              if (isRequired)
-                const Text(
-                  ' *',
-                  style: TextStyle(
-                    color: Colors.red,
-                    fontSize: 16,
-                  ),
-                ),
             ],
           ),
           const SizedBox(height: 8),
@@ -250,9 +240,7 @@ class _AustraliaDocumentFormState extends State<AustraliaDocumentForm> {
                   decoration: InputDecoration(
                     hintText: selectedFiles[docType] != null
                         ? selectedFiles[docType]!.name
-                        : isRequired
-                            ? 'Required'
-                            : 'No file selected',
+                        :'No file selected',
                     hintStyle: TextStyle(
                       color: selectedFiles[docType] != null ? Colors.black : Colors.grey,
                     ),

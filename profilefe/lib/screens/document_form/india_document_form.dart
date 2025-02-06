@@ -182,8 +182,7 @@ Map<String, bool> isValid = {
 
   // Form validation
   void _validateForm() {
-    final isFormValid = isValid['Aadhaar'] == true;
-    widget.onValidationChanged?.call(isFormValid);
+    widget.onValidationChanged?.call(true);
   }
 
    @override
@@ -225,7 +224,7 @@ Map<String, bool> isValid = {
   }
 
   // Method to build UI for each file input section
-  Widget _buildFileInputSection(String docType, String endpoint, {bool isRequired = false}) {
+  Widget _buildFileInputSection(String docType, String endpoint) {
     final localizations = AppLocalizations.of(context)!;
 
     return Padding(
@@ -242,14 +241,6 @@ Map<String, bool> isValid = {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              if (isRequired)
-                const Text(
-                  ' *',
-                  style: TextStyle(
-                    color: Colors.red,
-                    fontSize: 16,
-                  ),
-                ),
             ],
           ),
           const SizedBox(height: 8),
@@ -264,9 +255,7 @@ Map<String, bool> isValid = {
                   decoration: InputDecoration(
                     hintText: selectedFiles[docType] != null
                         ? selectedFiles[docType]!.name
-                        : isRequired
-                            ? localizations.requiredfile
-                            : localizations.noFileSelected,
+                        :localizations.noFileSelected,
                     hintStyle: TextStyle(
                       color: selectedFiles[docType] != null ? Colors.black : Colors.grey,
                     ),

@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../server_config.dart';
 
 class SignupService {
-  Future<bool> signup({
+  Future<Map<String, dynamic>> signup({
     required String firstName,
     String? middleName,
     required String lastName,
@@ -18,8 +18,7 @@ class SignupService {
   }) async {
     final url = Uri.parse('${ServerConfig.baseUrl}/register');
     final headers = {'Content-Type': 'application/json'};
-    
-    
+
     final DateTime parsedDate = DateTime.parse(dateOfBirth);
     final String formattedDate = "${parsedDate.year}-${parsedDate.month.toString().padLeft(2, '0')}-${parsedDate.day.toString().padLeft(2, '0')}";
 
@@ -39,15 +38,24 @@ class SignupService {
 
     try {
       final response = await http.post(url, headers: headers, body: body);
-      
       if (response.statusCode == 201) {
-        return true;
-      } 
+        return {
+          'success': true,
+          'message': 'Signup successful!'
+        };
+      }
+      
       final error = jsonDecode(response.body);
-      throw error['message'] ?? 'Signup failed';
+      return {
+        'success': false,
+        'message': error['message'] ?? 'Signup failed'
+      };
     } catch (e) {
       print('Exception during signup: $e');
-      rethrow;
+      return {
+        'success': false,
+        'message': 'Signup failed due to an error: $e'
+      };
     }
   }
 }

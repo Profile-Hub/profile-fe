@@ -105,7 +105,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
       if (permission?.state == 'denied') {
         setState(() {
-          _errorMessage = 'Location permissions are required for this app.';
+         _hasLocationPermission = true;
         });
         return false;
       }
@@ -123,43 +123,42 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   }
 
   Future<void> _getCurrentLocation() async {
-    if (!_hasLocationPermission) {
-      final hasPermission = await _handleLocationPermission();
+  if (!_hasLocationPermission) {
+    final hasPermission = await _handleLocationPermission();
       if (!hasPermission) return;
     }
 
-    try {
-      Position position;
-      
-      if (kIsWeb) {
-        position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.medium,
-        );
-      } else if (UniversalPlatform.isIOS) {
-        position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.best,
-          timeLimit: const Duration(seconds: 5),
-        );
-      } else {
-        position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high,
-        );
-      }
-
-      await _storage.write(key: 'user_latitude', value: position.latitude.toString());
-      await _storage.write(key: 'user_longitude', value: position.longitude.toString());
-      await _storage.write(key: 'platform', value: _getPlatformName());
-      
-      if (_isLanguageSelected && mounted) {
-        _proceedToNextScreen();
-      }
-    } catch (e) {
-      setState(() {
-        _errorMessage = 'Error getting location: $e';
-      });
-      debugPrint('Error getting location: $e');
+  try {
+    Position position;
+    
+    if (kIsWeb) {
+      position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.medium,
+      );
+    } else if (UniversalPlatform.isIOS) {
+      position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.best,
+        timeLimit: const Duration(seconds: 5),
+      );
+    } else {
+      position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
     }
+
+    await _storage.write(key: 'user_latitude', value: position.latitude.toString());
+    await _storage.write(key: 'user_longitude', value: position.longitude.toString());
+    await _storage.write(key: 'platform', value: _getPlatformName());
+    
+    if (_isLanguageSelected && mounted) {
+      _proceedToNextScreen();
+    }
+  } catch (e) {
+    _proceedToNextScreen();
+    debugPrint('Error getting location: $e');
   }
+}
+
 
   String _getPlatformName() {
     if (kIsWeb) return 'web';

@@ -134,6 +134,47 @@ class _SignupScreenState extends State<SignupScreen> {
       });
     }
   }
+Future<void> signupUser() async {
+  final localizations = AppLocalizations.of(context)!;
+
+  if (_formKey.currentState!.validate()) {
+    setState(() => _isLoading = true);
+
+    try {
+      final response = await _signupService.signup(
+        firstName: _firstNameController.text.trim(),
+        middleName: _middleNameController.text.trim(),
+        lastName: _lastNameController.text.trim(),
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        dateOfBirth: selectedDate?.toIso8601String() ?? '',
+        gender: selectedGender ?? '',
+        userType: selectedUserType ?? '',
+        country: selectedCountry?.name ?? '',
+        state: selectedState?.name ?? '',
+        city: selectedCity?.name ?? '',
+      );
+
+      if (response['success']) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(localizations.signup_successful)),
+        );
+        GoRouter.of(context).go(Routes.login);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(response['message'])),
+        );
+        GoRouter.of(context).go(Routes.login);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(localizations.signup_failed)),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+}
 
   Future<void> _verifyOtp() async {
      String otp = _otpControllers.map((controller) => controller.text).join();
@@ -580,59 +621,29 @@ void _resendOtp() {
                       },
                     ),
                     SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: _isLoading
-                          ? null
-                          : () async {
-                              if (_formKey.currentState!.validate()) {
-                                setState(() => _isLoading = true);
-                                final success = await _signupService.signup(
-                                  firstName: _firstNameController.text.trim(),
-                                  middleName: _middleNameController.text.trim(),
-                                  lastName: _lastNameController.text.trim(),
-                                  email: _emailController.text.trim(),
-                                  password: _passwordController.text,
-                                  dateOfBirth: selectedDate?.toIso8601String() ?? '',
-                                  gender: selectedGender ?? '',
-                                  userType: selectedUserType ?? '',
-                                  country: selectedCountry?.name ?? '',
-                                  state: selectedState?.name ?? '',
-                                  city: selectedCity?.name ?? '',
-                                );
-                                setState(() => _isLoading = false);
-                                if (success) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text(localizations.signup_successful)),
-                                  );
-                                   GoRouter.of(context).go(Routes.login);
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text(localizations.signup_failed)),
-                                  );
-                                }
-                              }
-                            },
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(vertical: 16),
-                        child: _isLoading
-                            ? SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                ),
-                              )
-                            : Text(
-                                localizations.signup_title,
-                                style: TextStyle(fontSize: 16),
-                              ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
+                 ElevatedButton(
+  onPressed: _isLoading ? null : () => signupUser(),
+  child: Padding(
+    padding: EdgeInsets.symmetric(vertical: 16),
+    child: _isLoading
+        ? SizedBox(
+            height: 20,
+            width: 20,
+            child: CircularProgressIndicator(
+              color: Colors.white,
+            ),
+          )
+        : Text(
+            localizations.signup_title,
+            style: TextStyle(fontSize: 16),
+          ),
+  ),
+  style: ElevatedButton.styleFrom(
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(12),
+    ),
+  ),
+),
                   ],
                   if (_isLoading)
                     Padding(

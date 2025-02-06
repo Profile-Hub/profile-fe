@@ -39,13 +39,6 @@ class _ChinaDocumentFormState extends State<ChinaDocumentForm> {
     'Driver License': false,
   };
 
-  Map<String, bool> isRequired = {
-    'Resident Identity Card': true,
-    'House hold Registration': false,
-    'Passport': false,
-    'Driver License': false,
-  };
-
   String? _token;
   static final _storage = FlutterSecureStorage();
 
@@ -75,9 +68,9 @@ class _ChinaDocumentFormState extends State<ChinaDocumentForm> {
           });
           
           // Notify parent about validation change for required fields
-          if (widget.onValidationChanged != null && isRequired[documentType] == true) {
-            widget.onValidationChanged!(true);
-          }
+          if (widget.onValidationChanged != null) {
+    widget.onValidationChanged!(true);
+}
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('File size must be less than 5MB')),
@@ -196,101 +189,83 @@ class _ChinaDocumentFormState extends State<ChinaDocumentForm> {
     );
   }
 
-  Widget _buildFileInputSection(String docType, String endpoint) {
-    final bool isFieldRequired = isRequired[docType] ?? false;
-    
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(
-                docType,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              if (isFieldRequired) 
-                const Text(
-                  ' *',
-                  style: TextStyle(
-                    color: Colors.red,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-            ],
+Widget _buildFileInputSection(String docType, String endpoint) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 16.0),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          docType,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
           ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: TextFormField(
-                  readOnly: true,
-                  onTap: isUploaded[docType]! ? null : () async {
-                    await _selectFile(docType);
-                  },
-                  decoration: InputDecoration(
-                    hintText: selectedFiles[docType] != null
-                        ? selectedFiles[docType]!.name
-                        : 'No file selected',
-                    hintStyle: TextStyle(
-                      color: selectedFiles[docType] != null ? Colors.black : Colors.grey,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    errorText: isFieldRequired && selectedFiles[docType] == null 
-                        ? 'This document is required'
-                        : null,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              ElevatedButton(
-                onPressed: isUploaded[docType]! ? null : () async {
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: TextFormField(
+                readOnly: true,
+                onTap: isUploaded[docType]! ? null : () async {
                   await _selectFile(docType);
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isUploaded[docType]! ? Colors.grey : Colors.blue,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  shape: RoundedRectangleBorder(
+                decoration: InputDecoration(
+                  hintText: selectedFiles[docType] != null
+                      ? selectedFiles[docType]!.name
+                      : 'No file selected',
+                  hintStyle: TextStyle(
+                    color: selectedFiles[docType] != null ? Colors.black : Colors.grey,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                  border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: const Text('Choose File'),
               ),
-              const SizedBox(width: 8),
-              ElevatedButton(
-                onPressed: isUploading[docType]! || isUploaded[docType]!
-                    ? null
-                    : () => _uploadFile(docType, endpoint),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isUploading[docType]! || isUploaded[docType]! ? Colors.grey : Colors.green,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+            ),
+            const SizedBox(width: 8),
+            ElevatedButton(
+              onPressed: isUploaded[docType]! ? null : () async {
+                await _selectFile(docType);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isUploaded[docType]! ? Colors.grey : Colors.blue,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: isUploading[docType]!
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Text('Upload'),
               ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+              child: const Text('Choose File'),
+            ),
+            const SizedBox(width: 8),
+            ElevatedButton(
+              onPressed: isUploading[docType]! || isUploaded[docType]!
+                  ? null
+                  : () => _uploadFile(docType, endpoint),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isUploading[docType]! || isUploaded[docType]! ? Colors.grey : Colors.green,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: isUploading[docType]!
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text('Upload'),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
 }
