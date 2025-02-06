@@ -39,13 +39,6 @@ class _UAEDocumentFormState extends State<UAEDocumentForm> {
     'Labor Card': false,
   };
 
-  Map<String, bool> isRequired = {
-    'Emirates Id': true,
-    'Passport': false,
-    'Residence Visa': false,
-    'Labor Card': false,
-  };
-
   String? _token;
   static final _storage = FlutterSecureStorage();
 
@@ -75,9 +68,9 @@ class _UAEDocumentFormState extends State<UAEDocumentForm> {
           });
           
           // Notify parent about validation change for required fields
-          if (widget.onValidationChanged != null && isRequired[documentType] == true) {
-            widget.onValidationChanged!(true);
-          }
+          if (widget.onValidationChanged != null) {
+    widget.onValidationChanged!(true);
+}
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('File size must be less than 5MB')),
@@ -197,8 +190,6 @@ class _UAEDocumentFormState extends State<UAEDocumentForm> {
   }
 
   Widget _buildFileInputSection(String docType, String endpoint) {
-    final bool isFieldRequired = isRequired[docType] ?? false;
-    
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       child: Column(
@@ -213,15 +204,6 @@ class _UAEDocumentFormState extends State<UAEDocumentForm> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              if (isFieldRequired)
-                const Text(
-                  ' *',
-                  style: TextStyle(
-                    color: Colors.red,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
             ],
           ),
           const SizedBox(height: 8),
@@ -244,9 +226,6 @@ class _UAEDocumentFormState extends State<UAEDocumentForm> {
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    errorText: isFieldRequired && selectedFiles[docType] == null
-                        ? 'This document is required'
-                        : null,
                   ),
                 ),
               ),

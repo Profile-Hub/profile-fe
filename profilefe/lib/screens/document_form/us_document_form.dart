@@ -42,14 +42,6 @@ class _USDocumentFormState extends State<USDocumentForm> {
     'Green Card': false,
   };
 
-  // Map to track which documents are required
-  Map<String, bool> isRequired = {
-    'Social Security Card': true,  // Making this document required
-    'Passport': false,
-    'Driver License': false,
-    'Birth Certificate': false,
-    'Green Card': false,
-  };
 
   String? _token;
   static final _storage = FlutterSecureStorage();
@@ -78,6 +70,9 @@ class _USDocumentFormState extends State<USDocumentForm> {
           setState(() {
             selectedFiles[documentType] = file;
           });
+           if (widget.onValidationChanged != null) {
+    widget.onValidationChanged!(true);
+}
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('File size must be less than 5MB')),
@@ -181,15 +176,6 @@ class _USDocumentFormState extends State<USDocumentForm> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              if (isRequired[docType] == true)
-                const Text(
-                  ' *',
-                  style: TextStyle(
-                    color: Colors.red,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
             ],
           ),
           const SizedBox(height: 8),
@@ -212,11 +198,6 @@ class _USDocumentFormState extends State<USDocumentForm> {
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    errorText: isRequired[docType] == true && 
-                             !isUploaded[docType]! && 
-                             selectedFiles[docType] == null
-                        ? 'This document is required'
-                        : null,
                   ),
                 ),
               ),

@@ -29,6 +29,11 @@ class _RecipientScreenState extends State<RecipientScreen> {
   void initState() {
     super.initState();
     userId = widget.user;
+    
+  }
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
     _fetchUserdetails();
   }
 
@@ -69,12 +74,11 @@ class _RecipientScreenState extends State<RecipientScreen> {
 }
 
  Future<void> _handleDonorTap(BuildContext context, Map<String, dynamic> donor) async {
-     final localizations = AppLocalizations.of(context)!;
+  final localizations = AppLocalizations.of(context)!;
   try {
     final status = await _subscriptionService.checkSubscriptionStatus();
-
-    // Get donor ID
     final donorId = donor['id'] ?? '';
+    
     if (donorId.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(localizations.missingDonorId)),
@@ -82,26 +86,28 @@ class _RecipientScreenState extends State<RecipientScreen> {
       return;
     }
 
-    // Get selected donors
-    final selectedDonors = await DonnerService().getAllSelectedDoner();
-    final selectedDonorIds = selectedDonors.map((donor) => donor.id).toList();
+    bool isDonorSelected = false;
+    try {
+      final selectedDonors = await DonnerService().getAllSelectedDoner();
+      isDonorSelected = selectedDonors.map((donor) => donor.id).contains(donorId);
+    } catch (e) {
+      debugPrint('Error fetching selected donors: $e');
+      // Continue with isDonorSelected as false
+    }
 
-    final isDonorSelected = selectedDonorIds.contains(donorId);
-
-    // Condition: Subscription credit is 0 and donor is not in the selected donor list
     if ((status.subscription?.credit == null ||
-            status.subscription!.credit == 0 ||
-            status.subscription!.status == "expired" ||
-            status.subscription!.status == "canceled" ||
-            status.message == "No subscription found for the user") &&
+        status.subscription!.credit == 0 ||
+        status.subscription!.status == "expired" ||
+        status.subscription!.status == "canceled" ||
+        status.message == "No subscription found for the user") &&
         !isDonorSelected) {
+      
       final confirm = await showDialog<bool>(
         context: context,
         builder: (context) {
           return AlertDialog(
             title: Text(localizations.confirmUnlock),
-            content: Text(
-                localizations.needActiveSubcribe),
+            content: Text(localizations.needActiveSubcribe),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
@@ -122,18 +128,15 @@ class _RecipientScreenState extends State<RecipientScreen> {
       return;
     }
 
-    // If donor is already selected, open chat directly
     if (isDonorSelected) {
       openChat(context, donor);
       return;
     }
 
-    // Deduct credit and open chat for a new donor
-    await _subscriptionService.deductCredit(userId.id);
+    await _subscriptionService.deductCredit(donorId);
 
     final String userName = '${donor['firstname']} ${donor['lastname']}';
-    final String profileImage =
-        donor['avatar']?['url'] ?? 'https://via.placeholder.com/150';
+    final String profileImage = donor['avatar']?['url'] ?? 'https://via.placeholder.com/150';
 
     final sid = await _chatservice.getOrCreateConversation(donorId);
     setState(() {
@@ -154,7 +157,6 @@ class _RecipientScreenState extends State<RecipientScreen> {
     );
   }
 }
-
 
 
 void openChat(BuildContext context, Map<String, dynamic> donor) {
