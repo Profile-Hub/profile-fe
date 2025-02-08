@@ -12,6 +12,7 @@ import 'package:go_router/go_router.dart';
 import '../services/geolocatorservice.dart';
 import './Reciptent_screen.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../theme.dart';
 
 class HomeScreen extends StatefulWidget {
   final User user;
@@ -80,54 +81,97 @@ Future<void> _checkProfileCompletion() async {
   }
 
 void _showProfileCompletionDialog(List<String> missingFields, List<String> missingDocuments) {
-   
-
+    final theme = Theme.of(context);
+    
     showDialog(
         context: context,
         barrierDismissible: false,
         builder: (BuildContext context) {
         final localization = AppLocalizations.of(context)!;
             return AlertDialog(
-                title:  Text(localization.profileCompletion),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                ),
+                backgroundColor: AppTheme.backgroundColor,
+                title: Text(
+                    localization.profileCompletion,
+                    style: theme.textTheme.headlineMedium,
+                ),
                 content: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                         if (missingFields.isNotEmpty || missingDocuments.isNotEmpty)
-                             Text(localization.profileCompletionMessage),
+                            Text(
+                                localization.profileCompletionMessage,
+                                style: theme.textTheme.bodyLarge,
+                            ),
                         if (missingFields.isNotEmpty)
-                            Text(localization.completeFields),
+                            Padding(
+                                padding: const EdgeInsets.only(top: 16),
+                                child: Text(
+                                    localization.completeFields,
+                                    style: theme.textTheme.bodyLarge?.copyWith(
+                                        color: AppTheme.textDark,
+                                        fontWeight: FontWeight.w600,
+                                    ),
+                                ),
+                            ),
                         ...missingFields.map((field) => Padding(
-                            padding: const EdgeInsets.only(left: 16, bottom: 8),
+                            padding: const EdgeInsets.only(left: 16, bottom: 8, top: 8),
                             child: Row(
                                 children: [
-                                    const Icon(Icons.arrow_right, size: 20),
-                                     SizedBox(width: 8),
-                                    Text(
-                                        (field),
-                                        style:  TextStyle(fontWeight: FontWeight.bold),
+                                    Icon(
+                                        Icons.arrow_right, 
+                                        size: 20,
+                                        color: AppTheme.textDark,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                        child: Text(
+                                            field,
+                                            style: theme.textTheme.bodyMedium?.copyWith(
+                                                fontWeight: FontWeight.w600,
+                                                color: AppTheme.textDark,
+                                            ),
+                                        ),
                                     ),
                                 ],
                             ),
                         )),
                         if (missingDocuments.isNotEmpty)
-                             Text(localization.uploadRequiredDocuments),
+                            Padding(
+                                padding: const EdgeInsets.only(top: 16),
+                                child: Text(
+                                    localization.uploadRequiredDocuments,
+                                    style: theme.textTheme.bodyLarge?.copyWith(
+                                        color: AppTheme.textDark,
+                                        fontWeight: FontWeight.w600,
+                                    ),
+                                ),
+                            ),
                         ...missingDocuments.map((doc) => Padding(
-                            padding: const EdgeInsets.only(left: 16, bottom: 8),
+                            padding: const EdgeInsets.only(left: 16, bottom: 8, top: 8),
                             child: Row(
-                               children: [
-  const Icon(Icons.arrow_right, size: 20),
-  const SizedBox(width: 8),
-  Expanded(
-    child: Text(
-      doc,
-      style:  TextStyle(fontWeight: FontWeight.bold),
-      overflow: TextOverflow.ellipsis, 
-      maxLines: 1, 
-    ),
-  ),
-],
-
+                                children: [
+                                    Icon(
+                                        Icons.arrow_right, 
+                                        size: 20,
+                                        color: AppTheme.textDark,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                        child: Text(
+                                            doc,
+                                            style: theme.textTheme.bodyMedium?.copyWith(
+                                                fontWeight: FontWeight.w600,
+                                                color: AppTheme.textDark,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 1,
+                                        ),
+                                    ),
+                                ],
                             ),
                         )),
                     ],
@@ -138,36 +182,75 @@ void _showProfileCompletionDialog(List<String> missingFields, List<String> missi
                         children: [
                             if (missingDocuments.isNotEmpty)
                                 Center(
-                                  child: TextButton(
-                                      onPressed: () {
-                                          GoRouter.of(context).pop();
-                                          GoRouter.of(context).go(Routes.documentUpload, extra: currentUser);
-                                      },
-                                      child:  Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                              Icon(Icons.upload_file),
-                                              SizedBox(width: 8),
-                                              Text(localization.uploadDocumentsButton),
-                                          ],
-                                      ),
-                                  ),
+                                    child: TextButton(
+                                        style: TextButton.styleFrom(
+                                            foregroundColor: AppTheme.primaryBlue,
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 16,
+                                                vertical: 12,
+                                            ),
+                                        ),
+                                        onPressed: () {
+                                            GoRouter.of(context).pop();
+                                            GoRouter.of(context).go(Routes.documentUpload, extra: currentUser);
+                                        },
+                                        child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                                Icon(
+                                                    Icons.upload_file,
+                                                    color: AppTheme.primaryBlue,
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Text(
+                                                    localization.uploadDocumentsButton,
+                                                    style: theme.textTheme.labelLarge?.copyWith(
+                                                        color: AppTheme.primaryBlue,
+                                                    ),
+                                                ),
+                                            ],
+                                        ),
+                                    ),
                                 ),
                             if (missingFields.isNotEmpty)
                                 Center(
-                                  child: TextButton(
-                                      onPressed: () {
-                                          GoRouter.of(context).pop();
-                                          GoRouter.of(context).go(Routes.editProfile, extra: currentUser);
-                                      },
-                                      child:  Text(localization.completeProfile),
-                                  ),
+                                    child: TextButton(
+                                        style: TextButton.styleFrom(
+                                            foregroundColor: AppTheme.primaryBlue,
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 16,
+                                                vertical: 12,
+                                            ),
+                                        ),
+                                        onPressed: () {
+                                            GoRouter.of(context).pop();
+                                            GoRouter.of(context).go(Routes.editProfile, extra: currentUser);
+                                        },
+                                        child: Text(
+                                            localization.completeProfile,
+                                            style: theme.textTheme.labelLarge?.copyWith(
+                                                color: AppTheme.primaryBlue,
+                                            ),
+                                        ),
+                                    ),
                                 ),
                             Center(
-                              child: TextButton(
-                                  onPressed: () => GoRouter.of(context).pop(),
-                                  child:  Text(localization.cancel),
-                              ),
+                                child: TextButton(
+                                    style: TextButton.styleFrom(
+                                        foregroundColor: AppTheme.textGrey,
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 12,
+                                        ),
+                                    ),
+                                    onPressed: () => GoRouter.of(context).pop(),
+                                    child: Text(
+                                        localization.cancel,
+                                        style: theme.textTheme.labelLarge?.copyWith(
+                                            color: AppTheme.textGrey,
+                                        ),
+                                    ),
+                                ),
                             ),
                         ],
                     ),
@@ -281,166 +364,200 @@ void _showProfileCompletionDialog(List<String> missingFields, List<String> missi
     );
   }
 
-   @override
-  Widget build(BuildContext context) {
-      final localization = AppLocalizations.of(context)!;
-    return Scaffold(
-      key: _scaffoldKey,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.menu),
-          onPressed: () => _scaffoldKey.currentState?.openDrawer(),
-        ),
-        title: const Text(''),
-        centerTitle: true,
-        actions: [
-          if (currentUser.usertype == 'donor' || currentUser.usertype == 'recipient')
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                   Text(
-                    localization.chat,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+@override
+Widget build(BuildContext context) {
+  final localization = AppLocalizations.of(context)!;
+  final theme = Theme.of(context);
+  
+  return Scaffold(
+    key: _scaffoldKey,
+    backgroundColor: theme.scaffoldBackgroundColor,
+    appBar: AppBar(
+      leading: IconButton(
+        icon: Icon(Icons.menu, color: AppTheme.textDark),
+        onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+      ),
+      title: const Text(''),
+      centerTitle: true,
+      backgroundColor: AppTheme.backgroundColor,
+      elevation: 0,
+      actions: [
+        if (currentUser.usertype == 'donor' || currentUser.usertype == 'recipient')
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  localization.chat,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
                   ),
-                  const SizedBox(width: 4), // Space between text and icon
-                  IconButton(
-                    icon: Stack(
-                      children: [
-                        const Icon(Icons.message),
-                        if (unreadMessagesCount > 0)
-                          Positioned(
-                            right: 0,
-                            top: 0,
-                            child: CircleAvatar(
-                              radius: 8,
-                              backgroundColor: Colors.red,
-                              child: Text(
-                                '$unreadMessagesCount',
-                                style:  TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
+                ),
+                const SizedBox(width: 4),
+                IconButton(
+                  icon: Stack(
+                    children: [
+                      Icon(Icons.message, color: AppTheme.textDark),
+                      if (unreadMessagesCount > 0)
+                        Positioned(
+                          right: 0,
+                          top: 0,
+                          child: CircleAvatar(
+                            radius: 8,
+                            backgroundColor: AppTheme.errorRed,
+                            child: Text(
+                              '$unreadMessagesCount',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
                               ),
                             ),
                           ),
-                      ],
-                    ),
-                    onPressed: () {
-                      GoRouter.of(context).go(
-                        currentUser.usertype == 'donor' 
-                          ? Routes.senderscreen 
-                          : Routes.recipientMssgscreen
-                      );
-                    },
+                        ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-            
-          Padding(
-            padding: const EdgeInsets.only(right: 20.0),
-            child: IconButton(
-              icon: const Icon(Icons.person),
-              onPressed: _navigateToEditProfile,
+                  onPressed: () {
+                    GoRouter.of(context).go(
+                      currentUser.usertype == 'donor' 
+                        ? Routes.senderscreen 
+                        : Routes.recipientMssgscreen
+                    );
+                  },
+                ),
+              ],
             ),
           ),
+        Padding(
+          padding: const EdgeInsets.only(right: 20.0),
+          child: IconButton(
+            icon: Icon(Icons.person, color: AppTheme.textDark),
+            onPressed: _navigateToEditProfile,
+          ),
+        ),
+      ],
+    ),
+    drawer: Drawer(
+      child: Column(
+        children: [
+          UserAccountsDrawerHeader(
+            decoration: BoxDecoration(
+              color: AppTheme.primaryBlue,
+            ),
+            currentAccountPicture: ProfileAvatar(
+              user: currentUser,
+              radius: 30,
+              showEditButton: false,
+            ),
+            accountName: Text(
+              '${currentUser.firstname} ${currentUser.lastname}',
+              style: theme.textTheme.labelLarge,
+            ),
+            accountEmail: Text(
+              currentUser.email,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: Colors.white,
+              ),
+            ),
+          ),
+          ListTile(
+            leading: Icon(Icons.person_outline, color: AppTheme.textDark),
+            title: Text(
+              localization.viewProfile,
+              style: theme.textTheme.bodyLarge,
+            ),
+            onTap: () {
+              GoRouter.of(context).pop();
+              GoRouter.of(context).go(Routes.profile, extra: currentUser);
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.edit, color: AppTheme.textDark),
+            title: Text(
+              currentUser.usertype == 'Admin' 
+                ? localization.adminRequests 
+                : localization.editProfile,
+              style: theme.textTheme.bodyLarge,
+            ),
+            onTap: () {
+              GoRouter.of(context).pop();
+              if (currentUser.usertype == 'Admin') {
+                GoRouter.of(context).go(Routes.adminVerify);
+              } else {
+                _navigateToEditProfile();
+              }
+            },
+          ),
+          if (currentUser.usertype == 'recipient')
+            ListTile(
+              leading: Icon(Icons.people, color: AppTheme.textDark),
+              title: Text(
+                localization.unlockedDonors,
+                style: theme.textTheme.bodyLarge,
+              ),
+              onTap: () {
+                GoRouter.of(context).go(Routes.selectedDonorsScreen);
+              },
+            ),
+          ListTile(
+            leading: Icon(Icons.upload_file, color: AppTheme.textDark),
+            title: Text(
+              currentUser.usertype == 'Admin' 
+                ? localization.allDonors 
+                : localization.uploadDocuments,
+              style: theme.textTheme.bodyLarge,
+            ),
+            onTap: () {
+              GoRouter.of(context).pop();
+              if (currentUser.usertype == 'Admin') {
+                GoRouter.of(context).go(Routes.allDonors);
+              } else {
+                GoRouter.of(context).go(Routes.documentUpload, extra: currentUser);
+              }
+            },
+          ),
+          if (currentUser.usertype == 'Admin')
+            ListTile(
+              leading: Icon(Icons.people, color: AppTheme.textDark),
+              title: Text(
+                localization.allRecipients,
+                style: theme.textTheme.bodyLarge,
+              ),
+              onTap: () {
+                GoRouter.of(context).pop();
+                GoRouter.of(context).go(Routes.allRecipients);
+              },
+            ),
+          const Divider(),
+          const Spacer(),
+          ListTile(
+            leading: Icon(Icons.logout, color: AppTheme.errorRed),
+            title: Text(
+              localization.logout,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: AppTheme.errorRed,
+              ),
+            ),
+            onTap: () {
+              GoRouter.of(context).pop();
+              _showLogoutConfirmation();
+            },
+          ),
+          const SizedBox(height: 20),
         ],
       ),
-      drawer: Drawer(
-        child: Column(
-          children: [
-            UserAccountsDrawerHeader(
-              currentAccountPicture: ProfileAvatar(
-                user: currentUser,
-                radius: 30,
-                showEditButton: false,
-              ),
-              accountName: Text('${currentUser.firstname} ${currentUser.lastname}'),
-              accountEmail: Text(currentUser.email),
+    ),
+    body: currentUser.usertype == 'donor'
+      ? RecipientListPage()
+      : currentUser.usertype == 'Admin'
+        ? Center(
+            child: Text(
+              localization.welcomeAdmin,
+              style: theme.textTheme.headlineLarge,
             ),
-            ListTile(
-              leading: const Icon(Icons.person_outline),
-              title:  Text(localization.viewProfile),
-              onTap: () {
-                GoRouter.of(context).pop();
-                GoRouter.of(context).go(
-                Routes.profile,
-                extra: currentUser, 
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.edit),
-              title: Text(currentUser.usertype == 'Admin' ? '${localization.adminRequests}' : '${localization.editProfile}'),
-              onTap: () {
-                GoRouter.of(context).pop();
-                if (currentUser.usertype == 'Admin') {
-                  GoRouter.of(context).go(Routes.adminVerify);
-                } else {
-                  _navigateToEditProfile();
-                }
-              },
-            ),
-           if (currentUser.usertype == 'recipient') ...[
-            ListTile(
-              leading:  Icon(Icons.people),
-              title:  Text(localization.unlockedDonors),
-              onTap: () {
-                GoRouter.of(context).go(Routes.selectedDonorsScreen); 
-              },
-            ),
-          ],
-            ListTile(
-              leading: const Icon(Icons.upload_file),
-              title: Text(currentUser.usertype == 'Admin' ? '${localization.allDonors}' : '${localization.uploadDocuments}'),
-              onTap: () {
-                GoRouter.of(context).pop();
-                if (currentUser.usertype == 'Admin') {
-                  GoRouter.of(context).go(Routes.allDonors);
-                } else {
-                  GoRouter.of(context).go(Routes.documentUpload, extra: currentUser);
-                }
-              },
-            ),
-            if (currentUser.usertype == 'Admin')
-              ListTile(
-                leading:  Icon(Icons.people),
-                title:  Text(localization.allRecipients),
-                onTap: () {
-                  GoRouter.of(context).pop();
-                  GoRouter.of(context).go(Routes.allRecipients);
-                },
-              ),
-            const Divider(),
-            const Spacer(),
-            ListTile(
-              leading:  Icon(Icons.logout, color: Colors.red),
-              title:  Text(localization.logout, style: TextStyle(color: Colors.red)),
-              onTap: () {
-                GoRouter.of(context).pop();
-                _showLogoutConfirmation();
-              },
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
-      body: currentUser.usertype == 'donor'
-           ? RecipientListPage()
-          : currentUser.usertype == 'Admin'
-              ?  Center(
-                  child: Text(
-                    localization.welcomeAdmin,
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                )
-              : DonorListPage(),
-    );
-  }
+          )
+        : DonorListPage(),
+  );
+}
 }

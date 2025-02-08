@@ -3,7 +3,7 @@
     "@appTitle": {
         "description": "The title of the application"
     },
-  "welcomeBack": "Welcome Back",
+  "welcomeBack": "Welcome",
   "email": "Email",
   "enterEmail": "Please enter your email",
   "password": "Password",
@@ -356,7 +356,7 @@
   "subscribeContent": "You need to subscribe to view donor details.",
 
 
- 
+   "requiredDocuments":"Required Documents",
   "basicPlan": "Basic Plan",
   "standardPlan": "Standard Plan",
   "premiumPlan": "Premium Plan",
@@ -371,6 +371,7 @@
   "exportFeatures": "Export Features",
   "male": "Male",
   "female": "Female",
-  "other": "Other"
+  "other": "Other",
+  "mendatory_document":"Aadhaar card is mandatory. Other documents are optional."
 }
 

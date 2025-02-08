@@ -29,18 +29,20 @@ class RecipitentDetails {
   });
 
   factory RecipitentDetails.fromJson(Map<String, dynamic> json) {
-    return RecipitentDetails(
-      avatar: json['avatar'] != null ? Avatar.fromJson(json['avatar']) : null,
-      id: json['id'],
-      firstname: json['firstname'],
-      middlename: json['middlename'],
-      lastname: json['lastname'],
-      gender: json['gender'],
-      dateofbirth: DateTime.parse(json['dateofbirth']),
-      country: json['country'],
-      state: json['state'],
-      city: json['city'],
-      bloodGroup: json['bloodGroup'],
-    );
-  }
+  return RecipitentDetails(
+    avatar: json['avatar'] != null ? Avatar.fromJson(json['avatar']) : null,
+    id: json['id'] ?? '',
+    firstname: json['firstname'] ?? 'Unknown',
+    middlename: json['middlename'] ?? '', // Set to empty string if null
+    lastname: json['lastname'] ?? 'Unknown',
+    gender: json['gender'] ?? 'N/A',
+    dateofbirth: json['dateofbirth'] != null 
+        ? DateTime.tryParse(json['dateofbirth']) ?? DateTime(2000, 1, 1) 
+        : DateTime(2000, 1, 1), // Default date if parsing fails
+    country: json['country'] ?? 'N/A',
+    state: json['state'] ?? 'N/A',
+    city: json['city'] ?? 'N/A',
+    bloodGroup: json['bloodGroup'] ?? 'N/A',
+  );
+}
 }
