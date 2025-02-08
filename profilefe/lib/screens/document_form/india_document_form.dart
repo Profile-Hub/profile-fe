@@ -195,7 +195,7 @@ class _IndiaDocumentFormState extends State<IndiaDocumentForm> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Required Documents',
+                    localizations.requiredDocuments,
                     style: theme.textTheme.headlineMedium,
                   ),
                   const SizedBox(height: 8),
@@ -212,7 +212,7 @@ class _IndiaDocumentFormState extends State<IndiaDocumentForm> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            'Aadhaar card is mandatory. Other documents are optional.',
+                            localizations.mendatory_document,
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: theme.colorScheme.primary,
                               fontWeight: FontWeight.w500,

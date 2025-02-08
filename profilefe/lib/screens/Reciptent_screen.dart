@@ -21,27 +21,32 @@ class _RecipientListPageState extends State<RecipientListPage> {
   List<Recipient> _allRecipients = [];
   List<Recipient> _filteredRecipients = [];
   String _searchQuery = "";
+  bool _isLoading = true;
 
-  @override
+ @override
   void initState() {
     super.initState();
-    _recipients = fetchRecipients();
+    _fetchRecipients();
   }
 
-  Future<List<Recipient>> fetchRecipients() async {
+  Future<void> _fetchRecipients() async {
+    setState(() {
+      _isLoading = true;
+    });
+
     final recipientService = RecipitentService();
     final recipients = await recipientService.getAllReciptent(filter: _currentFilter);
     setState(() {
       _allRecipients = recipients;
       _filteredRecipients = recipients;
+      _isLoading = false;
     });
-    return recipients;
   }
 
   void _handleFilterChange(RecipientFilter filter) {
     setState(() {
       _currentFilter = filter;
-      _recipients = fetchRecipients();
+      _fetchRecipients();
     });
   }
 
@@ -78,7 +83,7 @@ void _resetFilters() {
       final localization = AppLocalizations.of(context)!;
   setState(() {
     _currentFilter = null;
-     _recipients = fetchRecipients(); 
+     _fetchRecipients(); 
   });
 
   ScaffoldMessenger.of(context).showSnackBar(
@@ -97,7 +102,7 @@ void _resetFilters() {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.7,
+                  width: MediaQuery.of(context).size.width * 0.55,
                   child: TextField(
                     onChanged: _handleSearch,
                     decoration: InputDecoration(
@@ -188,8 +193,13 @@ void _resetFilters() {
                 ),
               ],
             ),
-          ),
-          Expanded(
+          ), _isLoading
+              ? Expanded(
+                  child: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                )
+              :Expanded(
             child: ListView.builder(
               itemCount: _filteredRecipients.length,
               itemBuilder: (context, index) {
