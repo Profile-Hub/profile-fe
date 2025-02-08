@@ -31,6 +31,7 @@ import   'screens/ReciptentDetails_screen.dart';
 import   'screens/DocumentVerify_screen.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'providers/language_provider.dart';
+import 'theme.dart';
 
 final secureStorage = FlutterSecureStorage();
 
@@ -288,18 +289,15 @@ class MainApp extends StatelessWidget {
     required this.router,
   }) : super(key: key);
 
- @override
+  @override
   Widget build(BuildContext context) {
     return Consumer<LanguageProvider>(
       builder: (context, languageProvider, child) {
         return MaterialApp.router(
           title: 'Need a Donor',
-          theme: ThemeData(
-            primarySwatch: Colors.blue,
-          ),
+          theme: AppTheme.lightTheme,
           routerConfig: router,
-          
-          // Localization support
+          debugShowCheckedModeBanner: false,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: LanguageProvider.supportedLocales,
           locale: languageProvider.currentLocale,

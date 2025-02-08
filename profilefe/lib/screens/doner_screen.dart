@@ -22,26 +22,33 @@ class _DonorListPageState extends State<DonorListPage> {
   List<Doner> _filteredDonors = [];
   String _searchQuery = "";
 
+   bool _isLoading = true;
+
   @override
   void initState() {
     super.initState();
-    _donors = fetchDonors();
+    _fetchDonors();
   }
 
-  Future<List<Doner>> fetchDonors() async {
+  Future<void> _fetchDonors() async {
+    setState(() {
+      _isLoading = true;
+    });
+
     final donorService = DonnerService();
     final donors = await donorService.getAllDoner(filter: _currentFilter);
     setState(() {
       _allDonors = donors;
       _filteredDonors = donors;
+      _isLoading = false;
     });
-    return donors;
   }
 
-  void _handleFilterChange(DonorFilter filter) {
+
+   void _handleFilterChange(DonorFilter filter) {
     setState(() {
       _currentFilter = filter;
-      _donors = fetchDonors();
+      _fetchDonors();
     });
   }
 
@@ -72,16 +79,15 @@ class _DonorListPageState extends State<DonorListPage> {
       _currentFilter!.gender != null ||
       (_currentFilter!.organsDonating?.isNotEmpty ?? false);
 }
-void _resetFilters() {
-  setState(() {
-    _currentFilter = null; 
-    _donors = fetchDonors();
-  });
-
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(content: Text('Filters have been reset.')),
-  );
-}
+ void _resetFilters() {
+    setState(() {
+      _currentFilter = null;
+      _fetchDonors();
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Filters have been reset.')),
+    );
+  }
 
   Future<void> _handleDonorTap(BuildContext context, Doner donor) async {
     final localization = AppLocalizations.of(context)!;
@@ -240,7 +246,13 @@ Widget build(BuildContext context) {
             ],
           ),
         ),
-        Expanded(
+        _isLoading
+              ? Expanded(
+                  child: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                )
+              :Expanded(
           child: ListView.builder(
             itemCount: _filteredDonors.length,
             itemBuilder: (context, index) {

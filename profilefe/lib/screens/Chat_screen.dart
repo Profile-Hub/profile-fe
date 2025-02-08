@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../providers/user_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../theme.dart';
 
 class ChatScreen extends StatefulWidget {
   final String conversationSid;
@@ -44,7 +45,6 @@ class _ChatScreenState extends State<ChatScreen> {
     setState(() {
       userId = user?.id;
     });
-    print('User ID: ${user?.id}');
   }
 
   void _scrollToBottom() {
@@ -65,9 +65,8 @@ class _ChatScreenState extends State<ChatScreen> {
         _messages = messages.map((message) => {
           ...message,
           'timestamp': message['timestamp'] ?? DateTime.now(),
-          'isReceived': message['author'] != userId, 
+          'isReceived': message['author'] != userId,
         }).toList();
-        
         _messages.sort((a, b) => 
           (a['timestamp'] as DateTime).compareTo(b['timestamp'] as DateTime));
       });
@@ -80,7 +79,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _sendMessage() async {
     final message = _messageController.text.trim();
     if (message.isEmpty) return;
-   _fetchMessages();
+    _fetchMessages();
     final timestamp = DateTime.now();
     _messageController.clear();
     setState(() {
@@ -115,145 +114,103 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-     final localizations = AppLocalizations.of(context)!;
+    final localization = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(
-        child: Card(
-          margin: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width * 0.01),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          child: Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: const BoxDecoration(
-                  color: Colors.lightBlueAccent,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
-                ),
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.white),
-                      onPressed: () {
-                        GoRouter.of(context).go(Routes.home); 
-                      },
-                    ),
-                    CircleAvatar(
-                      backgroundImage: NetworkImage(widget.profileImage),
-                      radius: 20,
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      widget.userName,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-                  child: ListView.builder(
-                    controller: _scrollController,
-                    itemCount: _messages.length,
-                    itemBuilder: (context, index) {
-                      final message = _messages[index];
-                      final bool isReceived = message['isReceived'] ?? false;
-
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: Align(
-                          alignment: isReceived ? Alignment.centerLeft : Alignment.centerRight,
-                          child: Container(
-                            constraints: BoxConstraints(
-                              maxWidth: MediaQuery.of(context).size.width * 0.65,
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 10,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isReceived ? Colors.grey[300] : Colors.lightBlueAccent,
-                              borderRadius: BorderRadius.only(
-                                topLeft: const Radius.circular(16),
-                                topRight: const Radius.circular(16),
-                                bottomLeft: Radius.circular(isReceived ? 16 : 0),
-                                bottomRight: Radius.circular(isReceived ? 0 : 16),
-                              ),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: isReceived 
-                                  ? CrossAxisAlignment.start 
-                                  : CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  message['body'] ?? '',
-                                  style: TextStyle(
-                                    color: isReceived ? Colors.black87 : Colors.white,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  _formatTime(message['timestamp'] as DateTime),
-                                  style: TextStyle(
-                                    color: isReceived ? Colors.black54 : Colors.white70,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    },
+      backgroundColor: AppTheme.backgroundColor,
+      appBar: AppBar(
+        backgroundColor: AppTheme.backgroundColor,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppTheme.primaryBlue),
+          onPressed: () => GoRouter.of(context).go(Routes.senderscreen),
+        ),
+        title: Row(
+          children: [
+            CircleAvatar(
+              backgroundImage: NetworkImage(widget.profileImage),
+              radius: 20,
+            ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.userName,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textDark,
                   ),
                 ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-                decoration: const BoxDecoration(
-                  border: Border(top: BorderSide(color: Colors.black12)),
-                  color: Colors.white,
+                Text(
+                  'Online',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: AppTheme.primaryBlue,
+                  ),
                 ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _messageController,
-                        decoration:  InputDecoration(
-                          hintText: localizations.chatMessageType,
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 10,
+              ],
+            ),
+          ],
+        ),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: ListView.builder(
+                controller: _scrollController,
+                itemCount: _messages.length,
+                itemBuilder: (context, index) {
+                  final message = _messages[index];
+                  final bool isReceived = message['isReceived'] ?? false;
+
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Align(
+                      alignment: isReceived ? Alignment.centerLeft : Alignment.centerRight,
+                      child: Container(
+                        constraints: BoxConstraints(
+                          maxWidth: MediaQuery.of(context).size.width * 0.75,
+                        ),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: isReceived ? AppTheme.surfaceGrey : AppTheme.primaryBlue,
+                          borderRadius: BorderRadius.circular(16).copyWith(
+                            bottomLeft: isReceived ? Radius.zero : const Radius.circular(16),
+                            bottomRight: isReceived ? const Radius.circular(16) : Radius.zero,
                           ),
                         ),
-                        onSubmitted: (_) => _sendMessage(),
-                        onChanged: (text) {
-                          setState(() {
-                            _isTyping = text.trim().isNotEmpty;
-                          });
-                        },
+                        child: Column(
+                          crossAxisAlignment: isReceived 
+                              ? CrossAxisAlignment.start 
+                              : CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              message['body'] ?? '',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: isReceived ? AppTheme.textDark : Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _formatTime(message['timestamp'] as DateTime),
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: isReceived ? AppTheme.textGrey : Colors.white70,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                    IconButton(
-                      onPressed: _isTyping ? _sendMessage : null,
-                      icon: Icon(
-                        Icons.send,
-                        color: _isTyping ? Colors.lightBlueAccent : Colors.grey,
-                      ),
-                    ),
-                  ],
-                ),
+                  );
+                },
               ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

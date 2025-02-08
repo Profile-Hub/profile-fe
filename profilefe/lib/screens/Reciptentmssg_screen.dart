@@ -6,6 +6,7 @@ import '../services/subscription_service.dart';
 import '../routes.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../theme.dart';
 
 class RecipientScreen extends StatefulWidget {
     final User user;
@@ -208,7 +209,7 @@ void openChat(BuildContext context, Map<String, dynamic> donor) {
           },
         ),
         title: Text(localizations.allDonors),
-        backgroundColor: Colors.lightBlueAccent,
+        backgroundColor: AppTheme.backgroundColor,
       ),
       body: Column(
         children: [

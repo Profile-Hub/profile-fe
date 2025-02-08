@@ -3,6 +3,7 @@ import '../services/chat_services.dart';
 import '../routes.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../theme.dart';
 
 class SenderScreen extends StatefulWidget {
   @override
@@ -108,7 +109,7 @@ class _SenderScreenState extends State<SenderScreen> {
     },
   ),
         title: Text(localization.allRecipients),
-        backgroundColor: Colors.lightBlueAccent,
+        backgroundColor: AppTheme.backgroundColor,
       ),
       body: Column(
         children: [

@@ -12,6 +12,7 @@ import 'package:universal_platform/universal_platform.dart';
 import 'package:universal_html/html.dart' as html;
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../providers/language_provider.dart';
+import '../theme.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -180,18 +181,19 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     }
   }
 
- Widget _buildLanguageSelector() {
+   Widget _buildLanguageSelector() {
     return Consumer<LanguageProvider>(
       builder: (context, languageProvider, child) {
         return Container(
+          width: double.infinity,
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 10,
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 20,
                 offset: const Offset(0, 4),
               ),
             ],
@@ -204,7 +206,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                  color: AppTheme.textDark,
                 ),
               ),
               const Text(
@@ -212,21 +214,29 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                  color: AppTheme.textDark,
                 ),
               ),
-              const SizedBox(height: 16),
-              Column(
-                children: LanguageProvider.supportedLocales.map((Locale locale) {
-                  return RadioListTile<Locale>(
+              const SizedBox(height: 24),
+              ...LanguageProvider.supportedLocales.map((Locale locale) {
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: _selectedLocale == locale ? AppTheme.primaryBlue.withOpacity(0.1) : Colors.transparent,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: RadioListTile<Locale>(
                     title: Text(
                       _getLanguageName(locale.languageCode),
                       style: TextStyle(
-                        color: _selectedLocale == locale ? Colors.blue : Colors.black,
+                        fontSize: 16,
+                        fontWeight: _selectedLocale == locale ? FontWeight.w600 : FontWeight.normal,
+                        color: _selectedLocale == locale ? AppTheme.primaryBlue : AppTheme.textDark,
                       ),
                     ),
                     value: locale,
                     groupValue: _selectedLocale,
+                    activeColor: AppTheme.primaryBlue,
                     onChanged: (Locale? newLocale) {
                       if (newLocale != null) {
                         setState(() {
@@ -237,16 +247,16 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                         _getCurrentLocation();
                       }
                     },
-                  );
-                }).toList(),
-              ),
+                  ),
+                );
+              }).toList(),
               if (_errorMessage != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 16),
                   child: Text(
                     _errorMessage!,
                     style: const TextStyle(
-                      color: Colors.red,
+                      color: AppTheme.errorRed,
                       fontSize: 14,
                     ),
                     textAlign: TextAlign.center,
@@ -259,7 +269,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -269,8 +278,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color.fromARGB(255, 58, 151, 250),
-              Color.fromARGB(255, 36, 144, 245),
+              AppTheme.primaryBlue,
+              AppTheme.secondaryBlue,
             ],
           ),
         ),

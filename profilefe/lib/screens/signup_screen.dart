@@ -7,6 +7,7 @@ import 'dart:async';
 import '../routes.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../theme.dart';
 
 extension StringExtension on String {
   String capitalize() {
@@ -225,96 +226,92 @@ Widget _buildEmailVerificationSection() {
   final localizations = AppLocalizations.of(context)!;
   return Column(
     children: [
-      // Email Input Field
-     TextFormField(
-  controller: _emailController,
-  enabled: !_isEmailVerified,
-  decoration: InputDecoration(
-  labelText: localizations.email,
-    prefixIcon: Icon(Icons.email_outlined),
-    suffixIcon: !_isEmailVerified && !_isOtpSent
-        ? IconButton(
-            icon: Icon(Icons.send),
-            onPressed: _isLoading ? null : _sendOtp,
-          )
-        : Icon(
-            _isEmailVerified ? Icons.check_circle : Icons.pending,
-            color: _isEmailVerified ? Colors.green : Colors.orange,
-          ),
-  ),
-  keyboardType: TextInputType.emailAddress,
-  validator: (value) {
-    if (_isEmailVerified) {
-      // If email is verified, bypass validation
-      return null;
-    }
-    if (value == null || value.isEmpty) {
-      return localizations.enter_valid_email;
-    }
-    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-      return localizations.enter_valid_email;
-    }
-    return null;
-  },
-),
-      // OTP Input Section
+      TextFormField(
+        controller: _emailController,
+        enabled: !_isEmailVerified,
+        decoration: InputDecoration(
+          labelText: localizations.email,
+          prefixIcon: const Icon(Icons.email_outlined),
+          suffixIcon: !_isEmailVerified && !_isOtpSent
+              ? IconButton(
+                  icon: const Icon(Icons.send),
+                  onPressed: _isLoading ? null : _sendOtp,
+                )
+              : Icon(
+                  _isEmailVerified ? Icons.check_circle : Icons.pending,
+                  color: _isEmailVerified ? Colors.green : Colors.orange,
+                ),
+        ),
+        keyboardType: TextInputType.emailAddress,
+        validator: (value) {
+          if (_isEmailVerified) return null;
+          if (value == null || value.isEmpty) {
+            return localizations.enter_valid_email;
+          }
+          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+            return localizations.enter_valid_email;
+          }
+          return null;
+        },
+      ),
+
       if (_isOtpSent && !_isEmailVerified) ...[
-        SizedBox(height: 16),
+        const SizedBox(height: 24),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            // 6-Digit OTP Input Boxes
-            for (int i = 0; i < 6; i++)
-              SizedBox(
-                width: 40,
-                child: TextFormField(
-                  controller: _otpControllers[i],
-                  keyboardType: TextInputType.number,
-                  textAlign: TextAlign.center,
-                  maxLength: 1,
-                  decoration: InputDecoration(
-                    counterText: '',
-                    border: OutlineInputBorder(),
-                    fillColor: Colors.white,
-                    filled: true, // Set white background
-                  ),
-                  onChanged: (value) {
-                    if (value.isNotEmpty && i < 5) {
-                      FocusScope.of(context).nextFocus(); // Move to next box
-                    } else if (value.isEmpty && i > 0) {
-                      FocusScope.of(context).previousFocus(); // Move to previous box
-                    }
-                  },
-                ),
+          children: List.generate(
+            6,
+            (index) => SizedBox(
+              width: 45,
+              child: TextFormField(
+                controller: _otpControllers[index],
+                keyboardType: TextInputType.number,
+                textAlign: TextAlign.center,
+                maxLength: 1,
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                decoration: AppTheme.otpInputDecoration,
+                onChanged: (value) {
+                  if (value.isNotEmpty && index < 5) {
+                    FocusScope.of(context).nextFocus();
+                  } else if (value.isEmpty && index > 0) {
+                    FocusScope.of(context).previousFocus();
+                  }
+                },
               ),
-          ],
+            ),
+          ),
         ),
 
-        SizedBox(height: 16),
-        // Submit OTP Button
+        const SizedBox(height: 24),
         ElevatedButton(
           onPressed: _isLoading ? null : _verifyOtp,
-          child: Text(localizations.verify_OTP),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Text(localizations.verify_OTP),
+          ),
         ),
 
-        SizedBox(height: 16),
-        // Resend OTP Feature
+        const SizedBox(height: 16),
         if (_resendTimer > 0)
-          Text('Resend OTP in $_resendTimer seconds'),
-        if (_resendTimer == 0)
+          Text(
+            'Resend OTP in $_resendTimer seconds',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: AppTheme.textGrey,
+            ),
+          )
+        else
           TextButton(
             onPressed: _isLoading ? null : _resendOtp,
             child: Text(localizations.resend_otp),
           ),
       ],
 
-      // Error Message
       if (_otpError != null)
         Padding(
-          padding: EdgeInsets.only(top: 8),
+          padding: const EdgeInsets.only(top: 8),
           child: Text(
             _otpError!,
-            style: TextStyle(color: Colors.red),
+            style: const TextStyle(color: AppTheme.errorRed),
           ),
         ),
     ],

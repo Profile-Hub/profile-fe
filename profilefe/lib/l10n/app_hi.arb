@@ -3,7 +3,7 @@
     "@appTitle": {
         "description": "The title of the application"
     },
-    "welcomeBack": "वापसी पर स्वागत है",
+    "welcomeBack": "स्वागत है",
     "@welcomeBack": {
         "description": "Welcome message shown on the login screen"
     },
@@ -308,7 +308,7 @@
   "basicPlan": "बेसिक योजना",
   "standardPlan": "स्टैंडर्ड योजना",
   "premiumPlan": "प्रीमियम योजना",
-  
+   "requiredDocuments":"आवश्यक दस्तावेज",
   "contactViews": "{contacts} संपर्क दृश्य",
   "unlimitedContacts": "असीमित संपर्क दृश्य",
   "monthsValidity": "{months} महीने की वैधता",
@@ -370,5 +370,6 @@
   "paymentVerificationFailed": "भुगतान सत्यापन विफल",
    "male": "पुरुष",
   "female": "महिला",
-  "other": "अन्य"
+  "other": "अन्य",
+  "mendatory_document":"आधार कार्ड अनिवार्य है. अन्य दस्तावेज़ वैकल्पिक हैं."
 }

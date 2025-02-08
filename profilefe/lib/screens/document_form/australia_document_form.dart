@@ -16,8 +16,7 @@ class AustraliaDocumentForm extends StatefulWidget {
 }
 
 class _AustraliaDocumentFormState extends State<AustraliaDocumentForm> {
-  // Map to store selected files for each document type
-  Map<String, PlatformFile?> selectedFiles = {
+  final Map<String, PlatformFile?> selectedFiles = {
     'Medicare Card': null,
     'Passport': null,
     'Driver License': null,
@@ -25,8 +24,7 @@ class _AustraliaDocumentFormState extends State<AustraliaDocumentForm> {
     'Permanent residency card': null,
   };
 
-  // Validation states for each document type
-  Map<String, bool> isValid = {
+  final Map<String, bool> isValid = {
     'Medicare Card': false,
     'Passport': true,
     'Driver License': true,
@@ -34,8 +32,7 @@ class _AustraliaDocumentFormState extends State<AustraliaDocumentForm> {
     'Permanent residency card': true,
   };
 
-  // Map to store uploading state for each document type
-  Map<String, bool> isUploading = {
+  final Map<String, bool> isUploading = {
     'Medicare Card': false,
     'Passport': false,
     'Driver License': false,
@@ -43,8 +40,7 @@ class _AustraliaDocumentFormState extends State<AustraliaDocumentForm> {
     'Permanent residency card': false,
   };
 
-  // Map to store uploaded state for each document type
-  Map<String, bool> isUploaded = {
+  final Map<String, bool> isUploaded = {
     'Medicare Card': false,
     'Passport': false,
     'Driver License': false,
@@ -53,242 +49,255 @@ class _AustraliaDocumentFormState extends State<AustraliaDocumentForm> {
   };
 
   String? _token;
-  static final _storage = FlutterSecureStorage();
-
-  // Load token
-  Future<void> _loadToken() async {
-    _token = await _storage.read(key: 'auth_token');
-  }
+  static const _storage = FlutterSecureStorage();
 
   @override
   void initState() {
     super.initState();
-    _loadToken(); // Load token when the widget is initialized
+    _loadToken();
   }
 
-  // Method to select a file for a given document type with file type filter
+  Future<void> _loadToken() async {
+    _token = await _storage.read(key: 'auth_token');
+  }
+
   Future<void> _selectFile(String documentType) async {
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['jpg', 'png', 'pdf'], // Restrict to specific file types
+        allowedExtensions: ['jpg', 'png', 'pdf'],
       );
 
       if (result != null) {
         final file = result.files.first;
-
-        if (file.size <= 5 * 1024 * 1024) { // File size limit (5MB)
+        if (file.size <= 5 * 1024 * 1024) {
           setState(() {
             selectedFiles[documentType] = file;
-            isValid[documentType] = true; // Mark as valid when a file is selected
-            _validateForm(); // Re-validate the form
+            isValid[documentType] = true;
+            _validateForm();
           });
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('File size must be less than 5MB')),
-          );
+          _showErrorSnackBar('File size must be less than 5MB');
         }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error selecting file: $e')),
-      );
+      _showErrorSnackBar('Error selecting file: $e');
     }
   }
 
-  // Method to upload a file to the server
   Future<void> _uploadFile(String documentType, String endpoint) async {
     final fileData = selectedFiles[documentType];
     if (fileData == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please select a file for $documentType before uploading.')),
-      );
+      _showErrorSnackBar('Please select a file for $documentType before uploading.');
       return;
     }
 
-    setState(() {
-      isUploading[documentType] = true;
-    });
+    setState(() => isUploading[documentType] = true);
 
     try {
       var request = http.MultipartRequest('POST', Uri.parse(endpoint));
-
-      // Add the token to the headers
       request.headers['Authorization'] = 'Bearer $_token';
       request.headers['Content-Type'] = 'multipart/form-data';
+
       MediaType mediaType;
-      final extension = fileData.extension;
-      if (extension == 'jpg' || extension == 'jpeg') {
-        mediaType = MediaType('image', 'jpeg');
-      } else if (extension == 'png') {
-        mediaType = MediaType('image', 'png');
-      } else if (extension == 'pdf') {
-        mediaType = MediaType('application', 'pdf');
-      } else {
-        throw UnsupportedError('File type not supported. Only JPG, PNG, and PDF are allowed.');
+      final extension = fileData.extension?.toLowerCase() ?? '';
+      switch (extension) {
+        case 'jpg':
+        case 'jpeg':
+          mediaType = MediaType('image', 'jpeg');
+          break;
+        case 'png':
+          mediaType = MediaType('image', 'png');
+          break;
+        case 'pdf':
+          mediaType = MediaType('application', 'pdf');
+          break;
+        default:
+          throw UnsupportedError('File type not supported. Only JPG, PNG, and PDF are allowed.');
       }
+
       if (kIsWeb) {
-        request.files.add(
-          http.MultipartFile.fromBytes(
-            'file',
-            fileData.bytes!,
-            filename: fileData.name,
-            contentType: mediaType,
-          ),
-        );
+        request.files.add(http.MultipartFile.fromBytes(
+          'file',
+          fileData.bytes!,
+          filename: fileData.name,
+          contentType: mediaType,
+        ));
       } else {
-        request.files.add(
-          await http.MultipartFile.fromPath(
-            'file',
-            fileData.path!,
-            contentType: mediaType,
-          ),
-        );
+        request.files.add(await http.MultipartFile.fromPath(
+          'file',
+          fileData.path!,
+          contentType: mediaType,
+        ));
       }
 
-      var response = await request.send();
-
+      final response = await request.send();
       if (response.statusCode == 200) {
-        setState(() {
-          isUploaded[documentType] = true;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$documentType uploaded successfully')),
-        );
+        setState(() => isUploaded[documentType] = true);
+        _showSuccessSnackBar('$documentType uploaded successfully');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to upload $documentType')),
-        );
+        _showErrorSnackBar('Failed to upload $documentType');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error uploading $documentType: $e')),
-      );
+      _showErrorSnackBar('Error uploading $documentType: $e');
     } finally {
-      setState(() {
-        isUploading[documentType] = false;
-      });
+      setState(() => isUploading[documentType] = false);
     }
   }
 
-  // Form validation
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(message),
+      backgroundColor: Theme.of(context).colorScheme.error,
+    ));
+  }
+
+  void _showSuccessSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(message),
+      backgroundColor: Colors.green,
+    ));
+  }
+
   void _validateForm() {
-  widget.onValidationChanged?.call(true);
+    bool hasAtLeastOneDocument = selectedFiles.values.any((file) => file != null);
+    widget.onValidationChanged?.call(hasAtLeastOneDocument);
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Scaffold(
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildFileInputSection(
-              'Medicare Card',
-              '${ServerConfig.baseUrl}aus/medicare-card',
+            Text(
+              'Required Documents',
+              style: theme.textTheme.headlineMedium,
             ),
-            _buildFileInputSection(
-              'Passport',
-              '${ServerConfig.baseUrl}aus/passport',
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                border: Border.all(color: theme.colorScheme.primary),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, color: theme.colorScheme.primary),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Please upload any one of the following documents (mandatory)',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-            _buildFileInputSection(
-              'Driver License',
-              '${ServerConfig.baseUrl}aus/drivers-license',
-            ),
-            _buildFileInputSection(
-              'Birth Certificate',
-              '${ServerConfig.baseUrl}aus/birth-certificate',
-            ),
-            _buildFileInputSection(
-              'Permanent residency card',
-              '${ServerConfig.baseUrl}aus/permanent-residency-card',
-            ),
+            const SizedBox(height: 16),
+            ...selectedFiles.keys.map((docType) => _buildFileInputSection(
+              docType,
+              '${ServerConfig.baseUrl}aus/${docType.toLowerCase().replaceAll(' ', '-')}',
+              theme,
+            )),
           ],
         ),
       ),
     );
   }
 
-  // Method to build UI for each file input section
-  Widget _buildFileInputSection(String docType, String endpoint) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16.0),
+  Widget _buildFileInputSection(String docType, String endpoint, ThemeData theme) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Text(
-                docType,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
+          Text(
+            docType,
+            style: theme.textTheme.bodyLarge?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
           ),
           const SizedBox(height: 8),
           Row(
             children: [
               Expanded(
+                flex: 2,
                 child: TextFormField(
                   readOnly: true,
-                  onTap: isUploaded[docType]! ? null : () async {
-                    await _selectFile(docType);
-                  },
+                  onTap: isUploaded[docType]! ? null : () => _selectFile(docType),
                   decoration: InputDecoration(
-                    hintText: selectedFiles[docType] != null
-                        ? selectedFiles[docType]!.name
-                        :'No file selected',
+                    hintText: selectedFiles[docType]?.name ?? 'No file selected',
                     hintStyle: TextStyle(
-                      color: selectedFiles[docType] != null ? Colors.black : Colors.grey,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      color: selectedFiles[docType] != null 
+                          ? theme.textTheme.bodyMedium?.color 
+                          : theme.hintColor,
                     ),
                   ),
                 ),
               ),
               const SizedBox(width: 8),
-              ElevatedButton(
-                onPressed: isUploaded[docType]! ? null : () async {
-                  await _selectFile(docType);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isUploaded[docType]! ? Colors.grey : Colors.blue,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+              SizedBox(
+                width: 120,
+                child: ElevatedButton(
+                  onPressed: isUploaded[docType]! ? null : () => _selectFile(docType),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isUploaded[docType]! 
+                        ? theme.disabledColor 
+                        : theme.primaryColor,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                  ),
+                  child: Text(
+                    'Choose',
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: Colors.white,
+                    ),
                   ),
                 ),
-                child: const Text('Choose File'),
               ),
               const SizedBox(width: 8),
-              ElevatedButton(
-                onPressed: isUploading[docType]! || isUploaded[docType]!
-                    ? null
-                    : () => _uploadFile(docType, endpoint),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isUploading[docType]! || isUploaded[docType]!
-                      ? Colors.grey
-                      : Colors.green,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+              SizedBox(
+                width: 120,
+                child: ElevatedButton(
+                  onPressed: isUploading[docType]! || isUploaded[docType]!
+                      ? null
+                      : () => _uploadFile(docType, endpoint),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isUploading[docType]! || isUploaded[docType]!
+                        ? theme.disabledColor
+                        : Colors.green,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                   ),
-                ),
-                child: isUploading[docType]!
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
+                  child: isUploading[docType]!
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Text(
+                          'Upload',
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: Colors.white,
+                          ),
                         ),
-                      )
-                    : const Text('Upload'),
+                ),
               ),
             ],
           ),
