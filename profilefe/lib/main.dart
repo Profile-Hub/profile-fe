@@ -32,13 +32,12 @@ import   'screens/DocumentVerify_screen.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'providers/language_provider.dart';
 
+
 final secureStorage = FlutterSecureStorage();
 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  
   final userProvider = UserProvider();
   await userProvider.initializeFromSecureStorage();
   final languageProvider = LanguageProvider();

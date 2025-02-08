@@ -53,6 +53,15 @@
 	</array>
 <key>CFBundleURLTypes</key>
 <array>
+    <dict>
+        <key>CFBundleURLSchemes</key>
+        <array>
+            <string>Need a Donor</string>
+        </array>
+    </dict>
+</array>
+<key>CFBundleURLTypes</key>
+<array>
 
   <dict>
     <key>CFBundleURLSchemes</key>

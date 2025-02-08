@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart' hide Card;
 import 'package:flutter/material.dart' as material show Card;
-import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/foundation.dart';
@@ -9,10 +8,13 @@ import 'dart:convert';
 import '../server_config.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../routes.dart';
-import 'razorpay_web.dart' if (dart.library.io) 'razorpay_mobile.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'cashfree_web.dart' if (dart.library.io) 'cashfree_mobile.dart';
+import '../providers/user_provider.dart';
+import '../models/user.dart';
+import 'package:provider/provider.dart';
 
-// Model class to represent a subscription plan
+
 class SubscriptionPlan {
   final String id;
   final String name;
@@ -31,85 +33,92 @@ class SubscriptionPlan {
   String get formattedPrice => '₹${(price / 100).toStringAsFixed(2)}';
 }
 
-// Service class to handle all Razorpay-related operations
-class RazorpayService {
-  final String apiKey = 'rzp_test_TzdLYDjiaegAyF';
-  final String baseUrl = ServerConfig.baseUrl;
+class PaymentService {
+  final String appId;
+  final String baseUrl;
+  final String environment;
   final _storage = FlutterSecureStorage();
   String? _token;
 
+  PaymentService({
+    required this.appId,
+    required this.baseUrl,
+    this.environment = 'TEST',
+  });
+
   Future<void> _loadToken() async {
     _token = await _storage.read(key: 'auth_token');
+    if (_token == null) throw Exception('Authentication token not found');
   }
 
-  Future<Map<String, dynamic>> createOrder(String planId, int amount) async {
-    try {
-      await _loadToken();
-      final response = await http.post(
-        Uri.parse('$baseUrl/orders'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $_token',
-        },
-        body: jsonEncode({
-          'planId': planId,
-          'amount': amount,
-        }),
-      );
+  Future<Map<String, dynamic>> createOrder(String planId, double amount) async {
+    await _loadToken();
+    final response = await http.post(
+      Uri.parse('$baseUrl/orders'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $_token',
+      },
+      body: jsonEncode({
+        'planId': planId,
+        'amount': amount,
+        'currency': 'INR',
+      }),
+    );
 
-      if (response.statusCode == 200) {
-        return jsonDecode(response.body);
-      } else {
-        throw Exception('Failed to create order: ${response.body}');
-      }
-    } catch (e) {
-      throw Exception('Network error: $e');
-    }
+    if (response.statusCode != 200) throw Exception('Failed to create order: ${response.body}');
+    return jsonDecode(response.body);
   }
 
-  Future<void> verifyPayment(String orderId, String paymentId, String signature) async {
-    try {
-      await _loadToken();
-      final response = await http.post(
-        Uri.parse('$baseUrl/verify'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $_token',
-        },
-        body: jsonEncode({
-          'orderId': orderId,
-          'paymentId': paymentId,
-          'signature': signature,
-        }),
-      );
+  Future<bool> verifyPayment(String orderId, String paymentId, String signature) async {
+    await _loadToken();
+    final response = await http.post(
+      Uri.parse('$baseUrl/verify'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $_token',
+      },
+      body: jsonEncode({
+        'orderId': orderId,
+        'paymentId': paymentId,
+        'signature': signature,
+      }),
+    );
 
-      if (response.statusCode != 200) {
-        throw Exception('Payment verification failed: ${response.body}');
-      }
-    } catch (e) {
-      throw Exception('Network error: $e');
-    }
+    if (response.statusCode != 200) throw Exception('Payment verification failed: ${response.body}');
+    final responseData = jsonDecode(response.body);
+    return responseData['verified'] == true;
   }
 
   Future<void> initializePayment({
+    required BuildContext context,
     required String orderId,
-    required int amount,
-    required String name,
+    required double amount,
+     required String sessionId,
+    required User user,
     required Function(String paymentId, String orderId, String signature) onSuccess,
     required Function(String error) onError,
   }) async {
-    final razorpayHandler = getRazorpayHandler();
-    await razorpayHandler.initializePayment(
-      apiKey: apiKey,
-      orderId: orderId,
-      amount: amount,
-      name: name,
-      onSuccess: onSuccess,
-      onError: onError,
-    );
+    try {
+
+      final handler = CashfreeHandler();
+
+      await handler.initializePayment(
+        apiKey: appId,
+         orderId: orderId,
+        amount: (amount * 100).toInt(),
+        name: "${user.firstname} ${user.lastname}",
+         sessionId: sessionId,
+        customerEmail: user.email,
+        customerPhone: user.phoneNumber != null ? "+${user.phoneCode}${user.phoneNumber}" : "",
+        onSuccess: onSuccess,
+        onError: onError,
+      );
+    } catch (e) {
+      onError('Payment initialization failed: $e');
+    }
   }
 }
-
 class SubscriptionPlansScreen extends StatefulWidget {
   final String? returnRoute;
   
@@ -120,8 +129,10 @@ class SubscriptionPlansScreen extends StatefulWidget {
 }
 
 class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
-  late RazorpayService _razorpayService;
   bool _isLoading = false;
+   late PaymentService _paymentService;
+   User? _currentUser;
+
 
   List<SubscriptionPlan> getPlans(AppLocalizations localizations) => [
     SubscriptionPlan(
@@ -164,11 +175,20 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
       ],
     ),
   ];
-
-  @override
+    @override
   void initState() {
     super.initState();
-    _razorpayService = RazorpayService();
+    _paymentService = PaymentService(
+      appId: 'TEST10447003eedcf309ae89abd1615230074401',
+      baseUrl: ServerConfig.baseUrl,
+    );
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    _currentUser = await userProvider.getCurrentUser();
+    if (mounted) setState(() {});
   }
 
   void _showError(String message) {
@@ -183,15 +203,22 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
   }
 
   Future<void> _handleSubscription(SubscriptionPlan plan) async {
-     final localizations = AppLocalizations.of(context)!;
+    final localizations = AppLocalizations.of(context)!;
+    
+
+    
+
     try {
       setState(() => _isLoading = true);
-      final orderData = await _razorpayService.createOrder(plan.id, plan.price.toInt());
+      final orderData = await _paymentService.createOrder(plan.id, plan.price);
+     
 
-      await _razorpayService.initializePayment(
+      await _paymentService.initializePayment(
+        context: context,
         orderId: orderData['orderId'],
-        amount: orderData['amount'],
-        name: 'Donor Connect',
+        sessionId: orderData['paymentSessionId'],
+        amount: plan.price,
+        user: _currentUser!,
         onSuccess: (paymentId, orderId, signature) async {
           await _verifyAndCompletePayment(paymentId, orderId, signature);
         },
@@ -204,18 +231,36 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
     }
   }
 
-  Future<void> _verifyAndCompletePayment(String paymentId, String orderId, String signature) async {
-     final localizations = AppLocalizations.of(context)!;
+  Future<void> _verifyAndCompletePayment(
+    String paymentId,
+    String orderId,
+    String signature,
+  ) async {
+    final localizations = AppLocalizations.of(context)!;
+    
     try {
       setState(() => _isLoading = true);
-      await _razorpayService.verifyPayment(orderId, paymentId, signature);
       
-      final prefs = await SharedPreferences.getInstance();
+      final isVerified = await _paymentService.verifyPayment(
+        orderId,
+        paymentId,
+        signature,
+      );
+      
+      if (isVerified) {
+        final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('hasActiveSubscription', true);
+      }
+      else
+      {
+        throw Exception(localizations.paymentVerificationFailed);
+      }
+
+      
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-           SnackBar(
+          SnackBar(
             content: Text(localizations.paymentSuccess),
             backgroundColor: Colors.green,
           ),
@@ -228,11 +273,13 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
         }
       }
     } catch (e) {
-      _showError('${localizations.paymentVerificationFailed}: ${e.toString()}');
+      _showError('${localizations.paymentVerificationFailed}: $e');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
+
+
   void _handleBack(BuildContext context) {
     // Navigate to home or another specific route
     context.go(Routes.home); // Replace 'Routes.home' with your desired route
