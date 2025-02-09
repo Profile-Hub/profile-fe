@@ -117,6 +117,8 @@ class AlluserData {
         return 'uae';
       case 'China':
         return 'china';
+      case 'India':
+        return 'india';
       default:
         return '';
     }

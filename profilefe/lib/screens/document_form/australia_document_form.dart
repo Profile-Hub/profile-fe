@@ -4,12 +4,17 @@ import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:flutter/foundation.dart';
+import '../../services/getdoner_service.dart';
+import '../../models/Documentmodel.dart';
+import '../../models/user.dart';
 import '../../server_config.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+
 class AustraliaDocumentForm extends StatefulWidget {
   final Function(bool)? onValidationChanged;
-  const AustraliaDocumentForm({Key? key, this.onValidationChanged}) : super(key: key);
+    final User user;
+  const AustraliaDocumentForm({Key? key, this.onValidationChanged,required this.user}) : super(key: key);
 
   @override
   _AustraliaDocumentFormState createState() => _AustraliaDocumentFormState();
@@ -47,20 +52,48 @@ class _AustraliaDocumentFormState extends State<AustraliaDocumentForm> {
     'Birth Certificate': false,
     'Permanent residency card': false,
   };
-
+final Map<String, String> documentKeyMap = {
+  'Medicare Card': 'medicareCard',
+  'Passport': 'passport',
+  'Driver License': 'driversLicense',
+  'Birth Certificate': 'birthCertificate',
+  'Permanent residency card': 'permanentResidencyCard',
+};
   String? _token;
   static const _storage = FlutterSecureStorage();
+
+  List<Document> documents = [];
+  bool isLoadingDocuments = true;
 
   @override
   void initState() {
     super.initState();
     _loadToken();
+    _loadDocuments();
   }
 
   Future<void> _loadToken() async {
     _token = await _storage.read(key: 'auth_token');
   }
 
+  
+Future<void> _loadDocuments() async {
+    try {
+      final docs = await fetchReciptentDocuments(widget.user.id, widget.user.country!);
+      setState(() {
+        documents = docs;
+        print(documents);
+        isLoadingDocuments = false;
+      });
+    } catch (e) {
+      print('Error loading documents: $e');
+      setState(() => isLoadingDocuments = false);
+    }
+  } 
+   Future<List<Document>> fetchReciptentDocuments(String recipientId, String country) async {
+    final documentService = DonnerService();
+    return await documentService.getDonorDocuments(recipientId, country);
+  }
   Future<void> _selectFile(String documentType) async {
     try {
       final result = await FilePicker.platform.pickFiles(
@@ -134,6 +167,7 @@ class _AustraliaDocumentFormState extends State<AustraliaDocumentForm> {
       final response = await request.send();
       if (response.statusCode == 200) {
         setState(() => isUploaded[documentType] = true);
+        _loadDocuments();
         _showSuccessSnackBar('$documentType uploaded successfully');
       } else {
         _showErrorSnackBar('Failed to upload $documentType');
@@ -215,6 +249,10 @@ class _AustraliaDocumentFormState extends State<AustraliaDocumentForm> {
   }
 
   Widget _buildFileInputSection(String docType, String endpoint, ThemeData theme) {
+    final dbKey = documentKeyMap[docType] ?? docType.toLowerCase().replaceAll(' ', '');
+    String getFileNameFromUrl(String url) {
+      return url.split('/').last;
+    }
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
       child: Column(
@@ -301,8 +339,46 @@ class _AustraliaDocumentFormState extends State<AustraliaDocumentForm> {
               ),
             ],
           ),
+          if (isLoadingDocuments)
+            const Padding(
+              padding: EdgeInsets.only(top: 8.0),
+              child: Center(child: SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )),
+            )
+          else ...[
+            for (var doc in documents)
+              if (doc.files?.containsKey(dbKey) ?? false)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.description, size: 16, color: Colors.blue),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            getFileNameFromUrl(doc.files![dbKey]!),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: Colors.blue[700],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+          ],
         ],
       ),
     );
   }
+
 }

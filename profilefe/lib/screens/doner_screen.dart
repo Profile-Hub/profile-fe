@@ -99,13 +99,14 @@ class _DonorListPageState extends State<DonorListPage> {
           title: Text(localization.confirmUnlock),
           content: Text(localization.unlockDonorMessage),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text(localization.cancel),
-            ),
+          
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(true),
               child: Text(localization.confirm),
+            ),
+              TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(localization.cancel),
             ),
           ],
         );

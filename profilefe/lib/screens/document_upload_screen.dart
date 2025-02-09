@@ -18,18 +18,17 @@ class DocumentUploadScreen extends StatelessWidget {
   Widget _getFormForCountry(String country) {
     switch (country) {
       case 'India':
-        return IndiaDocumentForm();
+        return IndiaDocumentForm(user: user);
       case 'United States':
-        return USDocumentForm();
+        return USDocumentForm(user: user);
       case 'United Kingdom':
-        return UKDocumentForm();
+        return UKDocumentForm(user: user);
       case 'Australia':
-      case 'New Zealand':
-        return AustraliaDocumentForm();
+        return AustraliaDocumentForm(user: user);
       case 'United Arab Emirates':
-        return UAEDocumentForm();
+        return UAEDocumentForm(user: user);
       case 'China':
-        return ChinaDocumentForm();
+        return ChinaDocumentForm(user: user);
       default:
         return Center(
           child: Text(
