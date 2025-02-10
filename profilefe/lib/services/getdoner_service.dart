@@ -126,6 +126,8 @@ class DonnerService {
         return 'uae';
       case 'China':
         return 'china';
+      case 'India':
+        return 'india';
       default:
         return '';
     }

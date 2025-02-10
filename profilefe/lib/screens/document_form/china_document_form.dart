@@ -6,12 +6,16 @@ import 'package:http_parser/http_parser.dart';
 import 'package:flutter/foundation.dart';
 import '../../server_config.dart';
 import '../../routes.dart';
+import '../../services/getdoner_service.dart';
+import '../../models/Documentmodel.dart';
+import '../../models/user.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 
 class ChinaDocumentForm extends StatefulWidget {
   final Function(bool)? onValidationChanged;
-  const ChinaDocumentForm({Key? key, this.onValidationChanged}) : super(key: key);
+  final User user;
+  const ChinaDocumentForm({Key? key, this.onValidationChanged,required this.user}) : super(key: key);
 
   @override
   _ChinaDocumentFormState createState() => _ChinaDocumentFormState();
@@ -45,18 +49,43 @@ class _ChinaDocumentFormState extends State<ChinaDocumentForm> {
     'Passport': false,
     'Driver License': false,
   };
-
+final Map<String, String> documentKeyMap = {
+  'Resident Identity Card': 'residentIdentityCard',
+   'House hold Registration': 'householdRegistration',
+   'Passport': 'passport',
+   'Driver License': 'driversLicense',
+};
   String? _token;
   static const _storage = FlutterSecureStorage();
+List<Document> documents = [];
+  bool isLoadingDocuments = true;
 
   @override
   void initState() {
     super.initState();
     _loadToken();
+    _loadDocuments();
   }
 
   Future<void> _loadToken() async {
     _token = await _storage.read(key: 'auth_token');
+  }
+  Future<void> _loadDocuments() async {
+    try {
+      final docs = await fetchReciptentDocuments(widget.user.id, widget.user.country!);
+      setState(() {
+        documents = docs;
+        print(documents);
+        isLoadingDocuments = false;
+      });
+    } catch (e) {
+      print('Error loading documents: $e');
+      setState(() => isLoadingDocuments = false);
+    }
+  } 
+   Future<List<Document>> fetchReciptentDocuments(String recipientId, String country) async {
+    final documentService = DonnerService();
+    return await documentService.getDonorDocuments(recipientId, country);
   }
   Future<void> _selectFile(String documentType) async {
     try {
@@ -131,6 +160,7 @@ class _ChinaDocumentFormState extends State<ChinaDocumentForm> {
       final response = await request.send();
       if (response.statusCode == 200) {
         setState(() => isUploaded[documentType] = true);
+        _loadDocuments();
         _showSuccessSnackBar('$documentType uploaded successfully');
       } else {
         _showErrorSnackBar('Failed to upload $documentType');
@@ -219,10 +249,13 @@ class _ChinaDocumentFormState extends State<ChinaDocumentForm> {
     );
   }
 
-  Widget _buildFileInputSection(String docType, String endpoint, ThemeData theme, double maxWidth) {
+ Widget _buildFileInputSection(String docType, String endpoint, ThemeData theme, double maxWidth) {
+    final dbKey = documentKeyMap[docType] ?? docType.toLowerCase().replaceAll(' ', '');
+    String getFileNameFromUrl(String url) {
+      return url.split('/').last;
+    }
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
-      constraints: BoxConstraints(maxWidth: maxWidth),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -233,94 +266,117 @@ class _ChinaDocumentFormState extends State<ChinaDocumentForm> {
             ),
           ),
           const SizedBox(height: 8),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              return Row(
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(maxWidth: constraints.maxWidth * 0.5),
-                      child: TextFormField(
-                        readOnly: true,
-                        onTap: isUploaded[docType]! ? null : () => _selectFile(docType),
-                        decoration: InputDecoration(
-                          hintText: selectedFiles[docType]?.name ?? 'No file selected',
-                          hintStyle: TextStyle(
-                            color: selectedFiles[docType] != null 
-                                ? theme.textTheme.bodyMedium?.color 
-                                : theme.hintColor,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 12,
-                          ),
-                        ),
-                      ),
+          Row(
+            children: [
+              Expanded(
+                flex: 2,
+                child: TextFormField(
+                  readOnly: true,
+                  onTap: isUploaded[docType]! ? null : () => _selectFile(docType),
+                  decoration: InputDecoration(
+                    hintText: selectedFiles[docType]?.name ?? 'No file selected',
+                    hintStyle: TextStyle(
+                      color: selectedFiles[docType] != null 
+                          ? theme.textTheme.bodyMedium?.color 
+                          : theme.hintColor,
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    width: 120,
-                    child: ElevatedButton(
-                      onPressed: isUploaded[docType]! ? null : () => _selectFile(docType),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: isUploaded[docType]! 
-                            ? theme.disabledColor 
-                            : theme.primaryColor,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                      ),
-                      child: Text(
-                        'Choose',
-                        style: theme.textTheme.labelLarge?.copyWith(
-                          color: Colors.white,
-                        ),
-                      ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              SizedBox(
+                width: 120,
+                child: ElevatedButton(
+                  onPressed: isUploaded[docType]! ? null : () => _selectFile(docType),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isUploaded[docType]! 
+                        ? theme.disabledColor 
+                        : theme.primaryColor,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    width: 120,
-                    child: ElevatedButton(
-                      onPressed: isUploading[docType]! || isUploaded[docType]!
-                          ? null
-                          : () => _uploadFile(docType, endpoint),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: isUploading[docType]! || isUploaded[docType]!
-                            ? theme.disabledColor
-                            : Colors.green,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                      ),
-                      child: isUploading[docType]!
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : Text(
-                              'Upload',
-                              style: theme.textTheme.labelLarge?.copyWith(
-                                color: Colors.white,
-                              ),
-                            ),
+                  child: Text(
+                    'Choose',
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: Colors.white,
                     ),
                   ),
-                ],
-              );
-            },
+                ),
+              ),
+              const SizedBox(width: 8),
+              SizedBox(
+                width: 120,
+                child: ElevatedButton(
+                  onPressed: isUploading[docType]! || isUploaded[docType]!
+                      ? null
+                      : () => _uploadFile(docType, endpoint),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isUploading[docType]! || isUploaded[docType]!
+                        ? theme.disabledColor
+                        : Colors.green,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                  ),
+                  child: isUploading[docType]!
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Text(
+                          'Upload',
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: Colors.white,
+                          ),
+                        ),
+                ),
+              ),
+            ],
           ),
+          if (isLoadingDocuments)
+            const Padding(
+              padding: EdgeInsets.only(top: 8.0),
+              child: Center(child: SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )),
+            )
+          else ...[
+            for (var doc in documents)
+              if (doc.files?.containsKey(dbKey) ?? false)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.description, size: 16, color: Colors.blue),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            getFileNameFromUrl(doc.files![dbKey]!),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: Colors.blue[700],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+          ],
         ],
       ),
     );
