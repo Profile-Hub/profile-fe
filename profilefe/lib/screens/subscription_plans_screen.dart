@@ -51,24 +51,59 @@ class PaymentService {
     if (_token == null) throw Exception('Authentication token not found');
   }
 
-  Future<Map<String, dynamic>> createOrder(String planId, double amount) async {
-    await _loadToken();
-    final response = await http.post(
-      Uri.parse('$baseUrl/orders'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $_token',
-      },
-      body: jsonEncode({
-        'planId': planId,
-        'amount': amount,
-        'currency': 'INR',
-      }),
-    );
+Future<Map<String, dynamic>> createOrder(String planId, double amount) async {
+  await _loadToken();
+  final response = await http.post(
+    Uri.parse('$baseUrl/orders'),
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $_token',
+    },
+    body: jsonEncode({
+      'planId': planId,
+      'amount': amount,
+      'currency': 'INR',
+    }),
+  );
 
-    if (response.statusCode != 200) throw Exception('Failed to create order: ${response.body}');
+  if (response.statusCode == 200) {
     return jsonDecode(response.body);
+  } else {
+    
+    throw Exception('Failed to create order: ${response.body}');
   }
+}
+
+
+Future<void> initializePayment({
+  required BuildContext context,
+  required String orderId,
+  required double amount,
+  required String sessionId,
+  required String paymentUrl,  // Add payment URL parameter
+  required User user,
+  required Function(String paymentId, String orderId, String signature) onSuccess,
+  required Function(String error) onError,
+}) async {
+  try {
+    final handler = CashfreeHandler();
+
+    await handler.initializePayment(
+      apiKey: appId,
+      orderId: orderId,
+      amount: (amount * 100).toInt(),
+      name: "${user.firstname} ${user.lastname}",
+      sessionId: sessionId,
+      paymentUrl: paymentUrl,  // Pass payment URL to handler
+      customerEmail: user.email,
+      customerPhone: user.phoneNumber != null ? "+${user.phoneCode}${user.phoneNumber}" : "",
+      onSuccess: onSuccess,
+      onError: onError,
+    );
+  } catch (e) {
+    onError('Payment initialization failed: $e');
+  }
+}
 
   Future<bool> verifyPayment(String orderId, String paymentId, String signature) async {
     await _loadToken();
@@ -88,35 +123,6 @@ class PaymentService {
     if (response.statusCode != 200) throw Exception('Payment verification failed: ${response.body}');
     final responseData = jsonDecode(response.body);
     return responseData['verified'] == true;
-  }
-
-  Future<void> initializePayment({
-    required BuildContext context,
-    required String orderId,
-    required double amount,
-     required String sessionId,
-    required User user,
-    required Function(String paymentId, String orderId, String signature) onSuccess,
-    required Function(String error) onError,
-  }) async {
-    try {
-
-      final handler = CashfreeHandler();
-
-      await handler.initializePayment(
-        apiKey: appId,
-         orderId: orderId,
-        amount: (amount * 100).toInt(),
-        name: "${user.firstname} ${user.lastname}",
-         sessionId: sessionId,
-        customerEmail: user.email,
-        customerPhone: user.phoneNumber != null ? "+${user.phoneCode}${user.phoneNumber}" : "",
-        onSuccess: onSuccess,
-        onError: onError,
-      );
-    } catch (e) {
-      onError('Payment initialization failed: $e');
-    }
   }
 }
 class SubscriptionPlansScreen extends StatefulWidget {
@@ -202,34 +208,42 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
     }
   }
 
-  Future<void> _handleSubscription(SubscriptionPlan plan) async {
-    final localizations = AppLocalizations.of(context)!;
-    
+ Future<void> _handleSubscription(SubscriptionPlan plan) async {
+  final localizations = AppLocalizations.of(context)!;
 
-    
+  try {
+    setState(() => _isLoading = true);
 
-    try {
-      setState(() => _isLoading = true);
-      final orderData = await _paymentService.createOrder(plan.id, plan.price);
-     
+    // Step 1: Create Order
+    final orderData = await _paymentService.createOrder(plan.id, plan.price);
 
-      await _paymentService.initializePayment(
-        context: context,
-        orderId: orderData['orderId'],
-        sessionId: orderData['paymentSessionId'],
-        amount: plan.price,
-        user: _currentUser!,
-        onSuccess: (paymentId, orderId, signature) async {
-          await _verifyAndCompletePayment(paymentId, orderId, signature);
-        },
-        onError: _showError,
-      );
-    } catch (e) {
-      _showError('${localizations.paymentFailed}: $e');
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
+    if (orderData == null || orderData['orderId'] == null || orderData['paymentSessionId'] == null) {
+      throw Exception("Invalid order data received");
     }
+    
+    // Step 2: Initialize Payment
+    await _paymentService.initializePayment(
+      context: context,
+      orderId: orderData['orderId'],
+      sessionId: orderData['paymentSessionId'],
+      paymentUrl: orderData['paymentUrl'],  // Ensure this is passed
+      amount: plan.price,
+      user: _currentUser!,
+      onSuccess: (paymentId, orderId, signature) async {
+        // Step 3: Verify and Complete Payment
+        await _verifyAndCompletePayment(paymentId, orderId, signature);
+      },
+      onError: (error) {
+        print("XXXXXXXXXXXXXXXXXX${localizations.paymentFailed}: $error");
+        _showError("${localizations.paymentFailed}: $error");
+      },
+    );
+  } catch (e) {
+    _showError("${localizations.paymentFailed}: $e");
+  } finally {
+    if (mounted) setState(() => _isLoading = false);
   }
+}
 
   Future<void> _verifyAndCompletePayment(
     String paymentId,
