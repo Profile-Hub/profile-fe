@@ -104,10 +104,13 @@ class _DonorListPageState extends State<DonorListPage> {
               onPressed: () => Navigator.of(context).pop(true),
               child: Text(localization.confirm),
             ),
-              TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text(localization.cancel),
-            ),
+            
+              Center(
+                child: TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: Text(localization.cancel),
+                            ),
+              ),
           ],
         );
       },
