@@ -15,31 +15,30 @@ class AdminService {
 
   
   Future<List<VerificationRequest>> requestVerification() async {
-    await _loadToken();
+  await _loadToken();
 
-    try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/get-AllUser-Requests'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $_token',
-        },
-      );
+  try {
+    final response = await http.get(
+      Uri.parse('$baseUrl/get-AllUser-Requests'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $_token',
+      },
+    );
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        List<VerificationRequest> users = [];
-        for (var user in data['documents']) {
-          users.add(VerificationRequest.fromJson(user));
-        }
-        return users;
-      } else {
-        throw Exception('Failed to fetch user requests. Status Code: ${response.statusCode}');
-      }
-    } catch (e) {
-      throw Exception('Failed to connect to server: $e');
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      List<VerificationRequest> users = (data['documents'] as List)
+          .map((user) => VerificationRequest.fromJson(user))
+          .toList();
+      return users;
+    } else {
+      throw Exception('Failed to fetch user requests. Status Code: ${response.statusCode}');
     }
+  } catch (e) {
+    throw Exception('Failed to connect to server: $e');
   }
+}
 
 
   Future<VerificationResponse> approveOrRejectVerification(String documentId, bool approve) async {
@@ -59,13 +58,18 @@ class AdminService {
       );
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        return VerificationResponse.fromJson(data);
+        return VerificationResponse.fromJson(json.decode(response.body));
       } else {
-        throw Exception('Failed to process verification. Status Code: ${response.statusCode}');
+        return VerificationResponse(
+          success: false,
+          message: 'Failed to process verification. Status Code: ${response.statusCode}',
+        );
       }
     } catch (e) {
-      throw Exception('Failed to connect to server: $e');
+      return VerificationResponse(
+        success: false,
+        message: 'Failed to connect to server: $e',
+      );
     }
   }
 }
