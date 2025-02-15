@@ -33,7 +33,7 @@ class SubscriptionPlan {
 
 // Service class to handle all Razorpay-related operations
 class RazorpayService {
-  final String apiKey = 'rzp_test_TzdLYDjiaegAyF';
+  final String apiKey = 'rzp_live_XPOlaMoyZPAdMm';
   final String baseUrl = ServerConfig.baseUrl;
   final _storage = FlutterSecureStorage();
   String? _token;
@@ -127,7 +127,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
     SubscriptionPlan(
       id: 'basic',
       name: localizations.basicPlan,
-      price: 1,
+      price: 1000,
       contacts: 3,
       features: [
         '3 ${localizations.contacts}',
@@ -139,7 +139,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
     SubscriptionPlan(
       id: 'standard',
       name: localizations.standardPlan,
-      price: 2,
+      price: 2000,
       contacts: 6,
       features: [
         '6 ${localizations.contacts}',
@@ -152,7 +152,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
     SubscriptionPlan(
       id: 'premium',
       name: localizations.premiumPlan,
-      price: 5,
+      price: 5000,
       contacts: -1,
       features: [
         localizations.unlimited + ' ' + localizations.contacts,

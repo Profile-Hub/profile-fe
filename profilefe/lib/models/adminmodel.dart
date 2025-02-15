@@ -1,21 +1,13 @@
-class VerificationRequest {
-  final String documentId;
-  final UserDetails? userId;
 
-  VerificationRequest({required this.documentId, this.userId});
+class VerificationRequest {
+  final UserDetails user;
+
+  VerificationRequest({required this.user});
 
   factory VerificationRequest.fromJson(Map<String, dynamic> json) {
     return VerificationRequest(
-      documentId: json['_id'] ?? '',
-      userId: json['userId'] != null ? UserDetails.fromJson(json['userId']) : null,
+      user: UserDetails.fromJson(json),
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      '_id': documentId,
-      'userId': userId?.toJson(),
-    };
   }
 }
 
@@ -56,30 +48,13 @@ class UserDetails {
       email: json['email'] ?? '',
       phoneNumber: json['phoneNumber'] ?? '',
       bloodGroup: json['bloodGroup'] ?? '',
-       isVerifiedDocument: json['isVerifiedDocument'] ?? '',
+      isVerifiedDocument: json['isVerifiedDocument'] ?? false,
       city: json['city'] ?? '',
       state: json['state'] ?? '',
       country: json['country'] ?? '',
       organDonations: List<String>.from(json['organDonations'] ?? []),
       avatarUrl: json['avatar'] != null ? json['avatar']['url'] : '',
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      '_id': id,
-      'firstname': firstName,
-      'lastname': lastName,
-      'email': email,
-      'phoneNumber': phoneNumber,
-      'bloodGroup': bloodGroup,
-      'isVerifiedDocument':isVerifiedDocument,
-      'city': city,
-      'state': state,
-      'country': country,
-      'organDonations': organDonations,
-      'avatar': {'url': avatarUrl},
-    };
   }
 }
 
@@ -92,8 +67,8 @@ class VerificationResponse {
 
   factory VerificationResponse.fromJson(Map<String, dynamic> json) {
     return VerificationResponse(
-      success: json['success'] ?? false,
-      message: json['message'] ?? '',
+      success: json['success'] as bool? ?? false,
+      message: json['message'] as String? ?? 'No message provided',
     );
   }
 }

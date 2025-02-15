@@ -1,4 +1,3 @@
-// razorpay_web.dart
 @JS()
 library razorpay_web;
 
@@ -20,31 +19,48 @@ class RazorpayHandler {
     required Function(String paymentId, String orderId, String signature) onSuccess,
     required Function(String error) onError,
   }) async {
-    final options = {
-      'key': apiKey,
-      'amount': amount,
-      'order_id': orderId,
-      'name': name,
-      'handler': allowInterop((response) {
-        onSuccess(
-          response['razorpay_payment_id'],
-          response['razorpay_order_id'],
-          response['razorpay_signature'],
-        );
-      }),
-      'prefill': {
-        'contact': '',
-        'email': '',
-      },
-      'theme': {
-        'color': '#2196F3',
-      }
-    };
+    try {
+      final options = {
+        'key': apiKey,
+        'amount': amount,
+        'order_id': orderId,
+        'name': name,
+        'handler': allowInterop((response) {
+          try {
+            final paymentId = getProperty(response, 'razorpay_payment_id') as String?;
+            final responseOrderId = getProperty(response, 'razorpay_order_id') as String?;
+            final signature = getProperty(response, 'razorpay_signature') as String?;
 
-    
-    final jsOptions = jsify(options);
-    final razorpay = RazorpayWeb(jsOptions);
-    razorpay.open();
+            if (paymentId == null || responseOrderId == null || signature == null) {
+              onError('Invalid payment response: Missing required fields');
+              return;
+            }
+
+            onSuccess(paymentId, responseOrderId, signature);
+          } catch (e) {
+            onError('Error processing payment response: $e');
+          }
+        }),
+        'prefill': {
+          'contact': '',
+          'email': '',
+        },
+        'theme': {
+          'color': '#2196F3',
+        },
+        'modal': {
+          'ondismiss': allowInterop(() {
+            onError('Payment cancelled by user');
+          }),
+        }
+      };
+
+      final jsOptions = jsify(options);
+      final razorpay = RazorpayWeb(jsOptions);
+      razorpay.open();
+    } catch (e) {
+      onError('Failed to initialize payment: $e');
+    }
   }
 }
 

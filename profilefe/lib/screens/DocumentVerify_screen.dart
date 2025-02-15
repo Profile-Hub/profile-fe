@@ -5,16 +5,23 @@ import '../models/donerDetails.dart';
 import '../models/Documentmodel.dart';
 import '../services/getdoner_service.dart';
 import '../services/admin_services.dart';
-import 'package:provider/provider.dart';
+import '../theme.dart';
 import 'package:go_router/go_router.dart';
 import '../routes.dart';
 
-class DocumentverifyPage extends StatelessWidget {
+class DocumentverifyPage extends StatefulWidget {
   final String donorId;
-  final AdminService _adminService = AdminService();
   
   DocumentverifyPage({required this.donorId});
 
+  @override
+  State<DocumentverifyPage> createState() => _DocumentverifyPageState();
+}
+
+class _DocumentverifyPageState extends State<DocumentverifyPage> {
+  final AdminService _adminService = AdminService();
+  bool _isProcessing = false;
+  
   Future<DonerDetails> fetchDonorDetails(String id) async {
     final donorService = DonnerService();
     return await donorService.getDonorById(id);
@@ -26,28 +33,47 @@ class DocumentverifyPage extends StatelessWidget {
   }
 
   Future<void> handleApproveReject(String documentId, bool approve, BuildContext context) async {
+    if (_isProcessing) return;
+    
+    setState(() {
+      _isProcessing = true;
+    });
+    
     try {
       final response = await _adminService.approveOrRejectVerification(documentId, approve);
-      print(response);
       if (response == 'success') {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(approve ? 'Document Approved' : 'Document Rejected')),
-        );
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(approve ? 'Document Approved' : 'Document Rejected')),
+          );
+        }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to process the document')),
-        );
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to process the document')),
+          );
+        }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    }
+    await Future.delayed(const Duration(seconds: 2));
+    
+    if (context.mounted) {
+      GoRouter.of(context).go(Routes.adminVerify);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -58,7 +84,7 @@ class DocumentverifyPage extends StatelessWidget {
         title: const Text('All Details'),
       ),
       body: FutureBuilder<DonerDetails>(
-        future: fetchDonorDetails(donorId),
+        future: fetchDonorDetails(widget.donorId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -66,235 +92,288 @@ class DocumentverifyPage extends StatelessWidget {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData) {
             return const Center(child: Text('No donor found.'));
-          } else {
-            final donor = snapshot.data!;
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-              child: Card(
-                elevation: 5,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Center(
-                        child: CircleAvatar(
-                          backgroundImage: NetworkImage("${donor.avatar!.url}"),
-                          radius: 50,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      Text(
-                        'Name: ${donor.firstname} ${donor.lastname}',
-                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        'Date of Birth: ${donor.dateofbirth != null ? DateFormat.yMMMd().format(donor.dateofbirth!) : 'N/A'}',
-                      ),
-                      Text('Gender: ${donor.gender ?? 'N/A'}'),
-                      Text('Email: ${donor.email}'),
-                      Text(
-                        'Phone: ${donor.phoneCode != null && donor.phoneNumber != null ? '${donor.phoneCode} ${donor.phoneNumber}' : 'N/A'}',
-                      ),
-                      Text('City: ${donor.city ?? 'N/A'}'),
-                      Text('State: ${donor.state ?? 'N/A'}'),
-                      Text('Country: ${donor.country ?? 'N/A'}'),
-                      Text('Usertype: ${donor.usertype ?? 'N/A'}'),
-                      Text('Blood Group: ${donor.bloodGroup ?? 'N/A'}'),
-                      const SizedBox(height: 20),
-                      FutureBuilder<List<Document>>(
-                        future: fetchDonorDocuments(donorId, donor.country ?? ''),
-                        builder: (context, docSnapshot) {
-                          if (docSnapshot.connectionState == ConnectionState.waiting) {
-                            return const Center(child: CircularProgressIndicator());
-                          } else if (docSnapshot.hasError) {
-                            return Center(
-                              child: Card(
-                                margin: const EdgeInsets.symmetric(horizontal: 20),
-                                elevation: 4,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(20),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Icon(
-                                        Icons.insert_drive_file,
-                                        size: 48,
-                                        color: Colors.red,
-                                      ),
-                                      const SizedBox(height: 16),
-                                      const Text(
-                                        'No documents available.',
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(color: Colors.blue, fontSize: 16),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            );
-                          } else if (!docSnapshot.hasData || docSnapshot.data!.isEmpty) {
-                            return Center(
-                              child: Card(
-                                margin: const EdgeInsets.symmetric(horizontal: 20),
-                                elevation: 4,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(20),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Icon(
-                                        Icons.insert_drive_file,
-                                        size: 48,
-                                        color: Colors.grey,
-                                      ),
-                                      const SizedBox(height: 16),
-                                      const Text(
-                                        'No documents available.',
-                                        style: TextStyle(fontSize: 16, color: Colors.blue),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            );
-                          } else {
-                            final documents = docSnapshot.data!;
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Donor Documents',
-                                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                                ),
-                                ListView.builder(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemCount: documents.length,
-                                  itemBuilder: (context, index) {
-                                    final document = documents[index];
-                                    final documentFiles = document.files?.entries
-                                            .where((entry) => entry.value.isNotEmpty)
-                                            .toList() ?? [];
-
-                                    return documentFiles.isNotEmpty
-                                        ? Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              const SizedBox(height: 10),
-                                              ...documentFiles.map((fileEntry) {
-                                                final fileName = fileEntry.key.split('/').last;
-                                                final fileValue = fileEntry.value.split('/').last;
-                                                return GestureDetector(
-                                                  onTap: () {
-                                                    _openDocument(fileEntry.value);
-                                                  },
-                                                  child: Row(
-                                                    mainAxisAlignment: MainAxisAlignment.start,
-                                                    children: [
-                                                      Expanded(
-                                                        child: RichText(
-                                                          text: TextSpan(
-                                                            children: [
-                                                              TextSpan(
-                                                                text: '$fileName: ',
-                                                                style: const TextStyle(fontSize: 16, color: Colors.black),
-                                                              ),
-                                                              TextSpan(
-                                                                text: fileValue,
-                                                                style: const TextStyle(fontSize: 16, color: Colors.black),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                      ),
-                                                      const SizedBox(width: 10),
-                                                      const Icon(Icons.image, color: Colors.blue),
-                                                    ],
-                                                  ),
-                                                );
-                                              }).toList(),
-                                              const SizedBox(height: 20),
-                                            ],
-                                          )
-                                        : const SizedBox.shrink();
-                                  },
-                                ),
-                                const SizedBox(height: 20),
-                                Center(
-                                  child: Container(
-                                    width: double.infinity,
-                                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                      children: [
-                                        ElevatedButton(
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.green,
-                                            padding: const EdgeInsets.symmetric(vertical: 15),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(8),
-                                            ),
-                                          ),
-                                          onPressed: () async {
-                                            final documentId = documents[0].id; 
-                                            await handleApproveReject(documentId, true, context);
-                                          },
-                                          child: const Text(
-                                            'Approve',
-                                            style: TextStyle(color: Colors.white, fontSize: 16),
-                                          ),
-                                        ),
-                                        ElevatedButton(
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.red,
-                                            padding: const EdgeInsets.symmetric(vertical: 15),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(8),
-                                            ),
-                                          ),
-                                          onPressed: () async {
-                                            final documentId = documents[0].id; 
-                                            await handleApproveReject(documentId, false, context);
-                                          },
-                                          child: const Text(
-                                            'Reject',
-                                            style: TextStyle(color: Colors.white, fontSize: 16),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            );
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
           }
+
+          final donor = snapshot.data!;
+          return SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 16),
+                  _buildDonorHeader(context, donor),
+                  const SizedBox(height: 24),
+                  _buildAboutSection(donor, context),
+                  const SizedBox(height: 24),
+                  _buildDocumentsSection(context, donor),
+                  const SizedBox(height: 32),
+                ],
+              ),
+            ),
+          );
         },
       ),
     );
   }
 
+  Widget _buildDonorHeader(BuildContext context, DonerDetails donor) {
+    return Row(
+      children: [
+        _buildAvatar(donor),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${donor.firstname} ${donor.lastname}',
+                style: Theme.of(context).textTheme.headlineMedium,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '${donor.usertype ?? ''} - ${donor.city ?? ''}',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppTheme.textGrey,
+                ),
+              ),
+              const SizedBox(height: 4),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAvatar(DonerDetails donor) {
+    return CircleAvatar(
+      radius: 40,
+      backgroundColor: Colors.grey[200],
+      child: ClipOval(
+        child: donor.avatar?.url != null && donor.avatar!.url.isNotEmpty
+            ? Image.network(
+                donor.avatar!.url,
+                width: 80,
+                height: 80,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return const Icon(Icons.account_circle, size: 40);
+                },
+              )
+            : const Icon(Icons.account_circle, size: 40),
+      ),
+    );
+  }
+
+  Widget _buildAboutSection(DonerDetails donor, BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'About Donor',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 16),
+        _buildInfoItem('Blood Group', donor.bloodGroup ?? 'N/A'),
+        _buildInfoItem('Gender', donor.gender ?? 'N/A'),
+        _buildInfoItem('Email', donor.email),
+        _buildInfoItem('Phone Number', '+${donor.phoneCode ?? ""} ${donor.phoneNumber ?? "N/A"}'),
+        _buildInfoItem('Date of Birth', donor.dateofbirth != null ? DateFormat.yMMMd().format(donor.dateofbirth!) : 'N/A'),
+        _buildInfoItem('City', donor.city ?? 'N/A'),
+        _buildInfoItem('State', donor.state ?? 'N/A'),
+        _buildInfoItem('Country', donor.country ?? 'N/A'),
+      ],
+    );
+  }
+
+  Widget _buildInfoItem(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(
+              label,
+              style: TextStyle(
+                color: AppTheme.textGrey,
+                fontSize: 14,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDocumentsSection(BuildContext context, DonerDetails donor) {
+    return FutureBuilder<List<Document>>(
+      future: fetchDonorDocuments(widget.donorId, donor.country ?? ''),
+      builder: (context, docSnapshot) {
+        if (docSnapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (docSnapshot.hasError || !docSnapshot.hasData || docSnapshot.data!.isEmpty) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Documents',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.insert_drive_file,
+                        size: 48,
+                        color: Colors.grey,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'No documents available.',
+                        style: TextStyle(fontSize: 16, color: AppTheme.textGrey),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          );
+        }
+
+        final documents = docSnapshot.data!;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Documents',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            ...documents.expand((document) {
+              final documentFiles = document.files?.entries
+                  .where((entry) => entry.value.isNotEmpty)
+                  .toList() ?? [];
+
+              return documentFiles.map((fileEntry) {
+                final fileName = fileEntry.key.split('/').last;
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.description_outlined),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          fileName,
+                          style: const TextStyle(fontSize: 14),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () => _openDocument(fileEntry.value),
+                        child: Text('Preview'),
+                      ),
+                    ],
+                  ),
+                );
+              });
+            }).toList(),
+            const SizedBox(height: 24),
+            _buildButtonsSection(context, docSnapshot.data!),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildButtonsSection(BuildContext context, List<Document> documents) {
+    if (documents.isEmpty) return SizedBox.shrink();
+    
+    return Row(
+      children: [
+        Expanded(
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              padding: const EdgeInsets.symmetric(vertical: 15),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              // Add disabledBackgroundColor for when button is disabled
+              disabledBackgroundColor: Colors.green.withOpacity(0.5),
+            ),
+            onPressed: _isProcessing 
+                ? null 
+                : () async {
+                    final documentId = documents[0].id;
+                    await handleApproveReject(documentId, true, context);
+                  },
+            child: const Text(
+              'Approve',
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              padding: const EdgeInsets.symmetric(vertical: 15),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              // Add disabledBackgroundColor for when button is disabled
+              disabledBackgroundColor: Colors.red.withOpacity(0.5),
+            ),
+            onPressed: _isProcessing 
+                ? null 
+                : () async {
+                    final documentId = documents[0].id;
+                    await handleApproveReject(documentId, false, context);
+                  },
+            child: const Text(
+              'Reject',
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Future<void> _openDocument(String url) async {
-    if (await canLaunch(url)) {
-      await launch(url);
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
     } else {
       throw 'Could not open document';
     }
