@@ -41,7 +41,7 @@ class DonorCard extends StatelessWidget {
                       style: theme.textTheme.headlineMedium,
                     ),
                   ),
-                  if (donor.isVerified == true)
+                  if (donor.isVerifiedDocument == true)
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(

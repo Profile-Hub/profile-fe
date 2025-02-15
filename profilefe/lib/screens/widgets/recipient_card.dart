@@ -41,7 +41,7 @@ class RecipientCard extends StatelessWidget {
                       style: theme.textTheme.headlineMedium,
                     ),
                   ),
-                  if (recipient.isVerified == true)
+                  if (recipient.isVerifiedDocument == true)
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(

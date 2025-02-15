@@ -7,6 +7,7 @@ class Recipient {
   final String? middleName;
   final int? age;
   bool? isVerified;
+  bool? isVerifiedDocument;
   final String? gender;
   final String? city;
   final String? state;
@@ -21,6 +22,7 @@ class Recipient {
     this.middleName,
     this.age,
     this.isVerified,
+    this.isVerifiedDocument,
     this.gender,
     this.city,
     this.state,
@@ -38,6 +40,7 @@ class Recipient {
       middleName: json['middleName'],
       age: json['age'],
       isVerified:json['isVerified'],
+      isVerifiedDocument:json['isVerifiedDocument'],
       gender: json['gender'],
       city: json['city'],
       state: json['state'],
