@@ -870,9 +870,12 @@ Future<void> _selectImage() async {
                       width: double.infinity,
                       height: 50,
                       child: ElevatedButton(
-                        onPressed: () {
-                          // Implement change password navigation
-                        },
+                       onPressed: () {
+                       GoRouter.of(context).push(
+                       Routes.changePassword, 
+                       extra: widget.user,   
+                         );
+                           },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue,
                           foregroundColor: Colors.white,
@@ -886,9 +889,9 @@ Future<void> _selectImage() async {
                       height: 50,
                       child: ElevatedButton(
                         onPressed: () {
-                         GoRouter.of(context).push(
-                        Routes.changePassword,  
-                           );
+                        //  GoRouter.of(context).push(
+                        // Routes.changePassword,  
+                        //    );
                           },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue,
