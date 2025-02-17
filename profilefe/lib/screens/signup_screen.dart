@@ -43,7 +43,8 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _isEmailVerified = false;
   bool _isOtpSent = false;
   String? _otpError;
-  int _resendTimer = 0;
+  Timer? _timer;
+  int _countdown = 120; 
 
   // Form field controllers
   final TextEditingController _firstNameController = TextEditingController();
@@ -60,6 +61,19 @@ class _SignupScreenState extends State<SignupScreen> {
     _loadCountries();
   }
 
+  
+ 
+  void startTimer() {
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      setState(() {
+        if (_countdown > 0) {
+          _countdown--;
+        } else {
+          _timer?.cancel();
+        }
+      });
+    });
+  }
   
   Future<void> _loadCountries() async {
     setState(() => _isLoading = true);
@@ -109,7 +123,7 @@ class _SignupScreenState extends State<SignupScreen> {
       _showError('Please enter a valid email address');
       return;
     }
-
+ 
     setState(() {
       _isLoading = true;
       _otpError = null;
@@ -176,7 +190,6 @@ Future<void> signupUser() async {
     }
   }
 }
-
   Future<void> _verifyOtp() async {
      String otp = _otpControllers.map((controller) => controller.text).join();
 
@@ -290,20 +303,29 @@ Widget _buildEmailVerificationSection() {
             child: Text(localizations.verify_OTP),
           ),
         ),
-
-        const SizedBox(height: 16),
-        if (_resendTimer > 0)
-          Text(
-            'Resend OTP in $_resendTimer seconds',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: AppTheme.textGrey,
-            ),
-          )
-        else
-          TextButton(
-            onPressed: _isLoading ? null : _resendOtp,
-            child: Text(localizations.resend_otp),
+            SizedBox(height: 24),
+            
+            // Resend Timer
+           GestureDetector(
+  onTap: _countdown == 0 ? _resendOtp : null,
+  child: RichText(
+    text: TextSpan(
+      text: localizations.resend_otp,
+      style: TextStyle(
+        color: _countdown == 0 ? Colors.red : Colors.black87, // Change color conditionally
+      ),
+      children: [
+        TextSpan(
+          text: 'in $_countdown s',
+          style: TextStyle(
+            color: Color(0xFF6C3BF9),
+            fontWeight: FontWeight.bold,
           ),
+        ),
+      ],
+    ),
+  ),
+),
       ],
 
       if (_otpError != null)
@@ -318,20 +340,9 @@ Widget _buildEmailVerificationSection() {
   );
 }
 
-void _startResendTimer() {
-  _resendTimer = 60; // Set initial timer value
-  Timer.periodic(Duration(seconds: 1), (timer) {
-    if (_resendTimer > 0) {
-      setState(() => _resendTimer--);
-    } else {
-      timer.cancel();
-    }
-  });
-}
-
 void _resendOtp() {
   _sendOtp(); // Reuse send OTP logic
-  _startResendTimer(); // Restart timer after resend
+  startTimer(); // Restart timer after resend
 }
 
 
