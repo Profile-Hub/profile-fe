@@ -13,6 +13,7 @@ import '../services/geolocatorservice.dart';
 import './Reciptent_screen.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../theme.dart';
+import '../services/subscription_service.dart';
 
 class HomeScreen extends StatefulWidget {
   final User user;
@@ -28,20 +29,43 @@ class _HomeScreenState extends State<HomeScreen> {
   final AuthService _authService = AuthService();
   final ProfileCompletionService _profileCompletionService = ProfileCompletionService();
   final GeolocatorService _geolocatorService = GeolocatorService();
+  final SubscriptionService _subscriptionService = SubscriptionService();
   late User currentUser;
   final unreadMessagesCount = 0;
+  int userCredits = 0;
+  bool isLoadingCredits = true;
 
   @override
   void initState() {
     super.initState();
     currentUser = widget.user;
     _updateUserLocation();
+    if (currentUser.usertype == 'recipient') {
+      _loadCreditStatus();
+    }
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _checkProfileCompletion();
+  }
+  Future<void> _loadCreditStatus() async {
+    try {
+      final creditStatus = await _subscriptionService.getCreditStatus(context);
+      if (mounted) {
+        setState(() {
+          userCredits = creditStatus.credit;
+          isLoadingCredits = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          isLoadingCredits = false;
+        });
+      }
+    }
   }
  Future<void> _updateUserLocation() async {
     try {
@@ -382,6 +406,76 @@ Widget build(BuildContext context) {
       backgroundColor: AppTheme.backgroundColor,
       elevation: 0,
       actions: [
+        if (currentUser.usertype == 'recipient')
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFF3B82F6).withOpacity(0.1),
+                    Color(0xFF3B82F6).withOpacity(0.2),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: Color(0xFF3B82F6).withOpacity(0.2),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Color(0xFF3B82F6),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.stars_rounded,
+                      size: 14,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  if (isLoadingCredits)
+                    SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3B82F6)),
+                      ),
+                    )
+                  else
+                    Row(
+                      children: [
+                        Text(
+                          '$userCredits',
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            color: Color(0xFF3B82F6),
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Credits',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: Color(0xFF3B82F6),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
+            ),
+          ),
         if (currentUser.usertype == 'donor' || currentUser.usertype == 'recipient')
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
