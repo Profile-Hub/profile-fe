@@ -93,6 +93,8 @@ class AuthService {
       return false;
     } catch (e) {
       print('Logout error: $e');
+      await _storage.delete(key: 'auth_token');
+      await _storage.deleteAll();
       return false;
     }
   }
