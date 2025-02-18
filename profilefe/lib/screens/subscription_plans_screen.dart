@@ -127,7 +127,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
     SubscriptionPlan(
       id: 'basic',
       name: localizations.basicPlan,
-      price: 1,
+      price: 10000,
       contacts: 3,
       features: [
         '3 ${localizations.contacts}',
