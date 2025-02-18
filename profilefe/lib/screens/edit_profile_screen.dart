@@ -883,23 +883,23 @@ Future<void> _selectImage() async {
                         child:  Text(localization.changePassword),
                       ),
                     ),
-                    const SizedBox(height: 10),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: () {
-                        //  GoRouter.of(context).push(
-                        // Routes.changePassword,  
-                        //    );
-                          },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                           foregroundColor: Colors.white,
-                        ),
-                        child: Text(localization.changePhoneNumber),
-                      ),
-                    ),
+                    // const SizedBox(height: 10),
+                    // SizedBox(
+                    //   width: double.infinity,
+                    //   height: 50,
+                    //   child: ElevatedButton(
+                    //     onPressed: () {
+                    //     //  GoRouter.of(context).push(
+                    //     // Routes.changePassword,  
+                    //     //    );
+                    //       },
+                    //     style: ElevatedButton.styleFrom(
+                    //       backgroundColor: Colors.blue,
+                    //        foregroundColor: Colors.white,
+                    //     ),
+                    //     child: Text(localization.changePhoneNumber),
+                    //   ),
+                    // ),
                   ],
                 ),
               ],
