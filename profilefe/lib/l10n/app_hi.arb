@@ -371,5 +371,90 @@
    "male": "पुरुष",
   "female": "महिला",
   "other": "अन्य",
-  "mendatory_document":"आधार कार्ड अनिवार्य है. अन्य दस्तावेज़ वैकल्पिक हैं."
+  "mendatory_document":"आधार कार्ड अनिवार्य है. अन्य दस्तावेज़ वैकल्पिक हैं.",
+  "subscriptionStatus": "सदस्यता की स्थिति",
+  "@subscriptionStatus": {
+    "description": "Title for subscription status screen"
+  },
+  
+  "currentPlan": "वर्तमान योजना",
+  "@currentPlan": {
+    "description": "Label for current subscription plan"
+  },
+  
+  "startDate": "आरंभ तिथि",
+  "@startDate": {
+    "description": "Label for subscription start date"
+  },
+  
+  "endDate": "समाप्ति तिथि",
+  "@endDate": {
+    "description": "Label for subscription end date"
+  },
+  
+  "remainingCredits": "शेष क्रेडिट",
+  "@remainingCredits": {
+    "description": "Label for remaining credits"
+  },
+  
+  "upgradeSubscription": "सदस्यता अपग्रेड करें",
+  "@upgradeSubscription": {
+    "description": "Button text for upgrading subscription"
+  },
+  
+  "credits": "क्रेडिट",
+  "@credits": {
+    "description": "Label for credits"
+  },
+  
+  "active": "सक्रिय",
+  "@active": {
+    "description": "Status text for active subscription"
+  },
+  
+  "inactive": "निष्क्रिय",
+  "@inactive": {
+    "description": "Status text for inactive subscription"
+  },
+  
+  "expired": "समाप्त",
+  "@expired": {
+    "description": "Status text for expired subscription"
+  },
+  
+  "subscriptionPlans": "सदस्यता योजनाएं",
+  "@subscriptionPlans": {
+    "description": "Title for subscription plans screen"
+  },
+  
+  "noSubscription": "कोई सक्रिय सदस्यता नहीं",
+  "@noSubscription": {
+    "description": "Message shown when no subscription is active"
+  },
+  
+  "purchaseCredits": "क्रेडिट खरीदें",
+  "@purchaseCredits": {
+    "description": "Button text for purchasing credits"
+  },
+  
+  "creditsLeft": "{count} क्रेडिट शेष",
+  "@creditsLeft": {
+    "description": "Text showing number of credits left",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "42"
+      }
+    }
+  },
+  
+  "subscriptionError": "सदस्यता विवरण लोड करने में असमर्थ",
+  "@subscriptionError": {
+    "description": "Error message when subscription details fail to load"
+  },
+  
+  "renewSubscription": "सदस्यता नवीनीकरण करें",
+  "@renewSubscription": {
+    "description": "Button text for renewing subscription"
+  }
 }

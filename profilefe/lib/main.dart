@@ -32,6 +32,7 @@ import   'screens/DocumentVerify_screen.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'providers/language_provider.dart';
 import 'theme.dart';
+import 'screens/subscriptionStatusScreen.dart';
 
 final secureStorage = FlutterSecureStorage();
 
@@ -227,6 +228,10 @@ void main() async {
           },
         ),
       ),
+      GoRoute(
+      path: Routes.subscriptionStatus,
+      builder: (context, state) => SubscriptionStatusScreen(),
+    ),
       GoRoute(
         path: Routes.changePassword,
         builder: (context, state) => ChangePasswordScreen(),

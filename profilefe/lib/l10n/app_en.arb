@@ -372,6 +372,91 @@
   "male": "Male",
   "female": "Female",
   "other": "Other",
-  "mendatory_document":"Aadhaar card is mandatory. Other documents are optional."
+  "mendatory_document":"Aadhaar card is mandatory. Other documents are optional.",
+  "subscriptionStatus": "Subscription Status",
+  "@subscriptionStatus": {
+    "description": "Title for subscription status screen"
+  },
+  
+  "currentPlan": "Current Plan",
+  "@currentPlan": {
+    "description": "Label for current subscription plan"
+  },
+  
+  "startDate": "Start Date",
+  "@startDate": {
+    "description": "Label for subscription start date"
+  },
+  
+  "endDate": "End Date",
+  "@endDate": {
+    "description": "Label for subscription end date"
+  },
+  
+  "remainingCredits": "Remaining Credits",
+  "@remainingCredits": {
+    "description": "Label for remaining credits"
+  },
+  
+  "upgradeSubscription": "Upgrade Subscription",
+  "@upgradeSubscription": {
+    "description": "Button text for upgrading subscription"
+  },
+  
+  "credits": "Credits",
+  "@credits": {
+    "description": "Label for credits"
+  },
+  
+  "active": "Active",
+  "@active": {
+    "description": "Status text for active subscription"
+  },
+  
+  "inactive": "Inactive",
+  "@inactive": {
+    "description": "Status text for inactive subscription"
+  },
+  
+  "expired": "Expired",
+  "@expired": {
+    "description": "Status text for expired subscription"
+  },
+  
+  "subscriptionPlans": "Subscription Plans",
+  "@subscriptionPlans": {
+    "description": "Title for subscription plans screen"
+  },
+  
+  "noSubscription": "No Active Subscription",
+  "@noSubscription": {
+    "description": "Message shown when no subscription is active"
+  },
+  
+  "purchaseCredits": "Purchase Credits",
+  "@purchaseCredits": {
+    "description": "Button text for purchasing credits"
+  },
+  
+  "creditsLeft": "{count} Credits Left",
+  "@creditsLeft": {
+    "description": "Text showing number of credits left",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "42"
+      }
+    }
+  },
+  
+  "subscriptionError": "Unable to load subscription details",
+  "@subscriptionError": {
+    "description": "Error message when subscription details fail to load"
+  },
+  
+  "renewSubscription": "Renew Subscription",
+  "@renewSubscription": {
+    "description": "Button text for renewing subscription"
+  }
 }
 

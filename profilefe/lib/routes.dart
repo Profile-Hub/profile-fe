@@ -22,4 +22,5 @@ class Routes {
   static const String senderscreen='/senderscreen';
   static const String recipientMssgscreen='/recipientMssgscreen';
   static const String selectedDonorsScreen ='/selectedDonorsScreen';
+  static const String subscriptionStatus = '/subscription-status';
 }

@@ -127,7 +127,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
     SubscriptionPlan(
       id: 'basic',
       name: localizations.basicPlan,
-      price: 10000,
+      price: 1,
       contacts: 3,
       features: [
         '3 ${localizations.contacts}',
@@ -235,7 +235,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
   }
   void _handleBack(BuildContext context) {
     // Navigate to home or another specific route
-    context.go(Routes.home); // Replace 'Routes.home' with your desired route
+    context.go(Routes.home); 
   }
 
 

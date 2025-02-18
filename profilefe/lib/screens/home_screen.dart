@@ -14,6 +14,7 @@ import './Reciptent_screen.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../theme.dart';
 import '../services/subscription_service.dart';
+import './subscriptionStatusScreen.dart';
 
 class HomeScreen extends StatefulWidget {
   final User user;
@@ -583,6 +584,18 @@ Widget build(BuildContext context) {
               }
             },
           ),
+          if (currentUser.usertype == 'recipient')
+            ListTile(
+              leading: Icon(Icons.card_membership, color: AppTheme.textDark),
+              title: Text(
+                localization.subscriptionStatus,
+                style: theme.textTheme.bodyLarge,
+              ),
+              onTap: () {
+                GoRouter.of(context).pop();
+                GoRouter.of(context).go(Routes.subscriptionStatus);
+              },
+            ),
           if (currentUser.usertype == 'recipient')
             ListTile(
               leading: Icon(Icons.people, color: AppTheme.textDark),
