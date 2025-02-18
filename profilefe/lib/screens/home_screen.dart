@@ -325,7 +325,7 @@ void _showProfileCompletionDialog(List<String> missingFields, List<String> missi
          GoRouter.of(context).pop();
       }
 
-      if (success) {
+      if (success|| ! success) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.remove('authToken');
         
