@@ -1,24 +1,30 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../models/login_response.dart';
-import '../models/user.dart';
-import '../server_config.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:async';
 import 'dart:io' if (dart.library.html) 'dart:html';
 import 'package:universal_io/io.dart';
-import '../providers/user_provider.dart';
-import 'package:flutter/material.dart';
+import '../models/login_response.dart';
+import '../models/user.dart';
+import '../server_config.dart';
 
 class AuthService {
   static final AuthService _instance = AuthService._internal();
-  static final _storage = FlutterSecureStorage();
+  static const _storage = FlutterSecureStorage();
+  
   String? _token;
   User? _user;
-
-   final GoogleSignIn _googleSignIn = GoogleSignIn(
+  Timer? _refreshTimer;
+  
+  static const _tokenKey = 'auth_token';
+  static const _refreshTokenKey = 'refresh_token';
+  static const _userDataKey = 'user_data';
+  static const _userEmailKey = 'user_email';
+  static const _userNameKey = 'user_name';
+  
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
     clientId: kIsWeb 
         ? '989849803787-ulkqn66upm45sn4euasbdbue60qe506r.apps.googleusercontent.com'
         : null,
@@ -35,28 +41,36 @@ class AuthService {
     return _instance;
   }
 
-  AuthService._internal();
+  AuthService._internal() {
+    // Initialize refresh timer
+    _initializeTokenRefresh();
+  }
+
+  void _initializeTokenRefresh() {
+    // Refresh token every 45 minutes
+    _refreshTimer?.cancel();
+    _refreshTimer = Timer.periodic(const Duration(minutes: 45), (_) {
+      refreshToken();
+    });
+  }
 
   Future<LoginResponse?> login(String email, String password) async {
-    final url = Uri.parse('${ServerConfig.baseUrl}/loginuser');
-    final headers = {'Content-Type': 'application/json'};
-    final body = jsonEncode({
-      'email': email,
-      'password': password,
-    });
-
     try {
-      final response = await http.post(url, headers: headers, body: body);
+      final response = await http.post(
+        Uri.parse('${ServerConfig.baseUrl}/loginuser'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'password': password,
+        }),
+      );
+
       if (response.statusCode == 200) {
-        // print('Response body: ${response.body}');
-        final jsonResponse = jsonDecode(response.body);
-        final loginResponse = LoginResponse.fromJson(jsonResponse);
+        final loginResponse = LoginResponse.fromJson(jsonDecode(response.body));
         
         if (loginResponse.success) {
-          _token = loginResponse.token;
-         final userJson = jsonEncode(loginResponse.user.toJson()); 
-          await _storage.write(key: 'auth_token', value: _token);
-          await _storage.write(key: 'user_data', value: userJson);
+          await _saveAuthData(loginResponse);
+          _initializeTokenRefresh();
         }
         return loginResponse;
       }
@@ -68,53 +82,51 @@ class AuthService {
   }
 
   Future<bool> logout() async {
-    await _loadToken(); 
-    print('Token before logout: $_token');
-    if (_token == null) {
-      print('No token available for logout.');
-      return false;
-    }
-
-    final url = Uri.parse('${ServerConfig.baseUrl}/logoutuser');
-    final headers = {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $_token',
-    };
-
     try {
-      final response = await http.delete(url, headers: headers);
-      print('Logout response: ${response.body}');
-
-      if (response.statusCode == 200) {
-        _token = null;
-        await _storage.delete(key: 'auth_token');
+      await _loadToken();
+      
+      if (_token == null) {
+        await _clearAuthData();
         return true;
       }
-      return false;
+
+      final response = await http.delete(
+        Uri.parse('${ServerConfig.baseUrl}/logoutuser'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $_token',
+        },
+      );
+
+      await _clearAuthData();
+      return response.statusCode == 200;
     } catch (e) {
       print('Logout error: $e');
-      await _storage.delete(key: 'auth_token');
-      await _storage.deleteAll();
+      await _clearAuthData();
       return false;
     }
   }
 
   Future<void> _loadToken() async {
-    _token = await _storage.read(key: 'auth_token');
+    _token = await _storage.read(key: _tokenKey);
   }
 
- Future<Map<String, dynamic>> changePassword({
+  Future<Map<String, dynamic>> changePassword({
     required String oldPassword,
     required String newPassword,
     required String confirmPassword,
   }) async {
-     await _loadToken();
-    final url = Uri.parse('${ServerConfig.baseUrl}/update-password');
+    await _loadToken();
+    
+    if (_token == null) {
+      throw Exception('Not authenticated');
+    }
 
     final response = await http.put(
-      url,
-      headers: {'Content-Type': 'application/json',
-                'Authorization': 'Bearer $_token',
+      Uri.parse('${ServerConfig.baseUrl}/update-password'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $_token',
       },
       body: jsonEncode({
         'oldPassword': oldPassword,
@@ -130,143 +142,127 @@ class AuthService {
     }
   }
 
+  Future<void> refreshToken() async {
+    final storedRefreshToken = await _storage.read(key: _refreshTokenKey);
 
-Future<LoginResponse?> signInWithGoogle() async {
+    if (storedRefreshToken == null) {
+      print('No refresh token found.');
+      return;
+    }
+
     try {
-      // Sign in with Google
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) {
-        print('Google Sign In was cancelled by user');
-        return null;
-      }
+      final response = await http.post(
+        Uri.parse('${ServerConfig.baseUrl}/refresh-token'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'refreshToken': storedRefreshToken}),
+      );
 
-      // Get authentication details
+      if (response.statusCode == 200) {
+        final jsonResponse = jsonDecode(response.body);
+        await _storage.write(key: _tokenKey, value: jsonResponse['auth_token']);
+        await _storage.write(key: _refreshTokenKey, value: jsonResponse['refresh_token']);
+        _token = jsonResponse['auth_token'];
+      } else {
+        print('Failed to refresh token: ${response.body}');
+      }
+    } catch (e) {
+      print('Error refreshing token: $e');
+    }
+  }
+
+  Future<LoginResponse?> signInWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) return null;
+
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
       
-      // Get user information using the access token
       final userInfoResponse = await http.get(
         Uri.parse('https://people.googleapis.com/v1/people/me?personFields=names,emailAddresses,photos'),
-        headers: {
-          'Authorization': 'Bearer ${googleAuth.accessToken}',
-        },
+        headers: {'Authorization': 'Bearer ${googleAuth.accessToken}'},
       );
 
       if (userInfoResponse.statusCode != 200) {
-        print('Failed to get user info: ${userInfoResponse.body}');
-        return null;
+        throw Exception('Failed to get user info: ${userInfoResponse.body}');
       }
 
       final userInfo = json.decode(userInfoResponse.body);
+      final payload = _createGooglePayload(googleAuth, userInfo);
 
-      // Prepare the payload for your backend
-      final Map<String, dynamic> payload = {
-        'accessToken': googleAuth.accessToken,
-        'idToken': googleAuth.idToken, 
-        'platform': kIsWeb ? 'web' : Platform.operatingSystem,
-        'email': _extractEmail(userInfo),
-        'displayName': _extractDisplayName(userInfo),
-        'photoUrl': _extractPhotoUrl(userInfo),
-      };
-
-      // Make the backend API call
-      final url = Uri.parse('${ServerConfig.baseUrl}/google-login');
       final response = await http.post(
-        url,
+        Uri.parse('${ServerConfig.baseUrl}/google-login'),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
         body: jsonEncode(payload),
-      ).timeout(
-        const Duration(seconds: 30),
-        onTimeout: () {
-          throw TimeoutException('Server request timed out');
-        },
-      );
+      ).timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
-        final jsonResponse = jsonDecode(response.body);
-        final loginResponse = LoginResponse.fromJson(jsonResponse);
-        final userJson = jsonEncode(loginResponse.user.toJson()); 
-          await _storage.write(key: 'user_data', value: userJson);
-
+        final loginResponse = LoginResponse.fromJson(jsonDecode(response.body));
+        
         if (loginResponse.success) {
-          // Store the authentication token
-          _token = loginResponse.token;
-          await _storage.write(
-            key: 'auth_token',
-            value: _token,
-            iOptions: IOSOptions(
-              accessibility: KeychainAccessibility.first_unlock,
-            ),
-            aOptions: AndroidOptions(
-              encryptedSharedPreferences: true,
-            ),
-          );
-
-          // Store user information
-          await _storage.write(key: 'user_email', value: payload['email']);
-          await _storage.write(key: 'user_name', value: payload['displayName']);
-          
-          return loginResponse;
+          await _saveGoogleAuthData(loginResponse, payload);
+          _initializeTokenRefresh();
         }
+        return loginResponse;
       }
-      
-      print('Backend API error: ${response.statusCode} - ${response.body}');
       return null;
-
-    } catch (e, stackTrace) {
+    } catch (e) {
       print('Google login error: $e');
-      print('Stack trace: $stackTrace');
       return null;
     }
   }
 
-  // Helper methods to safely extract user information
+  Map<String, dynamic> _createGooglePayload(
+    GoogleSignInAuthentication auth,
+    Map<String, dynamic> userInfo,
+  ) {
+    return {
+      'accessToken': auth.accessToken,
+      'idToken': auth.idToken,
+      'platform': kIsWeb ? 'web' : Platform.operatingSystem,
+      'email': _extractEmail(userInfo),
+      'displayName': _extractDisplayName(userInfo),
+      'photoUrl': _extractPhotoUrl(userInfo),
+    };
+  }
+
   String _extractEmail(Map<String, dynamic> userInfo) {
-    try {
-      return userInfo['emailAddresses']?[0]?['value'] ?? '';
-    } catch (e) {
-      print('Error extracting email: $e');
-      return '';
-    }
+    return userInfo['emailAddresses']?.first['value'] ?? '';
   }
 
   String _extractDisplayName(Map<String, dynamic> userInfo) {
-    try {
-      return userInfo['names']?[0]?['displayName'] ?? '';
-    } catch (e) {
-      print('Error extracting display name: $e');
-      return '';
-    }
+    return userInfo['names']?.first['displayName'] ?? '';
   }
 
   String _extractPhotoUrl(Map<String, dynamic> userInfo) {
-    try {
-      return userInfo['photos']?[0]?['url'] ?? '';
-    } catch (e) {
-      print('Error extracting photo URL: $e');
-      return '';
-    }
+    return userInfo['photos']?.first['url'] ?? '';
   }
 
- 
   Future<void> signOut() async {
     try {
       await _googleSignIn.signOut();
-      await logout(); // Your existing logout method
+      await logout();
     } catch (e) {
       print('Error signing out: $e');
     }
   }
 
-
   Future<http.Response?> makeAuthenticatedRequest(
-      String endpoint, String method, {Map<String, dynamic>? body}) async {
-    await _loadToken(); 
+    String endpoint,
+    String method, {
+    Map<String, dynamic>? body,
+  }) async {
+    await _loadToken();
+    
     if (_token == null) {
-      print('No token available for authenticated request.');
-      return null;
+      await refreshToken();
+      await _loadToken();
+      
+      if (_token == null) {
+        throw Exception('Authentication required');
+      }
     }
 
     final url = Uri.parse('${ServerConfig.baseUrl}$endpoint');
@@ -276,20 +272,63 @@ Future<LoginResponse?> signInWithGoogle() async {
     };
 
     try {
-      if (method == 'GET') {
-        return await http.get(url, headers: headers);
-      } else if (method == 'POST') {
-        return await http.post(url, headers: headers, body: jsonEncode(body));
-      } else if (method == 'PUT') {
-        return await http.put(url, headers: headers, body: jsonEncode(body));
-      } else if (method == 'DELETE') {
-        return await http.delete(url, headers: headers);
-      } else {
-        throw UnsupportedError('Unsupported HTTP method: $method');
+      switch (method) {
+        case 'GET':
+          return await http.get(url, headers: headers);
+        case 'POST':
+          return await http.post(url, headers: headers, body: jsonEncode(body));
+        case 'PUT':
+          return await http.put(url, headers: headers, body: jsonEncode(body));
+        case 'DELETE':
+          return await http.delete(url, headers: headers);
+        default:
+          throw UnsupportedError('Unsupported HTTP method: $method');
       }
     } catch (e) {
       print('Error making authenticated request: $e');
       return null;
     }
+  }
+
+  Future<void> _saveAuthData(LoginResponse loginResponse) async {
+    _token = loginResponse.token;
+    final userJson = jsonEncode(loginResponse.user.toJson());
+    
+    await _storage.write(key: _tokenKey, value: _token);
+    await _storage.write(key: _userDataKey, value: userJson);
+  }
+
+  Future<void> _saveGoogleAuthData(
+    LoginResponse loginResponse,
+    Map<String, dynamic> payload,
+  ) async {
+    _token = loginResponse.token;
+    final userJson = jsonEncode(loginResponse.user.toJson());
+    
+    await _storage.write(
+      key: _tokenKey,
+      value: _token,
+      iOptions: const IOSOptions(
+        accessibility: KeychainAccessibility.first_unlock,
+      ),
+      aOptions: const AndroidOptions(
+        encryptedSharedPreferences: true,
+      ),
+    );
+    await _storage.write(key: _userDataKey, value: userJson);
+    await _storage.write(key: _userEmailKey, value: payload['email']);
+    await _storage.write(key: _userNameKey, value: payload['displayName']);
+  }
+
+  Future<void> _clearAuthData() async {
+    _token = null;
+    _user = null;
+    _refreshTimer?.cancel();
+    await _storage.deleteAll();
+  }
+
+  // Cleanup method to be called when the app is closed
+  void dispose() {
+    _refreshTimer?.cancel();
   }
 }
